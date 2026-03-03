@@ -132,7 +132,6 @@ const Navbar = ({ theme, toggleTheme }) => {
               </div>
             </div>
             <MobileLink to="/about" onClick={() => setIsOpen(false)}>About Us</MobileLink>
-            <MobileLink to="/contact" onClick={() => setIsOpen(false)}>Contact</MobileLink>
             
             {/* Mobile Login Button */}
             <a 
