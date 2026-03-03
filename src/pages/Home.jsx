@@ -6,14 +6,16 @@ import {
   Award, Zap, Video, CheckCircle, Send,
   GraduationCap, Target, Phone, Mail,
   Youtube, MessageCircle, Instagram, Twitter, ChevronRight,
-  ChevronLeft, Sparkles, BookMarked, FileText, Brain,
-  PenTool, Landmark, Scroll, Smartphone, DownloadCloud, Play,
-  Apple, Compass, MapPin, Copy
+  ChevronLeft, Sparkles, BookMarked, Brain,
+  PenTool, Smartphone, DownloadCloud, Play,
+  Apple, Compass, MapPin, Copy, ExternalLink, Flame, ShieldCheck, Clock
 } from 'lucide-react';
 
 // --- ANIMATED COUNTER COMPONENT ---
 const Counter = ({ value, suffix = "+" }) => {
-  const numericValue = parseInt(value.replace(/,/g, ''), 10);
+  const safeValue = String(value).replace(/,/g, '');
+  const numericValue = parseInt(safeValue, 10) || 0;
+  
   const spring = useSpring(0, { mass: 1, stiffness: 50, damping: 20, duration: 2000 });
   const displayValue = useTransform(spring, (current) => Math.round(current).toLocaleString());
 
@@ -29,15 +31,15 @@ const Counter = ({ value, suffix = "+" }) => {
   );
 };
 
-// --- MARQUEE COMPONENT ---
-const Marquee = ({ children, direction = "left", speed = 25 }) => {
+// --- MARQUEE COMPONENT FOR TEXT ---
+const Marquee = ({ children, direction = "left", speed = 25, pauseOnHover = false }) => {
   return (
-    <div className="flex overflow-hidden">
+    <div className={`flex overflow-hidden ${pauseOnHover ? 'group' : ''}`}>
       <motion.div
         initial={{ x: direction === "left" ? 0 : "-100%" }}
         animate={{ x: direction === "left" ? "-100%" : 0 }}
         transition={{ duration: speed, repeat: Infinity, ease: "linear" }}
-        className="flex shrink-0 gap-8"
+        className="flex shrink-0 gap-8 group-hover:[play-state:paused]"
       >
         {children}
         {children}
@@ -46,7 +48,7 @@ const Marquee = ({ children, direction = "left", speed = 25 }) => {
         initial={{ x: direction === "left" ? 0 : "-100%" }}
         animate={{ x: direction === "left" ? "-100%" : 0 }}
         transition={{ duration: speed, repeat: Infinity, ease: "linear" }}
-        className="flex shrink-0 gap-8"
+        className="flex shrink-0 gap-8 group-hover:[play-state:paused]"
       >
         {children}
         {children}
@@ -57,7 +59,7 @@ const Marquee = ({ children, direction = "left", speed = 25 }) => {
 
 // --- ANIMATED TEXT COMPONENT ---
 const AnimatedText = ({ text, className }) => {
-  const words = text.split(" ");
+  const words = text ? text.split(" ") : [];
   return (
     <motion.span className={className}>
       {words.map((word, i) => (
@@ -85,7 +87,7 @@ const FloatingElement = ({ children, delay = 0, duration = 3 }) => (
   </motion.div>
 );
 
-// --- HOLI COLOR BURST (Powder blowing up) ---
+// --- HOLI COLOR BURST ---
 const ColorBurst = ({ x, y, colorClass, delay }) => {
   return (
     <div className="absolute pointer-events-none" style={{ left: x, top: y }}>
@@ -107,7 +109,7 @@ const ColorBurst = ({ x, y, colorClass, delay }) => {
   );
 };
 
-// --- ANIMATED PICHKARI (Water Gun) ---
+// --- ANIMATED PICHKARI ---
 const AnimatedPichkari = ({ top, left, right, bottom, rotate, colorClass, waterColorClass, delay }) => (
   <motion.div
     className="absolute pointer-events-none flex items-center drop-shadow-xl"
@@ -139,11 +141,9 @@ const AnimatedPichkari = ({ top, left, right, bottom, rotate, colorClass, waterC
 
 const Home = () => {
   const heroRef = useRef(null);
-  const scrollRef = useRef(null);
-
+  const testimonialScrollRef = useRef(null);
+  const courseScrollRef = useRef(null);
   const [copied, setCopied] = useState(false);
-  // State to track the focused (center) card in the slider
-  const [activeIndex, setActiveIndex] = useState(1);
 
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -153,65 +153,60 @@ const Home = () => {
   const y = useTransform(scrollYProgress, [0, 1], [0, 200]);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
-  // --- Center Focused Slider Logic ---
-  const handleScroll = () => {
-    if (!scrollRef.current) return;
-    const container = scrollRef.current;
-    // Find the center line of the visible container
-    const scrollCenter = container.scrollLeft + container.clientWidth / 2;
-    
-    let closestIdx = 0;
-    let minDistance = Infinity;
-    
-    // Select all cards with the 'testimonial-card' class
-    const cards = container.querySelectorAll('.testimonial-card');
-    cards.forEach((child, idx) => {
-      const childCenter = child.offsetLeft + child.clientWidth / 2;
-      const distance = Math.abs(scrollCenter - childCenter);
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestIdx = idx;
+  // --- COURSE SLIDER LOGIC ---
+  const scrollCourses = (direction) => {
+    if (courseScrollRef.current) {
+      const container = courseScrollRef.current;
+      const scrollAmount = window.innerWidth < 768 ? 320 : 400;
+      if (direction === 'right') {
+        container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      } else {
+        container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
       }
-    });
-    
-    if (closestIdx !== activeIndex) {
-      setActiveIndex(closestIdx);
     }
   };
 
-  // Automatically scroll to the 2nd card on mount so the slider starts focused
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (scrollRef.current) {
-        const cards = scrollRef.current.querySelectorAll('.testimonial-card');
-        if (cards.length > 1) {
-          const secondCard = cards[1];
-          const scrollPos = secondCard.offsetLeft - (scrollRef.current.clientWidth / 2) + (secondCard.clientWidth / 2);
-          scrollRef.current.scrollTo({ left: scrollPos, behavior: 'smooth' });
+  // --- TESTIMONIAL SLIDER LOGIC (Manual with looping effect) ---
+  const scrollTestimonials = (direction) => {
+    if (testimonialScrollRef.current) {
+      const container = testimonialScrollRef.current;
+      const scrollAmount = window.innerWidth < 768 ? 320 : 400; 
+      
+      if (direction === 'right') {
+        // If near the end, loop back to the start
+        if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 10) {
+          container.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+      } else {
+        // If near the start, loop to the end
+        if (container.scrollLeft <= 10) {
+          container.scrollTo({ left: container.scrollWidth, behavior: 'smooth' });
+        } else {
+          container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
         }
       }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const scrollTestimonials = (direction) => {
-    if (scrollRef.current) {
-      const container = scrollRef.current;
-      const cards = container.querySelectorAll('.testimonial-card');
-      if (!cards.length) return;
-      
-      const cardWidth = cards[0].clientWidth;
-      const gap = 24; // 24px is roughly gap-6
-      const scrollAmount = cardWidth + gap;
-      
-      container.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
     }
   };
 
-  const handleCopyOrgCode = () => {
-    navigator.clipboard.writeText('KEDVTR');
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopyOrgCode = async () => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText('KEDVTR');
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = 'KEDVTR';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        textArea.remove();
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy', err);
+    }
   };
 
   const fadeInUp = {
@@ -229,7 +224,7 @@ const Home = () => {
     visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } }
   };
 
-  // 10 Testimonials - No AIR Ranks
+  // --- HARDCODED TESTIMONIALS ---
   const testimonials = [
     { name: "Vaishali", rank: "Prelims Cleared", text: "Cleared Prelims with your support! I am really enjoying the MahaGranth lectures; the content is absolutely top-notch and exam-oriented.", avatar: "V" },
     { name: "Harshita", rank: "Mentorship Student", text: "This mentorship group genuinely helped me focus better on my studies despite a busy schedule. The daily tasks and supportive space have kept me highly consistent.", avatar: "H" },
@@ -241,6 +236,45 @@ const Home = () => {
     { name: "Uttera Singh R.", rank: "UPPCS Aspirant", text: "The teaching methodology is so impactful and engaging that I literally recall and revise the concepts in my sleep! Truly an unforgettable learning experience.", avatar: "UR" },
     { name: "Shrishti", rank: "Foundation Student", text: "The best part is how easily I understand every single concept. The faculty's ability to explain complex subjects, especially History, is simply unmatched.", avatar: "S" },
     { name: "Supriya Upadhyay", rank: "UPPCS Aspirant", text: "The syllabus is covered in such a crisp, concise manner. My PYQ answer writing has improved immensely, and I can now generate relevant points within the time limit.", avatar: "SU" }
+  ];
+
+  // --- FEATURED COURSES ---
+  const featuredCourses = [
+    { 
+      id: "upsc-2", category: "UPSC Prelims", title: "PYQ Reverse Engineering", 
+      desc: "Master the art of decoding previous year questions to predict future exam patterns.", 
+      price: "Explore", oldPrice: "Premium", rating: "4.8", students: "1.8k+", duration: "Self Paced", 
+      img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2F1371c1ec-703b-4fcc-a4e7-3234da55c3e9.png&w=384&q=75", 
+      link: "https://www.studysmartiaspcs.com/courses/770945?mainCategory=0&subCatList=%5B342039%5D" 
+    },
+    { 
+      id: "upsc-4", category: "UPSC Prelims", title: "NCERT Concept Roots", 
+      desc: "Line-by-line coverage of fundamental NCERTs to build a rock-solid base.", 
+      price: "Explore", oldPrice: "Premium", rating: "4.8", students: "3.2k+", duration: "Foundation", 
+      img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2F9f984dc3-87d2-43cc-ab84-7998ff6ed627.png&w=384&q=75", 
+      link: "https://www.studysmartiaspcs.com/courses/770972?mainCategory=0&subCatList=%5B342039%5D" 
+    },
+    { 
+      id: "uppcs-p-2", category: "UPPCS Prelims", title: "Granth (UPPCS 2025)", 
+      desc: "The ultimate preparatory material tailored for UPPCS 2025 Prelims.", 
+      price: "Explore", oldPrice: "Premium", rating: "4.9", students: "5k+", duration: "Targeted", badge: "Trending",
+      img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2F2721431a-b9e8-44d3-8680-c9d26fd45c1b.jpeg&w=384&q=75", 
+      link: "https://www.studysmartiaspcs.com/courses/721212?mainCategory=0&subCatList=%5B343651%5D" 
+    },
+    { 
+      id: "uppcs-m-1", category: "UPPCS Mains", title: "MahaGranth", 
+      desc: "The definitive Mains coverage batch. Deep dive into all GS papers with answer writing.", 
+      price: "Explore", oldPrice: "Premium", rating: "4.9", students: "2.3k+", duration: "Mains Specific", badge: "Flagship", 
+      img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2F85b8445d-493a-4902-be09-605ee4cea44f.png&w=384&q=75", 
+      link: "https://www.studysmartiaspcs.com/courses/770999?mainCategory=0&subCatList=%5B343654%5D" 
+    },
+    { 
+      id: "uppcs-p-4", category: "UPPCS Prelims", title: "CAC 3.0", 
+      desc: "Current Affairs Compilation version 3.0 optimized for UPPCS specific events.", 
+      price: "Explore", oldPrice: "Premium", rating: "4.8", students: "2.8k+", duration: "Current Affairs", 
+      img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2F0dea98a0-dc7f-451b-be2f-dc990fd8a4d3.png&w=384&q=75", 
+      link: "https://www.studysmartiaspcs.com/courses/770996?mainCategory=0&subCatList=%5B343651%5D" 
+    }
   ];
 
   return (
@@ -424,21 +458,101 @@ const Home = () => {
         </div>
       </section>
 
-      {/* --- FEATURED COURSES --- */}
+      {/* --- FEATURED COURSES SECTION (EXACT CARD DESIGN FROM COURSES PAGE) --- */}
       <section className="py-24 bg-gradient-to-b from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900 border-y border-slate-100 dark:border-slate-800 relative z-10">
         <div className="container mx-auto px-6">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
-            <div>
-              <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary font-bold text-sm mb-4 tracking-widest uppercase">POPULAR COURSES</span>
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">Our Best Selling Programs</h2>
-              <p className="text-slate-500 dark:text-slate-400 mt-2">Handpicked courses for UPSC & UPPCS preparation</p>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="flex justify-between items-end mb-8">
+            <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white flex items-center gap-4 tracking-tight">
+              <span className="w-2 h-10 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></span>
+              Popular Courses
+            </h2>
+            
+            <div className="hidden md:flex gap-3">
+              <button onClick={() => scrollCourses('left')} className="p-3 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition shadow-sm hover:scale-110 active:scale-95">
+                <ChevronLeft size={24} />
+              </button>
+              <button onClick={() => scrollCourses('right')} className="p-3 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition shadow-sm hover:scale-110 active:scale-95">
+                <ChevronRight size={24} />
+              </button>
             </div>
-            <Link to="/courses" className="mt-4 md:mt-0 px-6 py-3 bg-slate-900 dark:bg-slate-700 text-white rounded-xl font-bold hover:bg-primary dark:hover:bg-primary hover:-translate-y-1 transition-all flex items-center gap-2 shadow-lg">
-              View All Courses <ChevronRight size={18} />
-            </Link>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center py-12">
+          <div 
+            ref={courseScrollRef}
+            className="flex overflow-x-auto snap-x snap-mandatory gap-8 pb-12 pt-4 px-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth"
+          >
+            {featuredCourses.map((course, idx) => (
+              <motion.a 
+                key={idx}
+                href={course.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ delay: idx * 0.05, duration: 0.5, ease: "easeOut" }}
+                className="snap-start shrink-0 w-[320px] md:w-[400px] relative group block outline-none"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-primary rounded-[2rem] blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500 -z-10"></div>
+                
+                <div className="h-full flex flex-col bg-white/70 dark:bg-slate-900/60 backdrop-blur-2xl border border-white/40 dark:border-slate-700/50 rounded-[2rem] overflow-hidden shadow-xl hover:shadow-2xl group-hover:-translate-y-1 transition-all duration-300 relative">
+                  
+                  {course.badge && (
+                    <div className="absolute top-4 right-4 z-20 px-3 py-1 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg flex items-center gap-1 bg-gradient-to-r from-orange-500 to-red-500">
+                      <Flame size={12} /> {course.badge}
+                    </div>
+                  )}
+
+                  <div className="relative h-48 overflow-hidden bg-slate-200 dark:bg-slate-800 p-2">
+                     <div className="w-full h-full rounded-[1.5rem] overflow-hidden relative">
+                        <img src={course.img} alt={course.title} className="w-full h-full object-contain bg-white dark:bg-slate-900 transition-transform duration-700 ease-in-out group-hover:scale-110" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity"></div>
+                        <div className="absolute top-3 left-3 px-3 py-1 bg-white/20 backdrop-blur-md rounded-xl text-xs font-bold text-white uppercase tracking-wider border border-white/30 shadow-sm">
+                          {course.category}
+                        </div>
+                        <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center text-white z-10">
+                          <div className="flex items-center gap-1.5 text-yellow-400 text-sm font-bold bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10">
+                            <Star size={14} fill="currentColor"/> {course.rating}
+                          </div>
+                          <div className="flex items-center gap-1.5 text-xs font-medium text-white/90 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10">
+                            <Users size={12}/> {course.students}
+                          </div>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div className="p-6 flex-1 flex flex-col relative z-10 bg-gradient-to-b from-transparent to-white/50 dark:to-slate-900/50">
+                     <h3 className="text-xl md:text-2xl font-extrabold text-slate-900 dark:text-white mb-3 leading-tight transition-colors group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-500">
+                       {course.title}
+                     </h3>
+                     
+                     <div className="flex flex-wrap items-center gap-3 mb-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        <span className="flex items-center gap-1"><ShieldCheck size={14} className="text-emerald-500"/> Verified</span>
+                        <span className="flex items-center gap-1"><Clock size={14} className="text-primary"/> {course.duration}</span>
+                     </div>
+
+                     <p className="text-slate-600 dark:text-slate-300 text-sm mb-8 flex-1 line-clamp-2 leading-relaxed font-medium">
+                       {course.desc}
+                     </p>
+                     
+                     <div className="flex items-center justify-between pt-5 border-t border-slate-200 dark:border-slate-800">
+                        <div className="flex flex-col">
+                          <span className="text-xs text-slate-400 line-through font-semibold mb-0.5">{course.oldPrice}</span>
+                          <span className="text-2xl font-black text-slate-900 dark:text-white leading-none">{course.price}</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm shadow-lg group-hover:bg-primary dark:group-hover:bg-primary group-hover:text-white transition-all">
+                          Enroll Now <ExternalLink size={16} />
+                        </div>
+                     </div>
+                  </div>
+                </div>
+              </motion.a>
+            ))}
+            <div className="shrink-0 w-4 md:w-8"></div>
+          </div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center py-12 mt-8">
             <p className="text-slate-500 dark:text-slate-400 mb-8 text-lg max-w-xl mx-auto">
               Browse our complete catalog of UPSC, UPPCS & CSAT preparation courses - from foundational to advanced levels.
             </p>
@@ -462,10 +576,10 @@ const Home = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { title: "UPSC Civil Services", description: "Holistic coverage of Prelims & Mains with dedicated mentorship.", icon: <Compass size={32} />, color: "bg-blue-500 dark:bg-blue-600", link: "/courses?category=upsc" },
-              { title: "UPPCS PCS", description: "State-specific general studies, current affairs, and comprehensive test series.", icon: <MapPin size={32} />, color: "bg-purple-500 dark:bg-purple-600", link: "/courses?category=uppcs" },
-              { title: "RO / ARO", description: "Focused batches targeting exact syllabus requirements with PYQ analysis.", icon: <BookMarked size={32} />, color: "bg-rose-500 dark:bg-rose-600", link: "/courses?category=ro-aro" },
-              { title: "Answer Writing", description: "Daily mains practice with expert evaluation to boost your score.", icon: <PenTool size={32} />, color: "bg-emerald-500 dark:bg-emerald-600", link: "/courses?category=answer-writing" }
+              { title: "UPSC Civil Services", description: "Holistic coverage of Prelims & Mains with dedicated mentorship.", icon: <Compass size={32} />, color: "bg-blue-500 dark:bg-blue-600", link: "/courses" },
+              { title: "UPPCS PCS", description: "State-specific general studies, current affairs, and comprehensive test series.", icon: <MapPin size={32} />, color: "bg-purple-500 dark:bg-purple-600", link: "/courses" },
+              { title: "RO / ARO", description: "Focused batches targeting exact syllabus requirements with PYQ analysis.", icon: <BookMarked size={32} />, color: "bg-rose-500 dark:bg-rose-600", link: "/courses" },
+              { title: "Answer Writing", description: "Daily mains practice with expert evaluation to boost your score.", icon: <PenTool size={32} />, color: "bg-emerald-500 dark:bg-emerald-600", link: "/courses" }
             ].map((program, idx) => (
               <motion.div key={idx} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.1 }} whileHover={{ y: -8 }} className="group relative p-8 rounded-3xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700 hover:shadow-xl transition-all">
                 <div className={`w-16 h-16 rounded-2xl ${program.color} text-white flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}>{program.icon}</div>
@@ -519,17 +633,6 @@ const Home = () => {
                  </button>
               </div>
 
-              <ul className="space-y-4 mb-10 text-left max-w-md mx-auto lg:mx-0">
-                {['Access to Premium Video Lectures & Notes', 'Offline Downloads to study without internet', 'Daily Quizzes & Current Affairs updates'].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3 text-slate-300">
-                    <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
-                      <CheckCircle size={14} className="text-emerald-400" />
-                    </div>
-                    <span className="font-medium">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <a href="https://aalexis.page.link/BYyH" target="_blank" rel="noopener noreferrer" className="group flex items-center justify-center gap-3 px-8 py-4 bg-white hover:bg-slate-100 text-slate-900 rounded-2xl font-extrabold text-lg transition-all shadow-[0_0_40px_rgba(255,255,255,0.2)] hover:shadow-[0_0_60px_rgba(255,255,255,0.4)] hover:-translate-y-1">
                   <DownloadCloud size={24} className="text-primary group-hover:scale-110 transition-transform" />
@@ -574,10 +677,9 @@ const Home = () => {
         </div>
       </section>
 
-      {/* --- CENTER-FOCUSED TESTIMONIALS SLIDER --- */}
+      {/* --- MANUAL LOOPING TESTIMONIALS SLIDER --- */}
       <section className="py-24 relative z-10 overflow-hidden bg-slate-50 dark:bg-slate-900 border-y border-slate-100 dark:border-slate-800">
         <div className="container mx-auto px-6">
-          
           <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-left max-w-2xl">
               <span className="inline-block px-4 py-2 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 font-bold text-sm mb-4 tracking-widest uppercase">TESTIMONIALS</span>
@@ -585,6 +687,7 @@ const Home = () => {
               <p className="text-lg text-slate-600 dark:text-slate-300">Hear from students who transformed their preparation with Study Smart</p>
             </motion.div>
             
+            {/* Custom Manual Slider Controls for Testimonials */}
             <div className="flex gap-4 pb-2">
               <button 
                 onClick={() => scrollTestimonials('left')} 
@@ -603,53 +706,41 @@ const Home = () => {
           
           <div className="relative -mx-6 px-6">
             <div 
-              ref={scrollRef} 
-              onScroll={handleScroll}
-              className="flex gap-4 md:gap-8 overflow-x-auto pb-12 pt-8 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              ref={testimonialScrollRef} 
+              className="flex gap-6 md:gap-8 overflow-x-auto pb-12 pt-8 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-              {/* Spacers allow the first and last cards to reach the center of the screen */}
-              <div className="shrink-0 w-[5vw] md:w-[20vw] lg:w-[30vw]"></div>
+              {testimonials.map((testimonial, idx) => (
+                <div 
+                  key={idx} 
+                  className="w-[80vw] sm:w-[350px] lg:w-[400px] aspect-square shrink-0 snap-start p-6 md:p-8 rounded-3xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 relative group transition-all duration-500 flex flex-col justify-between shadow-md hover:shadow-2xl hover:-translate-y-2 cursor-default"
+                >
+                  <div className="absolute top-6 right-6 text-slate-100 dark:text-slate-700 transition-colors group-hover:text-primary/20">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+                    </svg>
+                  </div>
+                  
+                  <div className="flex text-yellow-400 mb-4 gap-1 relative z-10">
+                    {[...Array(5)].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
+                  </div>
+                  
+                  <div className="flex-grow overflow-y-auto pr-2 mb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-sm md:text-base font-medium">"{testimonial.text}"</p>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-700 mt-auto shrink-0">
+                    <div className="w-12 h-12 shrink-0 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center font-bold text-white text-lg shadow-md transition-transform group-hover:scale-110">
+                      {testimonial.avatar}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900 dark:text-white text-sm md:text-base line-clamp-1">{testimonial.name}</h4>
+                      <p className="text-xs font-bold text-primary">{testimonial.rank}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
               
-              {testimonials.map((testimonial, idx) => {
-                const isActive = activeIndex === idx;
-                
-                return (
-                  <motion.div 
-                    key={idx} 
-                    className={`testimonial-card w-[80vw] sm:w-[350px] lg:w-[400px] aspect-square shrink-0 snap-center p-6 md:p-8 rounded-3xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 relative group transition-all duration-500 flex flex-col justify-between ${
-                      isActive 
-                        ? 'scale-105 md:scale-110 z-20 opacity-100 shadow-2xl ring-4 ring-primary/20' 
-                        : 'scale-90 md:scale-95 z-10 opacity-50 hover:opacity-80 shadow-md'
-                    }`}
-                  >
-                    <div className="absolute top-6 right-6 text-slate-100 dark:text-slate-700 transition-colors">
-                      <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
-                      </svg>
-                    </div>
-                    
-                    <div className="flex text-yellow-400 mb-4 gap-1 relative z-10">
-                      {[...Array(5)].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
-                    </div>
-                    
-                    <div className="flex-grow overflow-y-auto pr-2 mb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                      <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-sm md:text-base font-medium">"{testimonial.text}"</p>
-                    </div>
-                    
-                    <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-700 mt-auto shrink-0">
-                      <div className="w-12 h-12 shrink-0 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center font-bold text-white text-lg shadow-md transition-transform">
-                        {testimonial.avatar}
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-slate-900 dark:text-white text-sm md:text-base">{testimonial.name}</h4>
-                        <p className="text-xs font-bold text-primary">{testimonial.rank}</p>
-                      </div>
-                    </div>
-                  </motion.div>
-                )
-              })}
-              
-              <div className="shrink-0 w-[5vw] md:w-[20vw] lg:w-[30vw]"></div>
+              <div className="shrink-0 w-[5vw] md:w-[10vw]"></div>
             </div>
           </div>
         </div>

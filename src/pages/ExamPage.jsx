@@ -1,9 +1,9 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   PlayCircle, ArrowLeft, Youtube, Layers, Star, 
-  ChevronLeft, ChevronRight, BookOpen, Loader2
+  BookOpen, Loader2
 } from 'lucide-react';
 
 // --- CENTRALIZED COURSE DATA WITH 2026 PLAYLISTS ---
@@ -47,124 +47,13 @@ export const examPlaylists = {
   }
 };
 
-// --- PLAYLIST SLIDER COMPONENT ---
-const PlaylistSlider = ({ videos, examName, onPlayClick }) => {
-  const sliderRef = useRef(null);
-
-  const slide = (direction) => {
-    if (sliderRef.current) {
-      const scrollAmount = window.innerWidth < 768 ? 320 : 800;
-      sliderRef.current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
-    }
-  };
-
-  return (
-    <div className="relative mb-20 group/slider">
-      {/* Slider Controls */}
-      <div className="flex justify-end gap-3 mb-6 px-4">
-        <button onClick={() => slide('left')} className="p-3 rounded-full bg-white/40 dark:bg-slate-800/40 backdrop-blur-md border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition shadow-sm hover:scale-110 active:scale-95">
-          <ChevronLeft size={24} />
-        </button>
-        <button onClick={() => slide('right')} className="p-3 rounded-full bg-white/40 dark:bg-slate-800/40 backdrop-blur-md border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition shadow-sm hover:scale-110 active:scale-95">
-          <ChevronRight size={24} />
-        </button>
-      </div>
-
-      {/* Scrollable Row */}
-      <div 
-        ref={sliderRef}
-        className="flex overflow-x-auto snap-x snap-mandatory gap-8 pb-12 pt-4 px-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth"
-      >
-        {videos.map((video, idx) => (
-          <motion.div 
-            key={video.id}
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ delay: idx * 0.05, duration: 0.5, ease: "easeOut" }}
-            onClick={() => onPlayClick(video)}
-            className="snap-start shrink-0 w-[320px] md:w-[400px] relative group cursor-pointer"
-          >
-            {/* Glowing Hover Background */}
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-primary rounded-[2rem] blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500 -z-10"></div>
-            
-            {/* Main Card (Deep Glassmorphism) */}
-            <div className="h-full flex flex-col bg-white/60 dark:bg-slate-900/50 backdrop-blur-2xl border border-white/50 dark:border-slate-700/50 rounded-[2rem] overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300">
-              
-              {/* Actual YouTube Iframe as Thumbnail Area */}
-              <div className="relative h-56 overflow-hidden p-2">
-                 <div className="w-full h-full rounded-[1.5rem] overflow-hidden relative bg-black flex items-center justify-center">
-                    
-                    {/* Embedded YouTube Playlist (Pointer Events None to allow card click) */}
-                    <iframe 
-                      src={video.embed} 
-                      title={video.title}
-                      loading="lazy"
-                      className="w-[120%] h-[120%] pointer-events-none scale-[1.2]" // Scaled slightly to hide black borders of the iframe
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    ></iframe>
-                    
-                    {/* Glassy Overlay for text readability */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/30 to-transparent"></div>
-                    
-                    {/* YouTube Playlist Indicator */}
-                    <div className="absolute top-0 right-0 bottom-0 w-[30%] bg-black/70 backdrop-blur-md flex flex-col items-center justify-center text-white border-l border-white/10 group-hover:bg-primary/90 transition-colors duration-300">
-                       <Layers size={28} className="mb-2" />
-                       <span className="font-bold text-sm">{video.lessons}</span>
-                       <span className="text-[10px] text-white/70 uppercase tracking-wider font-semibold">Videos</span>
-                    </div>
-
-                    {/* Play Button Hover Effect */}
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                       <div className="w-16 h-16 bg-red-600/90 backdrop-blur-xl rounded-full flex items-center justify-center border border-white/40 shadow-[0_0_30px_rgba(255,0,0,0.5)]">
-                          <PlayCircle size={36} className="text-white fill-white/80" />
-                       </div>
-                    </div>
-                 </div>
-              </div>
-
-              {/* Text Content */}
-              <div className="p-6 flex-1 flex flex-col relative z-10">
-                 <div className="flex justify-between items-start mb-4">
-                    <span className="px-3 py-1.5 bg-blue-100/50 dark:bg-blue-900/30 backdrop-blur-md text-blue-700 dark:text-blue-300 rounded-xl text-xs font-bold uppercase tracking-wider border border-blue-200/50 dark:border-blue-700/50">
-                      {examName} Series
-                    </span>
-                    <span className="flex items-center gap-1.5 text-yellow-500 font-bold text-sm bg-yellow-50/50 dark:bg-yellow-900/20 px-2 py-1 rounded-lg">
-                      <Star size={14} fill="currentColor"/> {video.rating}
-                    </span>
-                 </div>
-                 
-                 <h3 className="font-extrabold text-xl md:text-2xl text-slate-900 dark:text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 transition-all leading-tight">
-                   {video.title}
-                 </h3>
-                 
-                 <div className="mt-auto pt-6 flex items-center gap-3 text-red-600 dark:text-red-400 font-bold text-sm group-hover:translate-x-2 transition-transform">
-                    <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                       <Youtube size={16} className="text-red-600 dark:text-red-400"/>
-                    </div>
-                    Watch on YouTube
-                 </div>
-              </div>
-            </div>
-          </motion.div>
-        ))}
-        {/* Padding Spacer */}
-        <div className="shrink-0 w-4 md:w-8"></div>
-      </div>
-    </div>
-  );
-};
-
-// --- MAIN EXAM PAGE ---
 const ExamPage = () => {
   const { examName } = useParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
   
   const currentExam = examPlaylists[examName?.toLowerCase()];
 
-  // Custom function to bypass login and open YouTube directly via Popup
+  // Custom function to open YouTube directly via Popup
   const handlePlaylistClick = (video) => {
     setIsRedirecting(true);
     
@@ -184,6 +73,17 @@ const ExamPage = () => {
     );
   }
 
+  // Animation variants for the Grid
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+  };
+
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+  };
+
   return (
     <>
       <div className="pt-28 pb-20 min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors relative overflow-hidden font-sans">
@@ -201,7 +101,7 @@ const ExamPage = () => {
           </Link>
           
           {/* Header Section */}
-          <div className="mb-16 border-b border-slate-200/50 dark:border-slate-800/50 pb-10">
+          <div className="mb-12 border-b border-slate-200/50 dark:border-slate-800/50 pb-10">
             <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 text-primary dark:text-purple-400 font-extrabold text-sm mb-6 shadow-sm">
                <BookOpen size={16} /> Official Playlists
             </motion.div>
@@ -212,12 +112,87 @@ const ExamPage = () => {
             <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl font-medium">{currentExam.description}</p>
           </div>
 
-          {/* Horizontal Slider Component */}
-          <PlaylistSlider 
-            videos={currentExam.videos} 
-            examName={examName.toUpperCase()} 
-            onPlayClick={handlePlaylistClick} 
-          />
+          {/* --- MATRIX GRID COMPONENT --- */}
+          {/* 4 columns on extra large screens, perfectly spaced grid */}
+          <motion.div 
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8 mb-20"
+          >
+            {currentExam.videos.map((video, idx) => (
+              <motion.div 
+                key={video.id}
+                variants={fadeInUp}
+                onClick={() => handlePlaylistClick(video)}
+                className="relative group cursor-pointer h-full"
+              >
+                {/* Glowing Hover Background */}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-primary rounded-[2rem] blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500 -z-10"></div>
+                
+                {/* Main Card */}
+                <div className="h-full flex flex-col bg-white/60 dark:bg-slate-900/50 backdrop-blur-2xl border border-white/50 dark:border-slate-700/50 rounded-[2rem] overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:-translate-y-2">
+                  
+                  {/* YouTube Iframe Thumbnail Area */}
+                  <div className="relative h-48 overflow-hidden p-2">
+                    <div className="w-full h-full rounded-[1.5rem] overflow-hidden relative bg-black flex items-center justify-center">
+                        
+                        {/* Embedded YouTube Playlist (Pointer Events None to allow card click) */}
+                        <iframe 
+                          src={video.embed} 
+                          title={video.title}
+                          loading="lazy"
+                          className="w-[120%] h-[120%] pointer-events-none scale-[1.2]" 
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        ></iframe>
+                        
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/30 to-transparent"></div>
+                        
+                        {/* Stats Indicator */}
+                        <div className="absolute top-0 right-0 bottom-0 w-[35%] bg-black/70 backdrop-blur-md flex flex-col items-center justify-center text-white border-l border-white/10 group-hover:bg-primary/90 transition-colors duration-300">
+                          <Layers size={24} className="mb-1.5" />
+                          <span className="font-bold text-sm">{video.lessons}</span>
+                          <span className="text-[10px] text-white/70 uppercase tracking-wider font-semibold text-center">Videos</span>
+                        </div>
+
+                        {/* Play Button Hover Effect */}
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <div className="w-14 h-14 bg-red-600/90 backdrop-blur-xl rounded-full flex items-center justify-center border border-white/40 shadow-[0_0_30px_rgba(255,0,0,0.5)]">
+                              <PlayCircle size={30} className="text-white fill-white/80" />
+                          </div>
+                        </div>
+                    </div>
+                  </div>
+
+                  {/* Text Content */}
+                  <div className="p-5 flex-1 flex flex-col relative z-10">
+                    <div className="flex justify-between items-start mb-3">
+                        <span className="px-2.5 py-1 bg-blue-100/50 dark:bg-blue-900/30 backdrop-blur-md text-blue-700 dark:text-blue-300 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-blue-200/50 dark:border-blue-700/50">
+                          {examName.toUpperCase()} Series
+                        </span>
+                        <span className="flex items-center gap-1 text-yellow-500 font-bold text-xs bg-yellow-50/50 dark:bg-yellow-900/20 px-2 py-1 rounded-lg">
+                          <Star size={12} fill="currentColor"/> {video.rating}
+                        </span>
+                    </div>
+                    
+                    <h3 className="font-extrabold text-lg text-slate-900 dark:text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 transition-all leading-snug line-clamp-3">
+                      {video.title}
+                    </h3>
+                    
+                    <div className="mt-auto pt-5 flex items-center gap-2 text-red-600 dark:text-red-400 font-bold text-xs group-hover:translate-x-1 transition-transform">
+                        <div className="w-6 h-6 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                          <Youtube size={14} className="text-red-600 dark:text-red-400"/>
+                        </div>
+                        Watch on YouTube
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
 
         </div>
       </div>
