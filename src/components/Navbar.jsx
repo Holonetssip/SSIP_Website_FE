@@ -96,7 +96,6 @@ const Navbar = ({ theme, toggleTheme }) => {
               </div>
 
               <Link to="/about" className={`px-4 py-2 rounded-xl hover:text-primary dark:hover:text-white transition ${location.pathname === '/about' ? 'text-primary font-bold' : ''}`}>About Us</Link>
-              <Link to="/contact" className={`px-4 py-2 rounded-xl hover:text-primary dark:hover:text-white transition ${location.pathname === '/contact' ? 'text-primary font-bold' : ''}`}>Contact</Link>
             </div>
 
             {/* Right Side Tools */}

@@ -12,37 +12,37 @@ export const examPlaylists = {
     title: "UPSC Preparatory",
     description: "Master the UPSC Civil Services Examination with our complete 2026 syllabus coverage.",
     videos: [
-      { id: "upsc-1", title: "UPSC Indian Polity 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8b3enPRi4pHeQy4sIPhRK3I", listId: "PLt-EyYJP3Q8b3enPRi4pHeQy4sIPhRK3I", lessons: 45, rating: "4.9" },
-      { id: "upsc-2", title: "UPSC Geography 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8a1ELMxCTwBxuUyvQgmqMG-", listId: "PLt-EyYJP3Q8a1ELMxCTwBxuUyvQgmqMG-", lessons: 38, rating: "4.8" },
-      { id: "upsc-3", title: "UPSC Environment & Ecology 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8ZgukarD8p_jnKa3XIZ8tRa", listId: "PLt-EyYJP3Q8ZgukarD8p_jnKa3XIZ8tRa", lessons: 32, rating: "4.7" },
-      { id: "upsc-4", title: "UPSC Modern History 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8ZnDdDO1_Dyc3m9N2sxtNSW", listId: "PLt-EyYJP3Q8ZnDdDO1_Dyc3m9N2sxtNSW", lessons: 50, rating: "4.9" },
-      { id: "upsc-5", title: "UPSC Ancient & Medieval 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8YQB-9bzdwJ7myHZka1yuN8", listId: "PLt-EyYJP3Q8YQB-9bzdwJ7myHZka1yuN8", lessons: 41, rating: "4.8" },
-      { id: "upsc-6", title: "UPSC Economy 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8bbWT0Ih0D6lQHIVePxWAmj", listId: "PLt-EyYJP3Q8bbWT0Ih0D6lQHIVePxWAmj", lessons: 48, rating: "4.9" },
-      { id: "upsc-7", title: "UPSC Art & Culture 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8bmYq6R4DxXmdoHFuKiYQ2e", listId: "PLt-EyYJP3Q8bmYq6R4DxXmdoHFuKiYQ2e", lessons: 25, rating: "4.7" },
-      { id: "upsc-8", title: "UPSC Science & Tech 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8YCTS-GnsoXEM3noeUjndcZ", listId: "PLt-EyYJP3Q8YCTS-GnsoXEM3noeUjndcZ", lessons: 30, rating: "4.8" },
-      { id: "upsc-9", title: "UPSC Current Affairs 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8bVq0wT7q5SI5iyk4Jre_kY", listId: "PLt-EyYJP3Q8bVq0wT7q5SI5iyk4Jre_kY", lessons: 60, rating: "4.9" },
+      { id: "upsc-1", title: "PYQs Decoded - UPSC Prelims 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8b3enPRi4pHeQy4sIPhRK3I", listId: "PLt-EyYJP3Q8b3enPRi4pHeQy4sIPhRK3I", lessons: 45, rating: "4.9" },
+      { id: "upsc-2", title: "Lakshya 120 - UPSC Prelims 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8a1ELMxCTwBxuUyvQgmqMG-", listId: "PLt-EyYJP3Q8a1ELMxCTwBxuUyvQgmqMG-", lessons: 38, rating: "4.8" },
+      { id: "upsc-3", title: "Complete PT365 for UPSC Prelims 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8ZgukarD8p_jnKa3XIZ8tRa", listId: "PLt-EyYJP3Q8ZgukarD8p_jnKa3XIZ8tRa", lessons: 32, rating: "4.7" },
+      { id: "upsc-4", title: "UPSC Prelims 2026 - High Impact Topics", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8ZnDdDO1_Dyc3m9N2sxtNSW", listId: "PLt-EyYJP3Q8ZnDdDO1_Dyc3m9N2sxtNSW", lessons: 50, rating: "4.9" },
+      { id: "upsc-5", title: "Rattafication - UPSC CSE 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8YQB-9bzdwJ7myHZka1yuN8", listId: "PLt-EyYJP3Q8YQB-9bzdwJ7myHZka1yuN8", lessons: 41, rating: "4.8" },
+      { id: "upsc-6", title: "GS - UPSC Prelims 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8bbWT0Ih0D6lQHIVePxWAmj", listId: "PLt-EyYJP3Q8bbWT0Ih0D6lQHIVePxWAmj", lessons: 48, rating: "4.9" },
+      { id: "upsc-7", title: "PYQ Hacks - UPSC Prelims 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8bmYq6R4DxXmdoHFuKiYQ2e", listId: "PLt-EyYJP3Q8bmYq6R4DxXmdoHFuKiYQ2e", lessons: 25, rating: "4.7" },
+      { id: "upsc-8", title: "Terms in News Series", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8YCTS-GnsoXEM3noeUjndcZ", listId: "PLt-EyYJP3Q8YCTS-GnsoXEM3noeUjndcZ", lessons: 30, rating: "4.8" },
+      { id: "upsc-9", title: "Ancient, Medieval & Art & Culture 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8bVq0wT7q5SI5iyk4Jre_kY", listId: "PLt-EyYJP3Q8bVq0wT7q5SI5iyk4Jre_kY", lessons: 60, rating: "4.9" },
     ]
   },
   uppcs: {
     title: "UPPCS Special Batch",
     description: "Targeted content for Uttar Pradesh Provincial Civil Services (Prelims & Mains).",
     videos: [
-      { id: "uppcs-1", title: "UPPCS GS Paper 1 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8byIm_KGKAkT3tJIFb9chjK", listId: "PLt-EyYJP3Q8byIm_KGKAkT3tJIFb9chjK", lessons: 40, rating: "4.9" },
-      { id: "uppcs-2", title: "UPPCS GS Paper 2 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8YgR_xY1BsjOUF-Ux1IX0qx", listId: "PLt-EyYJP3Q8YgR_xY1BsjOUF-Ux1IX0qx", lessons: 35, rating: "4.8" },
-      { id: "uppcs-3", title: "UP Special GK 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8aTSfSBE2NjBzGnqjLqcBwU", listId: "PLt-EyYJP3Q8aTSfSBE2NjBzGnqjLqcBwU", lessons: 28, rating: "4.9" },
-      { id: "uppcs-4", title: "UPPCS Current Affairs 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8bEIhM9AwnUk9ORC6IuhOnV", listId: "PLt-EyYJP3Q8bEIhM9AwnUk9ORC6IuhOnV", lessons: 55, rating: "4.7" },
-      { id: "uppcs-5", title: "UPPCS Hindi Compulsory 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8aGTPeI2LuhfaTf7kgNiCZb", listId: "PLt-EyYJP3Q8aGTPeI2LuhfaTf7kgNiCZb", lessons: 20, rating: "4.8" },
-      { id: "uppcs-6", title: "UPPCS Essay Writing 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8Z43gvprCF73kbiriYeDFT6", listId: "PLt-EyYJP3Q8Z43gvprCF73kbiriYeDFT6", lessons: 15, rating: "4.9" },
-      { id: "uppcs-7", title: "UPPCS PYQ Analysis 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8YhQgdTXstJW5QmcZcP_ZPY", listId: "PLt-EyYJP3Q8YhQgdTXstJW5QmcZcP_ZPY", lessons: 30, rating: "4.8" },
+      { id: "uppcs-1", title: "Smart Adhyayan - 30 Days Challenge", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8byIm_KGKAkT3tJIFb9chjK", listId: "PLt-EyYJP3Q8byIm_KGKAkT3tJIFb9chjK", lessons: 40, rating: "4.9"},
+      { id: "uppcs-2", title: "Complete Eye Drishti 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8YgR_xY1BsjOUF-Ux1IX0qx", listId: "PLt-EyYJP3Q8YgR_xY1BsjOUF-Ux1IX0qx", lessons: 35, rating: "4.8" },
+      { id: "uppcs-3", title: "Important Themes - UPPCS & RO/ARO 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8aTSfSBE2NjBzGnqjLqcBwU", listId: "PLt-EyYJP3Q8aTSfSBE2NjBzGnqjLqcBwU", lessons: 28, rating: "4.9" },
+      { id: "uppcs-4", title: "Score Booster - Complete GS Revision 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8bEIhM9AwnUk9ORC6IuhOnV", listId: "PLt-EyYJP3Q8bEIhM9AwnUk9ORC6IuhOnV", lessons: 55, rating: "4.7" },
+      { id: "uppcs-5", title: "Sureshot Series - UPPCS & BPSC", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8aGTPeI2LuhfaTf7kgNiCZb", listId: "PLt-EyYJP3Q8aGTPeI2LuhfaTf7kgNiCZb", lessons: 20, rating: "4.8" },
+      { id: "uppcs-6", title: "GS Revision - UPPCS 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8Z43gvprCF73kbiriYeDFT6", listId: "PLt-EyYJP3Q8Z43gvprCF73kbiriYeDFT6", lessons: 15, rating: "4.9" },
+      { id: "uppcs-7", title: "Ghatnachakra Marathon Videos - One Shot", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8YhQgdTXstJW5QmcZcP_ZPY", listId: "PLt-EyYJP3Q8YhQgdTXstJW5QmcZcP_ZPY", lessons: 30, rating: "4.8" },
     ]
   },
   csat: {
     title: "CSAT Comprehensive",
     description: "Crack the Civil Services Aptitude Test with proven strategies for 2026.",
     videos: [
-      { id: "csat-1", title: "CSAT Quantitative Aptitude 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8aK-O6L1mD8TQc2nC16B9DC", listId: "PLt-EyYJP3Q8aK-O6L1mD8TQc2nC16B9DC", lessons: 35, rating: "4.9" },
-      { id: "csat-2", title: "CSAT Logical Reasoning 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8Z1M-hFX4pQTq4YGYr4PJFu", listId: "PLt-EyYJP3Q8Z1M-hFX4pQTq4YGYr4PJFu", lessons: 28, rating: "4.8" },
-      { id: "csat-3", title: "CSAT Reading Comprehension 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8aQ5nzsTxKqQOSoEzjzbWx3", listId: "PLt-EyYJP3Q8aQ5nzsTxKqQOSoEzjzbWx3", lessons: 20, rating: "4.7" },
+      { id: "csat-1", title: "CONQUER CSAT 2026 - UPSC, UPPCS & MPPSC", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8aK-O6L1mD8TQc2nC16B9DC", listId: "PLt-EyYJP3Q8aK-O6L1mD8TQc2nC16B9DC", lessons: 35, rating: "4.9" },
+      { id: "csat-2", title: "CSAT - UPSC Prelims 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8Z1M-hFX4pQTq4YGYr4PJFu", listId: "PLt-EyYJP3Q8Z1M-hFX4pQTq4YGYr4PJFu", lessons: 28, rating: "4.8" },
+      { id: "csat-3", title: "Reading Comprehension Algo - UPSC CSAT 2026", embed: "https://www.youtube.com/embed/videoseries?list=PLt-EyYJP3Q8aQ5nzsTxKqQOSoEzjzbWx3", listId: "PLt-EyYJP3Q8aQ5nzsTxKqQOSoEzjzbWx3", lessons: 20, rating: "4.7" },
     ]
   }
 };

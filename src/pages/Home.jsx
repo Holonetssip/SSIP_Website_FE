@@ -440,7 +440,7 @@ const Home = () => {
 
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center py-12">
             <p className="text-slate-500 dark:text-slate-400 mb-8 text-lg max-w-xl mx-auto">
-              Browse our complete catalog of UPSC, UPPCS & CSAT preparation courses — from foundational to advanced levels.
+              Browse our complete catalog of UPSC, UPPCS & CSAT preparation courses - from foundational to advanced levels.
             </p>
             <Link to="/courses">
               <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="px-10 py-4 bg-gradient-to-r from-primary to-secondary text-white rounded-2xl font-bold shadow-xl shadow-purple-500/30 hover:shadow-purple-500/50 transition-all flex items-center gap-3 mx-auto text-lg">

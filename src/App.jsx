@@ -7,7 +7,6 @@ import Home from './pages/Home';
 import Courses from './pages/Courses';
 import About from './pages/About';
 import Tests from './pages/Tests';
-import Contact from './pages/Contact';
 import CurrentAffairs from './pages/CurrentAffairs';
 import ExamPage from './pages/ExamPage';
 
@@ -36,7 +35,6 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/courses" element={<Courses />} />
           <Route path="/tests" element={<Tests />} />
-          <Route path="/contact" element={<Contact />} />
           <Route path="/current-affairs" element={<CurrentAffairs />} />
           <Route path="/exams/:examName" element={<ExamPage />} />
         </Routes>
