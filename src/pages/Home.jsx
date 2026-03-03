@@ -647,7 +647,7 @@ const Home = () => {
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-left max-w-2xl">
               <span className="inline-block px-4 py-2 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 font-bold text-sm mb-4 tracking-widest uppercase">TESTIMONIALS</span>
               <h2 className="text-3xl md:text-5xl font-bold text-slate-900 dark:text-white mb-4">Trusted by Toppers</h2>
-              <p className="text-lg text-slate-600 dark:text-slate-300">Hear from students who transformed their preparation with Study Smart</p>
+              <p className="text-lg text-slate-600 dark:text-slate-300">Hear from students who transformed their preparation with SSIP</p>
             </motion.div>
             
             {/* Custom Manual Slider Controls for Testimonials */}
