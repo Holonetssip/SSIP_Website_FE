@@ -231,16 +231,16 @@ const Home = () => {
 
   // 10 Testimonials - No AIR Ranks
   const testimonials = [
-    { name: "Priya Sharma", rank: "UPPCS 2024", text: "The content is crisp and comprehensive. Study Smart's approach to Current Affairs and their mnemonic techniques helped me score exceptionally well.", avatar: "PS" },
-    { name: "Rahul Verma", rank: "UPSC 2023", text: "Immense support unlike other institutions. The mentorship program and daily targets kept me on track throughout my preparation journey.", avatar: "RV" },
-    { name: "Anjali Singh", rank: "UPPCS 2024", text: "GRANTH series was a game changer! The memory tricks and structured approach made History my strongest subject.", avatar: "AS" },
-    { name: "Neha Gupta", rank: "UPPCS 2023", text: "The answer writing practice was phenomenal. The feedback was detailed and helped me structure my thoughts better.", avatar: "NG" },
-    { name: "Vikram Singh", rank: "UPSC 2024 Mains", text: "Study Smart's environment is highly motivating. The daily current affairs updates saved me hours of newspaper reading.", avatar: "VS" },
-    { name: "Pooja Mishra", rank: "BPSC 2023", text: "I loved the NCERT foundational courses. They cleared all my basics before moving to the standard reference books.", avatar: "PM" },
-    { name: "Karan Patel", rank: "RO/ARO 2023", text: "The test series is exactly aligned with the latest exam pattern. Highly recommend it to serious aspirants.", avatar: "KP" },
-    { name: "Sneha Reddy", rank: "UPSC 2024", text: "Personalized mentorship was the missing piece in my prep. My mentor guided me through all the lows and highs.", avatar: "SR" },
-    { name: "Amit Kumar", rank: "UPPCS 2024", text: "The memory tricks for history and polity are pure gold. Retaining facts has never been this easy.", avatar: "AK" },
-    { name: "Ravi Teja", rank: "UPSC 2023", text: "The live classes are very interactive. You don't feel like you are studying online; it feels like a physical classroom.", avatar: "RT" },
+    { name: "Vaishali", rank: "Prelims Cleared", text: "Cleared Prelims with your support! I am really enjoying the MahaGranth lectures; the content is absolutely top-notch and exam-oriented.", avatar: "V" },
+    { name: "Harshita", rank: "Mentorship Student", text: "This mentorship group genuinely helped me focus better on my studies despite a busy schedule. The daily tasks and supportive space have kept me highly consistent.", avatar: "H" },
+    { name: "Nirmala", rank: "Granth 2.0 Student", text: "I joined Granth 2.0 and the videos are amazing. The assignments perfectly help in recalling the entire lecture, making memorization effortless!", avatar: "N" },
+    { name: "Priya", rank: "UPSC/UPPCS Aspirant", text: "After years of major coachings, you are the only ones who provided a clear, clutter-free path for Mains. No more bulky materials, just exact, sufficient content.", avatar: "P" },
+    { name: "Nayan", rank: "Mains Student", text: "The GS Paper 5 & 6 lectures are incredibly helpful and perfectly structured. The teachers' dedication and motivating approach make learning so much easier.", avatar: "N" },
+    { name: "Utkarsh", rank: "MahaGranth Student", text: "MahaGranth provides the complete, well-researched study matter at a fraction of the cost of big institutes. It saves months of time spent just finding the right content.", avatar: "U" },
+    { name: "Ish", rank: "UPPCS Aspirant", text: "Joining Granth for Prelims and MahaGranth for Mains was the best decision! The top-quality, effort-enriched content has completely sorted my UPPCS preparation.", avatar: "I" },
+    { name: "Uttera Singh R.", rank: "UPPCS Aspirant", text: "The teaching methodology is so impactful and engaging that I literally recall and revise the concepts in my sleep! Truly an unforgettable learning experience.", avatar: "UR" },
+    { name: "Shrishti", rank: "Foundation Student", text: "The best part is how easily I understand every single concept. The faculty's ability to explain complex subjects, especially History, is simply unmatched.", avatar: "S" },
+    { name: "Supriya Upadhyay", rank: "UPPCS Aspirant", text: "The syllabus is covered in such a crisp, concise manner. My PYQ answer writing has improved immensely, and I can now generate relevant points within the time limit.", avatar: "SU" }
   ];
 
   return (
