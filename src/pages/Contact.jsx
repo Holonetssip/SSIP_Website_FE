@@ -29,7 +29,7 @@ const Contact = () => {
                 <div className="p-3 bg-white/20 rounded-xl"><Phone size={24} /></div>
                 <div>
                   <p className="text-xs opacity-70 uppercase tracking-wider">Phone</p>
-                  <p className="font-semibold">+91 98765 43210</p>
+                  <p className="font-semibold">+91 88108 43292</p>
                 </div>
               </div>
 
@@ -37,7 +37,7 @@ const Contact = () => {
                 <div className="p-3 bg-white/20 rounded-xl"><Mail size={24} /></div>
                 <div>
                   <p className="text-xs opacity-70 uppercase tracking-wider">Email</p>
-                  <p className="font-semibold">support@studysmart.com</p>
+                  <p className="font-semibold">studysmartiaspcs@gmail.com</p>
                 </div>
               </div>
 
@@ -45,7 +45,7 @@ const Contact = () => {
                 <div className="p-3 bg-white/20 rounded-xl"><MapPin size={24} /></div>
                 <div>
                   <p className="text-xs opacity-70 uppercase tracking-wider">Address</p>
-                  <p className="font-semibold">123, Civil Lines, Knowledge Park,<br/> New Delhi, India 110001</p>
+                  <p className="font-semibold">Lucknow, Uttar Pradesh, India</p>
                 </div>
               </div>
             </div>
@@ -61,17 +61,17 @@ const Contact = () => {
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">First Name</label>
-                  <input type="text" className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition text-slate-900 dark:text-white" placeholder="John" />
+                  <input type="text" className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition text-slate-900 dark:text-white" placeholder="Krish" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Last Name</label>
-                  <input type="text" className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition text-slate-900 dark:text-white" placeholder="Doe" />
+                  <input type="text" className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition text-slate-900 dark:text-white" placeholder="Sharma" />
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Email Address</label>
-                <input type="email" className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition text-slate-900 dark:text-white" placeholder="john@example.com" />
+                <input type="email" className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary outline-none transition text-slate-900 dark:text-white" placeholder="krishsharma@example.com" />
               </div>
 
               <div>

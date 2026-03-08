@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Menu, X, Sun, Moon,
-  ChevronDown, BookOpen, Target, Award
+  ChevronDown, BookOpen, Target, Award, User
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -48,7 +48,11 @@ const Navbar = ({ theme, toggleTheme }) => {
 
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 order-2 lg:order-1 group min-w-0">
-              <img src="/logo.png" alt="Study Smart Logo" className="h-8 md:h-10 w-auto object-contain group-hover:scale-105 transition-transform" />
+              <img 
+                src="https://raw.githubusercontent.com/KrishnaBorakhade/SSIP_Website_FE/main/public/logo.png" 
+                alt="Study Smart Logo" 
+                className="h-8 md:h-10 w-auto object-contain group-hover:scale-105 transition-transform rounded-full" 
+              />
               <motion.h1
                 className="font-bold text-sm md:text-xl tracking-wide text-slate-800 dark:text-white whitespace-nowrap overflow-hidden hidden sm:block"
                 initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.03 } } }}
@@ -92,14 +96,25 @@ const Navbar = ({ theme, toggleTheme }) => {
               </div>
 
               <Link to="/about" className={`px-4 py-2 rounded-xl hover:text-primary dark:hover:text-white transition ${location.pathname === '/about' ? 'text-primary font-bold' : ''}`}>About Us</Link>
-              <Link to="/contact" className={`px-4 py-2 rounded-xl hover:text-primary dark:hover:text-white transition ${location.pathname === '/contact' ? 'text-primary font-bold' : ''}`}>Contact</Link>
             </div>
 
-            {/* Theme Toggle */}
-            <div className="flex items-center order-3">
+            {/* Right Side Tools */}
+            <div className="flex items-center gap-3 order-3">
+              {/* Theme Toggle */}
               <button onClick={toggleTheme} className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-yellow-400 hover:bg-slate-200 transition">
                 {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
               </button>
+
+              {/* Login Button (Theme Responsive) */}
+              <a 
+                href="https://web.classplusapp.com/login?orgCode=kedvtr" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hidden sm:flex items-center gap-2 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-200 text-white dark:text-slate-900 px-5 py-2 rounded-full font-bold shadow-md transition-all active:scale-95"
+              >
+                <User size={16} />
+                <span>Login</span>
+              </a>
             </div>
           </div>
         </div>
@@ -118,6 +133,18 @@ const Navbar = ({ theme, toggleTheme }) => {
             </div>
             <MobileLink to="/about" onClick={() => setIsOpen(false)}>About Us</MobileLink>
             <MobileLink to="/contact" onClick={() => setIsOpen(false)}>Contact</MobileLink>
+            
+            {/* Mobile Login Button */}
+            <a 
+              href="https://web.classplusapp.com/login?orgCode=kedvtr" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              onClick={() => setIsOpen(false)}
+              className="mt-4 flex items-center justify-center gap-2 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-200 text-white dark:text-slate-900 px-5 py-3 rounded-xl font-bold shadow-md transition-colors"
+            >
+              <User size={18} />
+              <span>Login to Portal</span>
+            </a>
           </motion.div>
         )}
       </AnimatePresence>
