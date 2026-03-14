@@ -8,8 +8,16 @@ import {
   Youtube, MessageCircle, Instagram, Twitter, ChevronRight,
   ChevronLeft, Sparkles, BookMarked, PenTool, 
   Smartphone, Play, Apple, Compass, 
-  MapPin, Copy, ExternalLink
+  MapPin, Copy, ExternalLink, Flame, Lock
 } from 'lucide-react';
+
+// --- MENTORSHIP LOCAL IMAGES ---
+import mentorImg1 from '../assets/mentor/P1.jpg';
+import mentorImg2 from '../assets/mentor/P2.jpg';
+import mentorImg3 from '../assets/mentor/P3.jpg';
+import mentorImg4 from '../assets/mentor/M3.jpg';
+import mentorImg5 from '../assets/mentor/M2.jpg';
+import mentorImg6 from '../assets/mentor/M1.jpg';
 
 // --- ANIMATED COUNTER COMPONENT ---
 const Counter = ({ value, suffix = "+" }) => {
@@ -87,6 +95,11 @@ const Home = () => {
   const featuredSliderRef = useRef(null);
   const [copied, setCopied] = useState(false);
 
+  // --- FORCE SCROLL TO TOP ON MOUNT ---
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // --- DYNAMIC STUDENT COUNTER LOGIC ---
   const activeStudents = useMemo(() => {
     const baseNumber = 6542;
@@ -124,7 +137,7 @@ const Home = () => {
   const scrollFeatured = (direction) => {
     if (featuredSliderRef.current) {
       const container = featuredSliderRef.current;
-      const scrollAmount = window.innerWidth < 768 ? window.innerWidth * 0.85 : 400;
+      const scrollAmount = window.innerWidth < 768 ? window.innerWidth * 0.85 : 380;
       if (direction === 'right') container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
       else container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
     }
@@ -178,7 +191,7 @@ const Home = () => {
     { name: "Supriya Upadhyay", rank: "UPPCS Aspirant", text: "The syllabus is covered in such a crisp, concise manner. My PYQ answer writing has improved immensely, and I can now generate relevant points within the time limit.", avatar: "SU" }
   ];
 
-  // --- FEATURED COURSES WITH PRICING ---
+  // --- FEATURED COURSES WITH PRICING (Strictly 5 items) ---
   const featuredCourses = [
     { id: "upsc-2", category: "UPSC Prelims", title: "PYQ Reverse Engineering", desc: "Master the art of decoding previous year questions to predict future exam patterns.", img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2F0326fec9-da8e-4e7f-b71f-6564bcae1122.png&w=384&q=75", link: "https://www.ssip.cloud/courses/770945?filterId=1&sortId=7", price: "₹2,999", oldPrice: "₹4,999", badge: "Must Have" },
     { id: "upsc-4", category: "UPSC Prelims", title: "NCERT Concept Roots", desc: "Line-by-line coverage of fundamental NCERTs to build a rock-solid base.", img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2F0fdd717f-65a9-4f92-9c22-87eb32d77a93.png&w=384&q=75", link: "https://www.ssip.cloud/courses/770972?filterId=1&sortId=7", price: "₹1,111", oldPrice: "₹2,199", badge: "Best Seller" },
@@ -365,7 +378,7 @@ const Home = () => {
       <section className="py-16 md:py-24 bg-gradient-to-b from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900 border-y border-slate-100 dark:border-slate-800 relative z-10">
         <div className="container mx-auto px-4 md:px-6 lg:px-10 max-w-[1400px]">
           
-          {/* Header Controls */}
+          {/* Header Controls (ARROWS MOVED BACK HERE) */}
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
             <div>
               <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary font-bold text-xs mb-3 tracking-widest uppercase">POPULAR COURSES</span>
@@ -385,6 +398,22 @@ const Home = () => {
               >
                 View All Courses <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform duration-300" />
               </Link>
+              
+              {/* SQUARE GLASSY ARROWS - TOP RIGHT */}
+              <div className="hidden md:flex gap-2 shrink-0">
+                <button 
+                  onClick={() => scrollFeatured('left')} 
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl border border-white/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-200 shadow-sm hover:bg-white/90 dark:hover:bg-slate-800/90 hover:shadow-[0_0_15px_rgba(124,58,237,0.4)] hover:border-purple-500/50 transition-all duration-300 transform-gpu active:scale-95"
+                >
+                  <ChevronLeft size={22} className="-ml-0.5" />
+                </button>
+                <button 
+                  onClick={() => scrollFeatured('right')} 
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl border border-white/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-200 shadow-sm hover:bg-white/90 dark:hover:bg-slate-800/90 hover:shadow-[0_0_15px_rgba(124,58,237,0.4)] hover:border-purple-500/50 transition-all duration-300 transform-gpu active:scale-95"
+                >
+                  <ChevronRight size={22} className="-mr-0.5" />
+                </button>
+              </div>
             </div>
             
             {/* Mobile swipe indicator */}
@@ -396,24 +425,7 @@ const Home = () => {
           </motion.div>
 
           {/* The Slider Container */}
-          <div className="relative w-full py-2 group">
-            
-            {/* --- SLIDER LEFT/RIGHT ARROWS (Centered vertically over the slider) --- */}
-            <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 flex justify-between z-30 pointer-events-none opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 px-2">
-              <button 
-                onClick={() => scrollFeatured('left')} 
-                className="pointer-events-auto p-3 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 shadow-xl hover:scale-110 active:scale-95 transition-all transform-gpu -ml-4 lg:-ml-6"
-              >
-                <ChevronLeft size={24} />
-              </button>
-              <button 
-                onClick={() => scrollFeatured('right')} 
-                className="pointer-events-auto p-3 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 shadow-xl hover:scale-110 active:scale-95 transition-all transform-gpu -mr-4 lg:-mr-6"
-              >
-                <ChevronRight size={24} />
-              </button>
-            </div>
-
+          <div className="relative w-full py-2">
             <div ref={featuredSliderRef} className="flex items-stretch overflow-x-auto snap-x snap-mandatory gap-6 pb-10 pt-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth w-full px-1">
               {featuredCourses.map((course, idx) => (
                 <motion.a 
