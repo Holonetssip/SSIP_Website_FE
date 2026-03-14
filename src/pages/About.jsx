@@ -159,6 +159,10 @@ const About = () => {
       sliderRef.current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
     }
   };
+   // --- FORCE SCROLL TO TOP ON MOUNT ---
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     // Changed overflow-hidden to overflow-x-hidden to prevent vertical clipping on desktop
