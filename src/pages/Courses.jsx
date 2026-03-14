@@ -433,6 +433,10 @@ export default function Courses() {
   useEffect(() => {
     preloadImages();
   }, []);
+   // --- FORCE SCROLL TO TOP ON MOUNT ---
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <div className="pt-24 md:pt-28 pb-32 md:pb-40 lg:pb-48 min-h-screen bg-slate-50 dark:bg-slate-950 relative font-sans w-full overflow-x-hidden">
