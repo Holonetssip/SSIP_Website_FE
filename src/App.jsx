@@ -11,6 +11,7 @@ import CurrentAffairs from './pages/CurrentAffairs';
 import ExamPage from './pages/ExamPage';
 import QuizAttempt from './pages/QuizAttempt'; // Your actual 10-question quiz
 import QuizPage from './pages/QuizPage';       // Your quiz listing page
+import QuizAdmin from './pages/QuizAdmin';     // Admin upload panel
 
 function App() {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
@@ -41,8 +42,9 @@ function App() {
           <Route path="/exams/:examName" element={<ExamPage />} />
           
           {/* --- FIXED QUIZ ROUTES --- */}
-          <Route path="/quiz" element={<QuizPage />} /> 
-          <Route path="/quiz/attempt" element={<QuizAttempt />} /> 
+          <Route path="/quiz" element={<QuizPage />} />
+          <Route path="/quiz/attempt" element={<QuizAttempt />} />
+          <Route path="/quiz-admin" element={<QuizAdmin />} />
           
         </Routes>
         <ChatBot />
