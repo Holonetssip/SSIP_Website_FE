@@ -430,6 +430,11 @@ const CourseRow = ({ title, courses }) => {
 export default function Courses() {
   const [activeCategory, setActiveCategory] = useState("All");
 
+  // --- FORCE SCROLL TO TOP ON MOUNT ---
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     preloadImages();
   }, []);

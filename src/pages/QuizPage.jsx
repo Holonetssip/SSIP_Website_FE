@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { 
   BrainCircuit, Send, ArrowLeft, 
-  Sparkles, Target, Award, Timer 
+  Sparkles, Target, Award, Timer, Play
 } from 'lucide-react';
 
 // --- FLOATING ICON COMPONENT ---
@@ -78,23 +78,31 @@ export default function QuizPage() {
 
           {/* Text Content */}
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-4 tracking-tighter leading-tight relative z-10">
-            Coming <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Soon</span>
+            More Quizzes <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Coming Soon</span>
           </h1>
           
           <p className="text-sm md:text-base text-slate-600 dark:text-slate-400 max-w-md mx-auto font-medium mb-8 relative z-10 leading-relaxed">
-            We are crafting highly curated, syllabus-aligned mock quizzes for your preparation. Stay tuned!
+            We are crafting highly curated, syllabus-aligned mock quizzes for your preparation. In the meantime, try our fully functional Demo Quiz!
           </p>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center relative z-10">
-            {/* --- UPDATED TELEGRAM LINK HERE --- */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center relative z-10 flex-wrap">
+            
+            {/* --- DEMO QUIZ BUTTON --- */}
+            <Link 
+              to="/quiz/attempt" 
+              className="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-bold shadow-[0_8px_20px_rgba(16,185,129,0.25)] hover:shadow-[0_8px_25px_rgba(16,185,129,0.4)] transition-all flex items-center justify-center gap-2 transform-gpu active:scale-95 text-xs sm:text-sm"
+            >
+              <Play size={16} fill="currentColor" /> Try Demo Quiz
+            </Link>
+
             <a 
               href="https://t.me/+U98qAhiBLLg3ZWRl" 
               target="_blank" 
               rel="noopener noreferrer"
               className="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-bold shadow-[0_8px_20px_rgba(124,58,237,0.25)] hover:shadow-[0_8px_25px_rgba(124,58,237,0.4)] transition-all flex items-center justify-center gap-2 transform-gpu active:scale-95 text-xs sm:text-sm"
             >
-              <Send size={16} /> Notify Me on Telegram
+              <Send size={16} /> Notify on Telegram
             </a>
             
             <Link 
