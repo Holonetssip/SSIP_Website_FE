@@ -33,11 +33,35 @@ function parseCsvOrJson(text) {
   } catch (jsonErr) {
     if (!text.includes(',')) throw new Error('Could not parse as JSON or CSV');
   }
-  const lines = text.trim().split('\n').filter(Boolean);
-  const start = lines[0].toLowerCase().includes('question') ? 1 : 0;
-  return lines.slice(start).map((line, i) => {
-    const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-    if (cols.length < 6) throw new Error(`CSV row ${i + 1 + start}: expected 6 columns`);
+  // RFC-4180 compliant parser — handles quoted fields with embedded newlines/commas
+  const parseCSV = (raw) => {
+    const rows = [];
+    let col = '', cols = [], inQuote = false;
+    for (let i = 0; i < raw.length; i++) {
+      const ch = raw[i];
+      if (inQuote) {
+        if (ch === '"' && raw[i + 1] === '"') { col += '"'; i++; }
+        else if (ch === '"') inQuote = false;
+        else col += ch;
+      } else {
+        if (ch === '"') { inQuote = true; }
+        else if (ch === ',') { cols.push(col.trim()); col = ''; }
+        else if (ch === '\n' || (ch === '\r' && raw[i + 1] === '\n')) {
+          if (ch === '\r') i++;
+          cols.push(col.trim()); col = '';
+          if (cols.some(c => c !== '')) rows.push(cols);
+          cols = [];
+        } else col += ch;
+      }
+    }
+    if (col || cols.length) { cols.push(col.trim()); if (cols.some(c => c !== '')) rows.push(cols); }
+    return rows;
+  };
+
+  const rows = parseCSV(text);
+  const start = rows[0]?.[0]?.toLowerCase().includes('question') ? 1 : 0;
+  return rows.slice(start).map((cols, i) => {
+    if (cols.length < 6) throw new Error(`CSV row ${i + 1 + start}: expected 6 columns, got ${cols.length}`);
     return { question: cols[0], options: [cols[1], cols[2], cols[3], cols[4]], correct: Number(cols[5]) };
   });
 }
