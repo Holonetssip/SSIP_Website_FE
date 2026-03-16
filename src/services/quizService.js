@@ -160,8 +160,11 @@ export async function saveAttempt(userId, date, result, userInfo = {}) {
   const { score, correct, incorrect, skipped, timeTaken } = result;
   const now = new Date().toISOString();
 
-  // Save individual attempt
+  // Check if already attempted — don't double-count userStats
   const attemptRef = doc(db, 'attempts', `${userId}_${date}`);
+  const existingAttempt = await getDoc(attemptRef);
+  const isFirstAttempt = !existingAttempt.exists();
+
   await setDoc(attemptRef, {
     userId,
     date,
@@ -172,7 +175,9 @@ export async function saveAttempt(userId, date, result, userInfo = {}) {
     attemptedAt: now,
   });
 
-  // Update cumulative userStats
+  // Only update userStats on first attempt for this date
+  if (!isFirstAttempt) return { totalScore: (await getDoc(doc(db, 'userStats', userId))).data()?.totalScore ?? score };
+
   const statsRef = doc(db, 'userStats', userId);
   const statsSnap = await getDoc(statsRef);
   let newTotalScore;

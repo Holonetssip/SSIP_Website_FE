@@ -14,7 +14,7 @@ import {
   fetchQuiz, getTodayDate,
   saveAttempt, fetchLeaderboard, fetchUserDailyRank,
   fetchCumulativeLeaderboard, fetchUserCumulativeRank,
-  upsertUser,
+  upsertUser, fetchUserAttempt,
 } from '../services/quizService';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -117,6 +117,18 @@ export default function QuizAttempt() {
     if (!/^\d{10}$/.test(userData.phone)) return alert("Please enter a valid 10-digit mobile number.");
     const normalizedName = userData.name.trim().replace(/\b\w/g, c => c.toUpperCase());
     setUserData(prev => ({ ...prev, name: normalizedName }));
+
+    // Block re-attempt for same date
+    try {
+      const existing = await fetchUserAttempt(userData.phone, date);
+      if (existing) {
+        alert(`You have already attempted this quiz on ${date}. Each quiz can only be attempted once.`);
+        return;
+      }
+    } catch (err) {
+      console.error('Failed to check existing attempt:', err);
+    }
+
     try {
       await upsertUser(userData.phone, normalizedName, userData.email);
     } catch (err) {
