@@ -180,7 +180,7 @@ export default function QuizAttempt() {
     try {
       const [lb, dailyRank] = await Promise.all([
         fetchLeaderboard(date),
-        fetchUserDailyRank(userId, date, finalScore),
+        fetchUserDailyRank(userId, date, finalScore, timeTaken),
       ]);
       setDbLeaderboard(lb);
       setUserDailyRank(dailyRank);

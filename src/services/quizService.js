@@ -217,6 +217,8 @@ export async function saveAttempt(userId, date, result, userInfo = {}) {
  * Falls back to client-side sort if index is not ready yet.
  */
 export async function fetchLeaderboard(date) {
+  const sortWithTiebreaker = (arr) =>
+    arr.sort((a, b) => b.score - a.score || a.timeTaken - b.timeTaken).slice(0, 10);
   try {
     const snap = await getDocs(
       query(
@@ -226,16 +228,12 @@ export async function fetchLeaderboard(date) {
         limit(10)
       )
     );
-    return snap.docs.map((d) => d.data());
+    return sortWithTiebreaker(snap.docs.map((d) => d.data()));
   } catch {
-    // Index not ready — fall back to client-side sort
     const snap = await getDocs(
       query(collection(db, 'attempts'), where('date', '==', date))
     );
-    return snap.docs
-      .map((d) => d.data())
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 10);
+    return sortWithTiebreaker(snap.docs.map((d) => d.data()));
   }
 }
 
@@ -245,13 +243,21 @@ export async function fetchLeaderboard(date) {
  * Requires same composite index as fetchLeaderboard: date ASC, score DESC
  * @returns {{ rank: number, total: number }}
  */
-export async function fetchUserDailyRank(phone, date, userScore) {
+export async function fetchUserDailyRank(phone, date, userScore, userTimeTaken) {
   try {
-    const [higherSnap, totalSnap] = await Promise.all([
+    const [higherScoreSnap, sameScoreFasterSnap, totalSnap] = await Promise.all([
+      // People who scored strictly higher
       getCountFromServer(query(
         collection(db, 'attempts'),
         where('date', '==', date),
         where('score', '>', userScore)
+      )),
+      // People with same score but faster time (tiebreaker)
+      getCountFromServer(query(
+        collection(db, 'attempts'),
+        where('date', '==', date),
+        where('score', '==', userScore),
+        where('timeTaken', '<', userTimeTaken)
       )),
       getCountFromServer(query(
         collection(db, 'attempts'),
@@ -259,16 +265,15 @@ export async function fetchUserDailyRank(phone, date, userScore) {
       )),
     ]);
     return {
-      rank: higherSnap.data().count + 1,
+      rank: higherScoreSnap.data().count + sameScoreFasterSnap.data().count + 1,
       total: totalSnap.data().count,
     };
   } catch {
-    // Fall back to client-side rank calculation
     const snap = await getDocs(
       query(collection(db, 'attempts'), where('date', '==', date))
     );
     const all = snap.docs.map((d) => d.data());
-    const rank = all.filter((a) => a.score > userScore).length + 1;
+    const rank = all.filter((a) => a.score > userScore || (a.score === userScore && a.timeTaken < userTimeTaken)).length + 1;
     return { rank, total: all.length };
   }
 }
