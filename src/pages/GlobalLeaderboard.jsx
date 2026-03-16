@@ -12,6 +12,7 @@ export default function GlobalLeaderboard() {
   const [list, setList] = useState([]);
   const [userRank, setUserRank] = useState(null); // { rank, total, totalScore }
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const isCurrentUser = (entry) => entry.phone === user?.phone;
 
@@ -20,6 +21,7 @@ export default function GlobalLeaderboard() {
     if (!/^\d{10}$/.test(form.phone)) return alert('Please enter a valid 10-digit mobile number.');
     const normalizedName = form.name.trim().replace(/\b\w/g, c => c.toUpperCase());
     setLoading(true);
+    setError(null);
     try {
       const [lb, statsSnap] = await Promise.all([
         fetchCumulativeLeaderboard(50),
@@ -29,14 +31,21 @@ export default function GlobalLeaderboard() {
           )
         ),
       ]);
+
+      if (!statsSnap.exists()) {
+        setError('No record found for this mobile number. Please attempt a quiz first.');
+        setLoading(false);
+        return;
+      }
+
       setList(lb);
-      const stats = statsSnap.exists() ? statsSnap.data() : null;
-      const myTotalScore = stats?.totalScore ?? 0;
+      const myTotalScore = statsSnap.data().totalScore ?? 0;
       const rank = await fetchUserCumulativeRank(form.phone, myTotalScore);
       setUserRank({ ...rank, totalScore: myTotalScore });
       setUser({ name: normalizedName, phone: form.phone });
     } catch (err) {
       console.error(err);
+      setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -68,6 +77,11 @@ export default function GlobalLeaderboard() {
                 onChange={e => setForm({ ...form, phone: e.target.value })}
                 className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none text-xs dark:text-white" />
             </div>
+            {error && (
+              <div className="px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-xs font-medium text-red-600 dark:text-red-400">
+                {error}
+              </div>
+            )}
             <button type="submit" disabled={loading}
               className="w-full py-3.5 mt-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-bold text-xs shadow-lg active:scale-95 transition-all disabled:opacity-60 flex items-center justify-center gap-2">
               {loading ? <Loader2 size={16} className="animate-spin" /> : <><TrendingUp size={14} /> View My Ranking</>}
