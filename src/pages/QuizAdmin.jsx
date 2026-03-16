@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../services/firebase';
 import {
@@ -175,14 +177,36 @@ export default function QuizAdmin() {
     URL.revokeObjectURL(url);
   };
 
-  const handleDownloadDaily = async () => {
-    setReportLoading('daily');
+  const downloadPDF = (filename, title, head, body) => {
+    const doc = new jsPDF({ orientation: 'landscape' });
+    doc.setFontSize(14);
+    doc.text(title, 14, 15);
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text(`Generated: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`, 14, 21);
+    autoTable(doc, {
+      head: [head],
+      body,
+      startY: 26,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245, 245, 255] },
+    });
+    doc.save(filename);
+  };
+
+  const handleDownloadDaily = async (format = 'csv') => {
+    setReportLoading(`daily-${format}`);
     try {
       const attempts = await fetchDailyAttemptsAll(reportDate);
       if (!attempts.length) return setStatus({ type: 'error', msg: `No attempts found for ${reportDate}.` });
-      const rows = [['Rank', 'Name', 'Phone', 'Score', 'Correct', 'Incorrect', 'Skipped', 'Time (s)']];
-      attempts.forEach((a, i) => rows.push([i + 1, a.displayName, a.phone, a.score, a.correct, a.incorrect, a.skipped, a.timeTaken]));
-      downloadCSV(`leaderboard_${reportDate}.csv`, rows);
+      const head = ['Rank', 'Name', 'Phone', 'Score', 'Correct', 'Incorrect', 'Skipped', 'Time (s)'];
+      const body = attempts.map((a, i) => [i + 1, a.displayName, a.phone, a.score, a.correct, a.incorrect, a.skipped, a.timeTaken]);
+      if (format === 'pdf') {
+        downloadPDF(`leaderboard_${reportDate}.pdf`, `Daily Leaderboard — ${reportDate}`, head, body);
+      } else {
+        downloadCSV(`leaderboard_${reportDate}.csv`, [head, ...body]);
+      }
       setStatus({ type: 'success', msg: `Downloaded ${attempts.length} entries for ${reportDate}.` });
     } catch (err) {
       setStatus({ type: 'error', msg: err.message });
@@ -191,14 +215,18 @@ export default function QuizAdmin() {
     }
   };
 
-  const handleDownloadCumulative = async () => {
-    setReportLoading('cumulative');
+  const handleDownloadCumulative = async (format = 'csv') => {
+    setReportLoading(`cumulative-${format}`);
     try {
       const stats = await fetchAllUserStats();
       if (!stats.length) return setStatus({ type: 'error', msg: 'No cumulative data found.' });
-      const rows = [['Rank', 'Name', 'Phone', 'Total Score', 'Best Score', 'Quizzes Attempted', 'Last Attempt Date']];
-      stats.forEach((s, i) => rows.push([i + 1, s.displayName, s.phone, s.totalScore, s.bestScore, s.attemptCount, s.lastAttemptDate]));
-      downloadCSV('cumulative_leaderboard.csv', rows);
+      const head = ['Rank', 'Name', 'Phone', 'Total Score', 'Best Score', 'Quizzes Attempted', 'Last Attempt Date'];
+      const body = stats.map((s, i) => [i + 1, s.displayName, s.phone, s.totalScore, s.bestScore, s.attemptCount, s.lastAttemptDate]);
+      if (format === 'pdf') {
+        downloadPDF('cumulative_leaderboard.pdf', 'Cumulative Leaderboard — All Time', head, body);
+      } else {
+        downloadCSV('cumulative_leaderboard.csv', [head, ...body]);
+      }
       setStatus({ type: 'success', msg: `Downloaded cumulative rankings for ${stats.length} students.` });
     } catch (err) {
       setStatus({ type: 'error', msg: err.message });
@@ -469,8 +497,8 @@ export default function QuizAdmin() {
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
               <h2 className="font-black text-slate-700 dark:text-slate-200 text-sm uppercase tracking-wider mb-1">Daily Leaderboard</h2>
               <p className="text-xs text-slate-400 mb-4">Download all students' results for a specific quiz date — Rank, Name, Phone, Score.</p>
-              <div className="flex gap-3 items-end">
-                <div className="flex-1">
+              <div className="flex gap-3 items-end flex-wrap">
+                <div className="flex-1 min-w-[160px]">
                   <label className="text-xs font-bold text-slate-400 mb-1 block">Quiz Date</label>
                   <input
                     type="date" value={reportDate}
@@ -479,12 +507,20 @@ export default function QuizAdmin() {
                   />
                 </div>
                 <button
-                  onClick={handleDownloadDaily}
-                  disabled={reportLoading === 'daily'}
-                  className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-blue-600 to-primary text-white rounded-xl text-sm font-black shadow-sm disabled:opacity-60 transition"
+                  onClick={() => handleDownloadDaily('csv')}
+                  disabled={!!reportLoading}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-primary text-white rounded-xl text-sm font-black shadow-sm disabled:opacity-60 transition"
                 >
-                  {reportLoading === 'daily' ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
-                  Download CSV
+                  {reportLoading === 'daily-csv' ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
+                  CSV
+                </button>
+                <button
+                  onClick={() => handleDownloadDaily('pdf')}
+                  disabled={!!reportLoading}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl text-sm font-black shadow-sm disabled:opacity-60 transition"
+                >
+                  {reportLoading === 'daily-pdf' ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
+                  PDF
                 </button>
               </div>
             </div>
@@ -493,14 +529,24 @@ export default function QuizAdmin() {
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
               <h2 className="font-black text-slate-700 dark:text-slate-200 text-sm uppercase tracking-wider mb-1">Cumulative Leaderboard</h2>
               <p className="text-xs text-slate-400 mb-4">Download all-time rankings across every quiz — Rank, Name, Phone, Total Score, Best Score, Quizzes Attempted.</p>
-              <button
-                onClick={handleDownloadCumulative}
-                disabled={reportLoading === 'cumulative'}
-                className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl text-sm font-black shadow-sm disabled:opacity-60 transition"
-              >
-                {reportLoading === 'cumulative' ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
-                Download CSV
-              </button>
+              <div className="flex gap-3 flex-wrap">
+                <button
+                  onClick={() => handleDownloadCumulative('csv')}
+                  disabled={!!reportLoading}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl text-sm font-black shadow-sm disabled:opacity-60 transition"
+                >
+                  {reportLoading === 'cumulative-csv' ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
+                  CSV
+                </button>
+                <button
+                  onClick={() => handleDownloadCumulative('pdf')}
+                  disabled={!!reportLoading}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl text-sm font-black shadow-sm disabled:opacity-60 transition"
+                >
+                  {reportLoading === 'cumulative-pdf' ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
+                  PDF
+                </button>
+              </div>
             </div>
 
           </div>
