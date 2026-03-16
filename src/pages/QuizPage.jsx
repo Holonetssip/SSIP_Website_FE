@@ -3,8 +3,8 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   BrainCircuit, Sparkles, Calendar, BookOpen,
-  ChevronRight, Send, Trophy, Play, Target, 
-  History, Zap, ArrowDown, CheckCircle2, Clock
+  ChevronRight, Send, Trophy, Play, Target,
+  History, Zap, ArrowDown, CheckCircle2, Clock, TrendingUp
 } from 'lucide-react';
 import { getTodayDate, fetchRecentQuizzes } from '../services/quizService'; 
 
@@ -306,9 +306,10 @@ export default function QuizPage() {
           )}
         </div>
 
-        {/* --- BOTTOM TELEGRAM CTA --- */}
+        {/* --- BOTTOM CTAs --- */}
         {!loading && quizzes.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mt-16 text-center pb-8 flex justify-center">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mt-16 text-center pb-8 flex flex-wrap justify-center gap-3">
+            {/* Telegram */}
             <a href="https://t.me/+U98qAhiBLLg3ZWRl" target="_blank" rel="noopener noreferrer" className="group relative">
               <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-20 group-hover:opacity-50 transition duration-500"></div>
               <div className="relative inline-flex items-center gap-2 px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-xs md:text-sm shadow-md overflow-hidden transition-transform transform-gpu active:scale-95">
@@ -317,6 +318,15 @@ export default function QuizPage() {
                 <span className="relative z-10">Join Telegram for Updates</span>
               </div>
             </a>
+
+            {/* Overall Leaderboard */}
+            <Link to="/quiz/leaderboard" className="group relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 to-orange-500 rounded-xl blur opacity-20 group-hover:opacity-50 transition duration-500"></div>
+              <div className="relative inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-bold text-xs md:text-sm shadow-md overflow-hidden transition-transform transform-gpu active:scale-95">
+                <TrendingUp size={16} className="relative z-10" />
+                <span className="relative z-10">Check Overall Ranking</span>
+              </div>
+            </Link>
           </motion.div>
         )}
 
