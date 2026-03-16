@@ -115,8 +115,10 @@ export default function QuizAttempt() {
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     if (!/^\d{10}$/.test(userData.phone)) return alert("Please enter a valid 10-digit mobile number.");
+    const normalizedName = userData.name.trim().replace(/\b\w/g, c => c.toUpperCase());
+    setUserData(prev => ({ ...prev, name: normalizedName }));
     try {
-      await upsertUser(userData.phone, userData.name, userData.email);
+      await upsertUser(userData.phone, normalizedName, userData.email);
     } catch (err) {
       console.error('Failed to save user profile:', err);
     }
