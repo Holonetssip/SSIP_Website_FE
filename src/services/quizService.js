@@ -9,8 +9,26 @@ import {
   orderBy,
   limit,
   where,
+  getCountFromServer,
 } from 'firebase/firestore';
 import { db } from './firebase';
+
+// ─── User Management ─────────────────────────────────────────────────────────
+
+/**
+ * Create or update a user profile keyed by phone number.
+ * Phone is the stable identity across daily quiz sessions.
+ */
+export async function upsertUser(phone, displayName, email) {
+  const userRef = doc(db, 'users', phone);
+  const snap = await getDoc(userRef);
+  const now = new Date().toISOString();
+  if (snap.exists()) {
+    await setDoc(userRef, { displayName, email, lastSeen: now }, { merge: true });
+  } else {
+    await setDoc(userRef, { phone, displayName, email, createdAt: now, lastSeen: now });
+  }
+}
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -99,40 +117,163 @@ export async function fetchRecentQuizzes(count = 30) {
 // ─── Student: Save Attempt ───────────────────────────────────────────────────
 
 /**
- * Save a student's quiz attempt result.
- * @param {string} userId
+ * Save a student's quiz attempt result and update cumulative userStats.
+ * userId should be the user's phone number (stable across sessions).
+ * @param {string} userId - phone number
  * @param {string} date
  * @param {{ score, correct, incorrect, skipped, timeTaken }} result
- * @param {{ displayName, photoURL }} userInfo
+ * @param {{ displayName, email, phone }} userInfo
  */
 export async function saveAttempt(userId, date, result, userInfo = {}) {
+  const { score, correct, incorrect, skipped, timeTaken } = result;
+  const now = new Date().toISOString();
+
+  // Save individual attempt
   const attemptRef = doc(db, 'attempts', `${userId}_${date}`);
   await setDoc(attemptRef, {
     userId,
     date,
     displayName: userInfo.displayName || 'Anonymous',
-    photoURL: userInfo.photoURL || null,
-    ...result,
-    attemptedAt: new Date().toISOString(),
+    email: userInfo.email || '',
+    phone: userInfo.phone || userId,
+    score, correct, incorrect, skipped, timeTaken,
+    attemptedAt: now,
   });
+
+  // Update cumulative userStats
+  const statsRef = doc(db, 'userStats', userId);
+  const statsSnap = await getDoc(statsRef);
+  let newTotalScore;
+  if (statsSnap.exists()) {
+    const existing = statsSnap.data();
+    newTotalScore = parseFloat(((existing.totalScore || 0) + score).toFixed(2));
+    await setDoc(statsRef, {
+      displayName: userInfo.displayName || existing.displayName,
+      email: userInfo.email || existing.email,
+      phone: userId,
+      totalScore: newTotalScore,
+      bestScore: Math.max(existing.bestScore || 0, score),
+      attemptCount: (existing.attemptCount || 0) + 1,
+      totalCorrect: (existing.totalCorrect || 0) + correct,
+      totalIncorrect: (existing.totalIncorrect || 0) + incorrect,
+      lastAttemptDate: date,
+      lastAttemptAt: now,
+    });
+  } else {
+    newTotalScore = score;
+    await setDoc(statsRef, {
+      displayName: userInfo.displayName || 'Anonymous',
+      email: userInfo.email || '',
+      phone: userId,
+      totalScore: newTotalScore,
+      bestScore: score,
+      attemptCount: 1,
+      totalCorrect: correct,
+      totalIncorrect: incorrect,
+      lastAttemptDate: date,
+      lastAttemptAt: now,
+    });
+  }
+  return { totalScore: newTotalScore };
 }
 
 // ─── Leaderboard ─────────────────────────────────────────────────────────────
 
 /**
- * Fetch top N scores for a given quiz date.
- * Requires a Firestore composite index: attempts — date ASC, score DESC
- * Create at: Firebase Console → Firestore → Indexes → Add composite index
+ * Fetch top 10 scores for a given quiz date.
+ * Tries server-side sort (needs composite index: date ASC, score DESC).
+ * Falls back to client-side sort if index is not ready yet.
  */
-export async function fetchLeaderboard(date, limitCount = 10) {
-  // Filter by date client-side to avoid composite index requirement
+export async function fetchLeaderboard(date) {
+  try {
+    const snap = await getDocs(
+      query(
+        collection(db, 'attempts'),
+        where('date', '==', date),
+        orderBy('score', 'desc'),
+        limit(10)
+      )
+    );
+    return snap.docs.map((d) => d.data());
+  } catch {
+    // Index not ready — fall back to client-side sort
+    const snap = await getDocs(
+      query(collection(db, 'attempts'), where('date', '==', date))
+    );
+    return snap.docs
+      .map((d) => d.data())
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10);
+  }
+}
+
+/**
+ * Get a user's daily rank and total participants for a given date.
+ * Uses count queries — always 2 reads regardless of participant count.
+ * Requires same composite index as fetchLeaderboard: date ASC, score DESC
+ * @returns {{ rank: number, total: number }}
+ */
+export async function fetchUserDailyRank(phone, date, userScore) {
+  try {
+    const [higherSnap, totalSnap] = await Promise.all([
+      getCountFromServer(query(
+        collection(db, 'attempts'),
+        where('date', '==', date),
+        where('score', '>', userScore)
+      )),
+      getCountFromServer(query(
+        collection(db, 'attempts'),
+        where('date', '==', date)
+      )),
+    ]);
+    return {
+      rank: higherSnap.data().count + 1,
+      total: totalSnap.data().count,
+    };
+  } catch {
+    // Fall back to client-side rank calculation
+    const snap = await getDocs(
+      query(collection(db, 'attempts'), where('date', '==', date))
+    );
+    const all = snap.docs.map((d) => d.data());
+    const rank = all.filter((a) => a.score > userScore).length + 1;
+    return { rank, total: all.length };
+  }
+}
+
+/**
+ * Fetch top 10 users by cumulative total score.
+ * Requires single-field index in Firebase Console:
+ *   Collection: userStats | Field: totalScore DESC
+ */
+export async function fetchCumulativeLeaderboard() {
   const snap = await getDocs(
-    query(collection(db, 'attempts'), where('date', '==', date))
+    query(
+      collection(db, 'userStats'),
+      orderBy('totalScore', 'desc'),
+      limit(10)
+    )
   );
-  return snap.docs
-    .map((d) => d.data())
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limitCount);
+  return snap.docs.map((d) => d.data());
+}
+
+/**
+ * Get a user's all-time rank and total registered users.
+ * Uses count queries — always 2 reads regardless of user count.
+ * @returns {{ rank: number, total: number }}
+ */
+export async function fetchUserCumulativeRank(phone, userTotalScore) {
+  const [higherSnap, totalSnap] = await Promise.all([
+    getCountFromServer(query(
+      collection(db, 'userStats'),
+      where('totalScore', '>', userTotalScore)
+    )),
+    getCountFromServer(collection(db, 'userStats')),
+  ]);
+  return {
+    rank: higherSnap.data().count + 1,
+    total: totalSnap.data().count,
+  };
 }
 
 // ─── User History ─────────────────────────────────────────────────────────────

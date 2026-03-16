@@ -12,7 +12,9 @@ import {
 // Firebase Services
 import {
   fetchQuiz, getTodayDate,
-  saveAttempt, fetchLeaderboard
+  saveAttempt, fetchLeaderboard, fetchUserDailyRank,
+  fetchCumulativeLeaderboard, fetchUserCumulativeRank,
+  upsertUser,
 } from '../services/quizService';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -41,6 +43,11 @@ export default function QuizAttempt() {
   const [markedForReview, setMarkedForReview] = useState(new Set());
   const [scoreData, setScoreData] = useState({ total: 0, correct: 0, incorrect: 0, unattempted: 0, timeTaken: 0 });
   const [dbLeaderboard, setDbLeaderboard] = useState([]);
+  const [cumulativeLeaderboard, setCumulativeLeaderboard] = useState([]);
+  const [leaderboardTab, setLeaderboardTab] = useState('daily');
+  const [userDailyRank, setUserDailyRank] = useState(null);   // { rank, total }
+  const [userCumRank, setUserCumRank] = useState(null);       // { rank, total }
+  const [myTotalScore, setMyTotalScore] = useState(0);
   const [isMobilePaletteOpen, setIsMobilePaletteOpen] = useState(false);
 
   const QUESTION_TIME = 60; 
@@ -105,9 +112,14 @@ export default function QuizAttempt() {
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   
-  const handleRegisterSubmit = (e) => {
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     if (!/^\d{10}$/.test(userData.phone)) return alert("Please enter a valid 10-digit mobile number.");
+    try {
+      await upsertUser(userData.phone, userData.name, userData.email);
+    } catch (err) {
+      console.error('Failed to save user profile:', err);
+    }
     setAppState('countdown');
   };
 
@@ -136,21 +148,54 @@ export default function QuizAttempt() {
       else incorrect++;
     });
 
-    const finalScore = Math.max(0, parseFloat(((correct * 1.33) - (incorrect * 0.66)).toFixed(2)));
+    const finalScore = Math.max(0, parseFloat(((correct * 2) - (incorrect * 0.66)).toFixed(2)));
     setScoreData({ total: finalScore, correct, incorrect, unattempted, timeTaken });
     setAppState('result');
     setSaving(true);
 
+    const userId = userData.phone;
+
+    // Step 1: Save attempt — critical, must succeed
+    let savedTotalScore = finalScore;
     try {
-      const userId = `u_${Date.now()}`;
-      await saveAttempt(userId, date, 
+      const result = await saveAttempt(userId, date,
         { score: finalScore, correct, incorrect, skipped: unattempted, timeTaken },
-        { displayName: userData.name }
+        { displayName: userData.name, email: userData.email, phone: userData.phone }
       );
-      const lb = await fetchLeaderboard(date, 30);
+      savedTotalScore = result.totalScore;
+      setMyTotalScore(savedTotalScore);
+    } catch (err) {
+      console.error('saveAttempt failed:', err);
+    } finally {
+      setSaving(false);
+    }
+
+    // Step 2: Show your rank immediately from local data (always works)
+    setUserDailyRank({ rank: '...', total: '...' });
+    setUserCumRank({ rank: '...', total: '...' });
+
+    // Step 3: Fetch leaderboard + real ranks independently (may fail if index not ready)
+    try {
+      const [lb, dailyRank] = await Promise.all([
+        fetchLeaderboard(date),
+        fetchUserDailyRank(userId, date, finalScore),
+      ]);
       setDbLeaderboard(lb);
-    } catch (err) { console.error(err); } 
-    finally { setSaving(false); }
+      setUserDailyRank(dailyRank);
+    } catch (err) {
+      console.error('Daily leaderboard fetch failed (check Firestore index):', err);
+    }
+
+    try {
+      const [clb, cumRank] = await Promise.all([
+        fetchCumulativeLeaderboard(),
+        fetchUserCumulativeRank(userId, savedTotalScore),
+      ]);
+      setCumulativeLeaderboard(clb);
+      setUserCumRank(cumRank);
+    } catch (err) {
+      console.error('Cumulative leaderboard fetch failed:', err);
+    }
   };
 
   const resetQuiz = () => {
@@ -408,94 +453,147 @@ export default function QuizAttempt() {
     );
   }
 
-  // 6. NEO-MODERN LEADERBOARD (STORY STYLE / RECENT UPDATES)
+  // 6. LEADERBOARD
   if (appState === 'leaderboard') {
-    const podium = dbLeaderboard.slice(0, 3);
-    const others = dbLeaderboard.slice(3);
+    const activeList = leaderboardTab === 'daily' ? dbLeaderboard : cumulativeLeaderboard;
+    const isCurrentUser = (entry) => entry.phone === userData.phone || entry.userId === userData.phone;
+    const activeRank = leaderboardTab === 'daily' ? userDailyRank : userCumRank;
+    const rankMedal = (i) => ['🥇','🥈','🥉'][i] ?? null;
 
     return (
       <div className="min-h-screen pt-28 pb-20 bg-[#f8fafc] dark:bg-slate-950 px-4">
         <div className="max-w-2xl mx-auto">
-          {/* Dashboard Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <div className="flex items-center gap-4">
+
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
               <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
-                <TrendingUp size={24} className="text-primary" />
+                <TrendingUp size={22} className="text-primary" />
               </div>
               <div>
-                <h2 className="text-lg font-black dark:text-white leading-none">Global Rankings</h2>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Updated Just Now • {date}</p>
+                <h2 className="text-lg font-black dark:text-white leading-none">Leaderboard</h2>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{date}</p>
               </div>
             </div>
-            <button onClick={() => setAppState('result')} className="self-start px-4 py-2 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase dark:text-white hover:bg-slate-50 transition-colors">Return</button>
+            <button onClick={() => setAppState('result')} className="px-4 py-2 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase dark:text-white">Return</button>
           </div>
 
-          {/* Top 3 Podium Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            {podium.map((entry, i) => (
-              <motion.div 
-                key={i} 
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-                className={`relative p-5 rounded-[2rem] border overflow-hidden ${
-                  i === 0 ? 'bg-primary text-white border-primary shadow-xl shadow-primary/20 scale-105 z-10' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'
-                }`}
-              >
-                {i === 0 && <div className="absolute top-2 right-4 text-2xl">👑</div>}
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-black mb-3 ${i === 0 ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-800 text-primary'}`}>
-                  {entry.displayName.charAt(0)}
-                </div>
-                <h3 className={`font-bold text-sm truncate ${i === 0 ? 'text-white' : 'dark:text-white'}`}>{entry.displayName}</h3>
-                <div className="flex items-center justify-between mt-4">
-                  <div>
-                    <p className={`text-[9px] uppercase font-bold ${i === 0 ? 'text-white/60' : 'text-slate-400'}`}>Score</p>
-                    <p className="text-xl font-black">{entry.score}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-[9px] uppercase font-bold ${i === 0 ? 'text-white/60' : 'text-slate-400'}`}>Rank</p>
-                    <p className="text-xl font-black">#{i + 1}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+          {/* Tab Toggle */}
+          <div className="flex gap-1.5 mb-6 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl">
+            <button
+              onClick={() => setLeaderboardTab('daily')}
+              className={`flex-1 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all ${leaderboardTab === 'daily' ? 'bg-white dark:bg-slate-900 text-primary shadow-sm' : 'text-slate-400'}`}
+            >
+              Daily
+            </button>
+            <button
+              onClick={() => setLeaderboardTab('cumulative')}
+              className={`flex-1 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${leaderboardTab === 'cumulative' ? 'bg-white dark:bg-slate-900 text-primary shadow-sm' : 'text-slate-400'}`}
+            >
+              <Star size={11} /> All-Time
+            </button>
           </div>
 
-          {/* Feed Style List */}
-          <div className="space-y-3">
-            {others.length > 0 ? others.map((entry, i) => (
-              <motion.div 
-                key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: (i + 3) * 0.05 }}
-                className={`group flex items-center gap-4 p-4 rounded-2xl border transition-all hover:shadow-md ${
-                  entry.displayName.includes('(You)') 
-                  ? 'bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800' 
-                  : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800'
-                }`}
-              >
-                <div className="w-8 text-[11px] font-black text-slate-300 dark:text-slate-700 group-hover:text-primary transition-colors">#{i + 4}</div>
-                <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800/50 flex items-center justify-center font-bold text-slate-400 dark:text-slate-600 border border-slate-100 dark:border-slate-700">
-                  {entry.displayName.charAt(0)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-[12px] dark:text-white truncate flex items-center gap-2">
-                    {entry.displayName}
-                    {entry.displayName.includes('(You)') && <span className="text-[8px] bg-primary text-white px-1.5 py-0.5 rounded-full uppercase tracking-tighter">Current User</span>}
-                  </h4>
-                  <p className="text-[10px] text-slate-400 font-medium">Verified Performance • {formatTime(entry.timeTaken)}s</p>
-                </div>
-                <div className="text-right">
-                  <div className="flex items-center gap-1.5 justify-end">
-                    <Zap size={10} className="text-amber-500 fill-amber-500" />
-                    <span className="font-black text-[13px] dark:text-white">{entry.score}</span>
-                  </div>
-                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Aggr. Score</p>
-                </div>
-              </motion.div>
-            )) : (
-              <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 text-center border border-slate-100 dark:border-slate-800 shadow-sm">
-                <Target size={32} className="mx-auto text-slate-200 mb-3 animate-pulse" />
+          {/* Top 10 flat list */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm mb-4">
+            <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <Crown size={12} className="text-primary" /> Top 10
+              </p>
+              {activeRank && (
+                <p className="text-[10px] font-bold text-slate-400">{activeRank.total} total participants</p>
+              )}
+            </div>
+
+            {activeList.length === 0 ? (
+              <div className="py-14 text-center">
+                <Target size={28} className="mx-auto text-slate-200 mb-3 animate-pulse" />
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Awaiting Candidates...</p>
               </div>
+            ) : (
+              activeList.map((entry, i) => (
+                <motion.div
+                  key={`${leaderboardTab}-${i}`}
+                  initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+                  className={`flex items-center gap-4 px-5 py-3.5 border-b border-slate-50 dark:border-slate-800/50 last:border-0 ${
+                    isCurrentUser(entry) ? 'bg-primary/5 dark:bg-primary/10' : ''
+                  }`}
+                >
+                  {/* Rank */}
+                  <div className="w-8 shrink-0 text-center">
+                    {rankMedal(i)
+                      ? <span className="text-lg">{rankMedal(i)}</span>
+                      : <span className="text-[11px] font-black text-slate-300 dark:text-slate-600">#{i + 1}</span>
+                    }
+                  </div>
+
+                  {/* Avatar */}
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black shrink-0 ${isCurrentUser(entry) ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                    {entry.displayName.charAt(0).toUpperCase()}
+                  </div>
+
+                  {/* Name */}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-[13px] dark:text-white truncate flex items-center gap-1.5">
+                      {entry.displayName}
+                      {isCurrentUser(entry) && <span className="text-[8px] bg-primary text-white px-1.5 py-0.5 rounded-full font-black uppercase">You</span>}
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-medium">
+                      {leaderboardTab === 'daily'
+                        ? `${entry.correct} correct • ${formatTime(entry.timeTaken)}`
+                        : `${entry.attemptCount} quiz${entry.attemptCount !== 1 ? 'zes' : ''} • Best ${entry.bestScore}`
+                      }
+                    </p>
+                  </div>
+
+                  {/* Score */}
+                  <div className="text-right shrink-0">
+                    <p className={`text-base font-black ${isCurrentUser(entry) ? 'text-primary' : 'dark:text-white'}`}>
+                      {leaderboardTab === 'daily' ? entry.score : entry.totalScore}
+                    </p>
+                    <p className="text-[9px] text-slate-400 font-bold uppercase">pts</p>
+                  </div>
+                </motion.div>
+              ))
             )}
           </div>
+
+          {/* Your Position Card — always shown */}
+          {activeRank && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+              className="p-5 rounded-3xl border-2 border-primary bg-white dark:bg-slate-900 shadow-lg shadow-primary/10"
+            >
+              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
+                <Medal size={12} className="text-primary" /> Your Position
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex flex-col items-center justify-center shrink-0 border border-primary/20">
+                  <span className="text-[9px] font-black text-primary/50 uppercase leading-none">Rank</span>
+                  <span className="text-3xl font-black text-primary leading-tight">#{activeRank.rank}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-black text-sm dark:text-white truncate">{userData.name}</h4>
+                  <p className="text-[12px] text-slate-500 font-medium mt-1">
+                    <span className="font-black text-primary">#{activeRank.rank}</span>
+                    {' '}out of{' '}
+                    <span className="font-black text-slate-700 dark:text-slate-200">{activeRank.total}</span>
+                    {' '}{leaderboardTab === 'daily' ? 'students today' : 'registered students'}
+                  </p>
+                  {activeList.some(isCurrentUser) && (
+                    <p className="text-[10px] text-emerald-600 font-black uppercase mt-1 flex items-center gap-1">
+                      <Star size={9} className="fill-emerald-500 text-emerald-500" /> You're in Top 10!
+                    </p>
+                  )}
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-[9px] text-slate-400 font-bold uppercase">{leaderboardTab === 'daily' ? 'Score' : 'Total'}</p>
+                  <p className="text-2xl font-black text-primary">{leaderboardTab === 'daily' ? scoreData.total : myTotalScore}</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
         </div>
       </div>
     );
