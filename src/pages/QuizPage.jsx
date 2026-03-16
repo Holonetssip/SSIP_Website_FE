@@ -217,7 +217,7 @@ export default function QuizPage() {
                         </div>
 
                         <button className="shrink-0 w-full md:w-auto px-6 py-3 bg-white text-emerald-700 rounded-xl font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-transform transform-gpu group-hover:scale-105 active:scale-95">
-                          Attempt Mock <Play size={16} fill="currentColor" />
+                          Attempt Quiz <Play size={16} fill="currentColor" />
                         </button>
                       </div>
                     </div>
