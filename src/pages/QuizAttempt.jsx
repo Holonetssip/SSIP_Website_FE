@@ -162,7 +162,7 @@ export default function QuizAttempt() {
       else incorrect++;
     });
 
-    const finalScore = Math.max(0, parseFloat(((correct * 2) - (incorrect * 0.66)).toFixed(2)));
+    const finalScore = parseFloat(((correct * 2) - (incorrect * 0.66)).toFixed(2));
     setScoreData({ total: finalScore, correct, incorrect, unattempted, timeTaken });
     setAppState('result');
     setSaving(true);
