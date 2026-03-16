@@ -318,6 +318,31 @@ export async function fetchUserCumulativeRank(phone, userTotalScore) {
   };
 }
 
+// ─── Admin: Download Reports ──────────────────────────────────────────────────
+
+/**
+ * Fetch ALL attempts for a given date (for admin download).
+ * Returns sorted array: score DESC, timeTaken ASC.
+ */
+export async function fetchDailyAttemptsAll(date) {
+  const snap = await getDocs(
+    query(collection(db, 'attempts'), where('date', '==', date))
+  );
+  return snap.docs
+    .map((d) => d.data())
+    .sort((a, b) => b.score - a.score || a.timeTaken - b.timeTaken);
+}
+
+/**
+ * Fetch ALL userStats sorted by totalScore DESC (for admin download).
+ */
+export async function fetchAllUserStats() {
+  const snap = await getDocs(
+    query(collection(db, 'userStats'), orderBy('totalScore', 'desc'))
+  );
+  return snap.docs.map((d) => d.data());
+}
+
 // ─── User History ─────────────────────────────────────────────────────────────
 
 /**

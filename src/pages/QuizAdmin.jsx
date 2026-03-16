@@ -4,10 +4,11 @@ import { auth } from '../services/firebase';
 import {
   publishQuiz, fetchAllQuizzes,
   fetchQuizForEdit, toggleQuizPublished,
+  fetchDailyAttemptsAll, fetchAllUserStats,
 } from '../services/quizService';
 import {
   LogIn, LogOut, Upload, Plus, Trash2, CheckCircle, AlertCircle,
-  Loader2, ShieldAlert, Eye, EyeOff, Pencil, List, FilePlus,
+  Loader2, ShieldAlert, Eye, EyeOff, Pencil, List, FilePlus, Download,
 } from 'lucide-react';
 
 const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || '')
@@ -122,7 +123,7 @@ export default function QuizAdmin() {
   const [authLoading, setAuthLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // mode: 'create' | 'manage'
+  // mode: 'create' | 'manage' | 'reports'
   const [mode, setMode] = useState('manage');
 
   // Create / Edit form state
@@ -141,6 +142,10 @@ export default function QuizAdmin() {
   const [status, setStatus] = useState(null);
   const [publishing, setPublishing] = useState(false);
 
+  // Reports state
+  const [reportDate, setReportDate] = useState(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }));
+  const [reportLoading, setReportLoading] = useState(null); // 'daily' | 'cumulative' | null
+
   // Auth listener
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -155,6 +160,52 @@ export default function QuizAdmin() {
   useEffect(() => {
     if (mode === 'manage' && isAdmin) loadQuizList();
   }, [mode, isAdmin]);
+
+  // ── Reports: Download CSV ──────────────────────────────────────────────────
+  const downloadCSV = (filename, rows) => {
+    const escape = (v) => {
+      const s = String(v ?? '');
+      return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const csv = rows.map(r => r.map(escape).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadDaily = async () => {
+    setReportLoading('daily');
+    try {
+      const attempts = await fetchDailyAttemptsAll(reportDate);
+      if (!attempts.length) return setStatus({ type: 'error', msg: `No attempts found for ${reportDate}.` });
+      const rows = [['Rank', 'Name', 'Phone', 'Score', 'Correct', 'Incorrect', 'Skipped', 'Time (s)']];
+      attempts.forEach((a, i) => rows.push([i + 1, a.displayName, a.phone, a.score, a.correct, a.incorrect, a.skipped, a.timeTaken]));
+      downloadCSV(`leaderboard_${reportDate}.csv`, rows);
+      setStatus({ type: 'success', msg: `Downloaded ${attempts.length} entries for ${reportDate}.` });
+    } catch (err) {
+      setStatus({ type: 'error', msg: err.message });
+    } finally {
+      setReportLoading(null);
+    }
+  };
+
+  const handleDownloadCumulative = async () => {
+    setReportLoading('cumulative');
+    try {
+      const stats = await fetchAllUserStats();
+      if (!stats.length) return setStatus({ type: 'error', msg: 'No cumulative data found.' });
+      const rows = [['Rank', 'Name', 'Phone', 'Total Score', 'Best Score', 'Quizzes Attempted', 'Last Attempt Date']];
+      stats.forEach((s, i) => rows.push([i + 1, s.displayName, s.phone, s.totalScore, s.bestScore, s.attemptCount, s.lastAttemptDate]));
+      downloadCSV('cumulative_leaderboard.csv', rows);
+      setStatus({ type: 'success', msg: `Downloaded cumulative rankings for ${stats.length} students.` });
+    } catch (err) {
+      setStatus({ type: 'error', msg: err.message });
+    } finally {
+      setReportLoading(null);
+    }
+  };
 
   const handleLogin = async () => {
     try { await signInWithPopup(auth, new GoogleAuthProvider()); }
@@ -322,13 +373,19 @@ export default function QuizAdmin() {
             onClick={() => setMode('manage')}
             className={`flex-1 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${mode === 'manage' ? 'bg-white dark:bg-slate-900 text-primary shadow-sm' : 'text-slate-400'}`}
           >
-            <List size={13} /> Manage Quizzes
+            <List size={13} /> Manage
           </button>
           <button
             onClick={handleNewQuiz}
             className={`flex-1 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${mode === 'create' ? 'bg-white dark:bg-slate-900 text-primary shadow-sm' : 'text-slate-400'}`}
           >
             <FilePlus size={13} /> {editingDate ? 'Edit Quiz' : 'New Quiz'}
+          </button>
+          <button
+            onClick={() => { setMode('reports'); setStatus(null); }}
+            className={`flex-1 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${mode === 'reports' ? 'bg-white dark:bg-slate-900 text-primary shadow-sm' : 'text-slate-400'}`}
+          >
+            <Download size={13} /> Reports
           </button>
         </div>
 
@@ -393,6 +450,59 @@ export default function QuizAdmin() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* ── REPORTS MODE ────────────────────────────────────────────────── */}
+        {mode === 'reports' && (
+          <div className="flex flex-col gap-5">
+
+            {/* Status */}
+            {status && (
+              <div className={`flex items-center gap-2 p-4 rounded-xl text-sm font-medium border ${status.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 text-emerald-700' : 'bg-red-50 dark:bg-red-900/20 border-red-200 text-red-600'}`}>
+                {status.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+                {status.msg}
+              </div>
+            )}
+
+            {/* Daily leaderboard */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
+              <h2 className="font-black text-slate-700 dark:text-slate-200 text-sm uppercase tracking-wider mb-1">Daily Leaderboard</h2>
+              <p className="text-xs text-slate-400 mb-4">Download all students' results for a specific quiz date — Rank, Name, Phone, Score.</p>
+              <div className="flex gap-3 items-end">
+                <div className="flex-1">
+                  <label className="text-xs font-bold text-slate-400 mb-1 block">Quiz Date</label>
+                  <input
+                    type="date" value={reportDate}
+                    onChange={e => setReportDate(e.target.value)}
+                    className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200"
+                  />
+                </div>
+                <button
+                  onClick={handleDownloadDaily}
+                  disabled={reportLoading === 'daily'}
+                  className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-blue-600 to-primary text-white rounded-xl text-sm font-black shadow-sm disabled:opacity-60 transition"
+                >
+                  {reportLoading === 'daily' ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
+                  Download CSV
+                </button>
+              </div>
+            </div>
+
+            {/* Cumulative leaderboard */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
+              <h2 className="font-black text-slate-700 dark:text-slate-200 text-sm uppercase tracking-wider mb-1">Cumulative Leaderboard</h2>
+              <p className="text-xs text-slate-400 mb-4">Download all-time rankings across every quiz — Rank, Name, Phone, Total Score, Best Score, Quizzes Attempted.</p>
+              <button
+                onClick={handleDownloadCumulative}
+                disabled={reportLoading === 'cumulative'}
+                className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl text-sm font-black shadow-sm disabled:opacity-60 transition"
+              >
+                {reportLoading === 'cumulative' ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
+                Download CSV
+              </button>
+            </div>
+
           </div>
         )}
 
