@@ -41,6 +41,38 @@ export function getTodayDate() {
 // ─── Admin: Write ────────────────────────────────────────────────────────────
 
 /**
+ * Toggle a quiz's published state (hide/unhide).
+ */
+export async function toggleQuizPublished(date, published) {
+  await setDoc(doc(db, 'quizzes', date), { published }, { merge: true });
+}
+
+/**
+ * Fetch ALL quizzes (including hidden) for admin management.
+ */
+export async function fetchAllQuizzes() {
+  const snap = await getDocs(collection(db, 'quizzes'));
+  return snap.docs
+    .map((d) => ({ date: d.id, ...d.data() }))
+    .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+/**
+ * Fetch a quiz with all its questions for editing.
+ */
+export async function fetchQuizForEdit(date) {
+  const metaSnap = await getDoc(doc(db, 'quizzes', date));
+  if (!metaSnap.exists()) return null;
+  const questionsSnap = await getDocs(
+    query(collection(db, 'quizzes', date, 'questions'), orderBy('__name__'))
+  );
+  return {
+    ...metaSnap.data(),
+    questions: questionsSnap.docs.map((d) => d.data()),
+  };
+}
+
+/**
  * Publish a quiz for a given date.
  * @param {string} date - "YYYY-MM-DD"
  * @param {{ title: string, subject: string }} meta
