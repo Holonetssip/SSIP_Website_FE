@@ -50,8 +50,7 @@ export default function QuizAttempt() {
   const [myTotalScore, setMyTotalScore] = useState(0);
   const [isMobilePaletteOpen, setIsMobilePaletteOpen] = useState(false);
 
-  const QUESTION_TIME = 60; 
-  const [timeData, setTimeData] = useState([]);
+  const [overallTime, setOverallTime] = useState(0);
   const [countdownNum, setCountdownNum] = useState(3);
   const startTimeRef = useRef(null);
 
@@ -61,10 +60,7 @@ export default function QuizAttempt() {
     fetchQuiz(date)
       .then((data) => {
         if (!data) setError('no_quiz');
-        else {
-          setQuizData(data);
-          setTimeData(Array(data.questions.length).fill(QUESTION_TIME));
-        }
+        else setQuizData(data);
       })
       .catch(() => setError('fetch_failed'))
       .finally(() => setLoading(false));
@@ -89,26 +85,28 @@ export default function QuizAttempt() {
     return () => clearInterval(cdTimer);
   }, [appState]);
 
-  // 3. Question Timer Logic
+  // 3. Initialize overall timer when quiz starts
   useEffect(() => {
-    let timer;
-    if (appState === 'quiz' && quizData) {
-      timer = setInterval(() => {
-        setTimeData((prev) => {
-          const newTimes = [...prev];
-          if (newTimes[currentIdx] > 0) {
-            newTimes[currentIdx] -= 1;
-            if (newTimes[currentIdx] === 0) {
-              if (currentIdx < quizData.questions.length - 1) setCurrentIdx(p => p + 1);
-              else handleSubmit();
-            }
-          }
-          return newTimes;
-        });
-      }, 1000);
+    if (appState === 'quiz' && quizData && overallTime === 0) {
+      setOverallTime(quizData.questions.length * 120); // 2 min per question
     }
+  }, [appState, quizData]);
+
+  // 4. Overall countdown timer
+  useEffect(() => {
+    if (appState !== 'quiz') return;
+    const timer = setInterval(() => {
+      setOverallTime((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          handleSubmit();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
     return () => clearInterval(timer);
-  }, [appState, currentIdx, quizData]);
+  }, [appState]);
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   
@@ -138,7 +136,6 @@ export default function QuizAttempt() {
   };
 
   const handleSelectOption = (optIndex) => {
-    if (timeData[currentIdx] <= 0) return;
     setSelectedAnswers(prev => ({ ...prev, [currentIdx]: optIndex }));
   };
 
@@ -216,7 +213,7 @@ export default function QuizAttempt() {
     setSelectedAnswers({});
     setMarkedForReview(new Set());
     setCurrentIdx(0);
-    setTimeData(Array(quizData.questions.length).fill(QUESTION_TIME));
+    setOverallTime(0);
     setAppState('countdown');
   };
 
@@ -302,7 +299,6 @@ export default function QuizAttempt() {
   // 3. IMMERSIVE QUIZ
   if (appState === 'quiz') {
     const question = quizData.questions[currentIdx];
-    const timeLeft = timeData[currentIdx];
 
     return (
       <div className="fixed inset-0 z-[700] bg-slate-50 dark:bg-slate-950 flex flex-col h-full overflow-hidden">
@@ -317,8 +313,8 @@ export default function QuizAttempt() {
              </div>
           </div>
           <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
-            <Clock size={14} className={timeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-primary'} />
-            <span className={`font-black text-xs ${timeLeft <= 10 ? 'text-red-500' : 'dark:text-white'}`}>{timeLeft}s</span>
+            <Clock size={14} className={overallTime <= 60 ? 'text-red-500 animate-pulse' : 'text-primary'} />
+            <span className={`font-black text-xs ${overallTime <= 60 ? 'text-red-500' : 'dark:text-white'}`}>{formatTime(overallTime)}</span>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => setIsMobilePaletteOpen(true)} className="lg:hidden p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg"><LayoutGrid size={18} /></button>
@@ -344,7 +340,7 @@ export default function QuizAttempt() {
                   {question.options.map((opt, i) => {
                     const isSelected = selectedAnswers[currentIdx] === i;
                     return (
-                      <button key={i} onClick={() => handleSelectOption(i)} disabled={timeLeft <= 0}
+                      <button key={i} onClick={() => handleSelectOption(i)}
                         className={`w-full text-left p-3.5 rounded-xl border transition-all flex items-center gap-3 ${isSelected ? 'border-primary bg-primary/5 dark:text-white ring-1 ring-primary/20' : 'border-slate-100 dark:border-slate-800 dark:text-slate-400 hover:border-slate-200 bg-slate-50/50 dark:bg-slate-900/50'}`}>
                         <div className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 text-[10px] font-black ${isSelected ? 'bg-primary text-white border-primary shadow-lg shadow-primary/30' : 'border-slate-300'}`}>{String.fromCharCode(65+i)}</div>
                         <span className="text-xs md:text-sm font-semibold">{opt}</span>
@@ -366,8 +362,15 @@ export default function QuizAttempt() {
           <div className="flex gap-2">
             <button onClick={() => setCurrentIdx(Math.max(0, currentIdx-1))} disabled={currentIdx===0} className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 disabled:opacity-30 hover:bg-slate-200"><ChevronLeft size={18}/></button>
             <button onClick={handleToggleReview} className={`px-4 py-2 rounded-xl border font-bold text-[10px] flex items-center gap-2 ${markedForReview.has(currentIdx) ? 'bg-amber-100 border-amber-300 text-amber-700' : 'bg-white dark:bg-slate-800 text-slate-500 border-slate-200'}`}><Flag size={14}/> {markedForReview.has(currentIdx) ? 'MARKED' : 'REVIEW'}</button>
+            {selectedAnswers[currentIdx] !== undefined && (
+              <button
+                onClick={() => setSelectedAnswers(prev => { const n = {...prev}; delete n[currentIdx]; return n; })}
+                className="px-4 py-2 rounded-xl border font-bold text-[10px] flex items-center gap-2 bg-red-50 border-red-200 text-red-500 hover:bg-red-100 transition">
+                <X size={13}/> CLEAR
+              </button>
+            )}
           </div>
-          <button onClick={() => currentIdx === quizData.questions.length-1 ? handleSubmit() : setCurrentIdx(currentIdx+1)} className="px-6 py-2.5 rounded-xl bg-primary text-white font-bold text-xs flex items-center gap-2 active:scale-95 transition-transform shadow-lg shadow-primary/20">{currentIdx === quizData.questions.length-1 ? 'FINISH' : 'NEXT'} <ChevronRight size={16}/></button>
+          <button onClick={() => setCurrentIdx((currentIdx + 1) % quizData.questions.length)} className="px-6 py-2.5 rounded-xl bg-primary text-white font-bold text-xs flex items-center gap-2 active:scale-95 transition-transform shadow-lg shadow-primary/20">NEXT <ChevronRight size={16}/></button>
         </footer>
 
         <AnimatePresence>{isMobilePaletteOpen && (
@@ -416,7 +419,7 @@ export default function QuizAttempt() {
           </div>
 
           <div className="grid sm:grid-cols-2 gap-3">
-            <button onClick={() => setAppState('review')} className="py-3 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white rounded-xl font-bold text-[11px] flex items-center justify-center gap-2 hover:bg-slate-200"><ListChecks size={16} className="text-primary" /> REVIEW OMR</button>
+            <button onClick={() => setAppState('review')} className="py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-bold text-[11px] flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30 animate-pulse hover:animate-none hover:from-emerald-600 hover:to-teal-600 transition-all"><ListChecks size={16} /> CHECK SOLUTION</button>
             <button onClick={() => setAppState('leaderboard')} className="py-3 bg-primary text-white rounded-xl font-bold text-[11px] flex items-center justify-center gap-2 shadow-xl hover:bg-purple-700 transition-all"><Crown size={16} /> BOARD RANKINGS</button>
           </div>
         </motion.div>

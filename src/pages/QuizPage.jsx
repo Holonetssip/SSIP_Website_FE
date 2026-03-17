@@ -260,43 +260,39 @@ export default function QuizPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6">
                     {pastQuizzes.map((quiz) => (
                       <motion.div key={quiz.date} variants={itemVariants}>
-                        <Link
-                          to={`/quiz/attempt?date=${quiz.date}`}
-                          className="group flex flex-col h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border border-slate-200/80 dark:border-slate-700/60 hover:border-primary/30 dark:hover:border-primary/40 rounded-[1.5rem] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[0_15px_30px_-5px_rgba(0,0,0,0.05)] dark:hover:shadow-[0_15px_30px_-5px_rgba(0,0,0,0.3)] transition-all duration-400 transform-gpu hover:-translate-y-1 relative overflow-hidden"
-                        >
-                          {/* Inner Glassy Glow on Hover */}
-                          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-
+                        <div className="flex flex-col h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border border-slate-200/80 dark:border-slate-700/60 rounded-[1.5rem] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] relative overflow-hidden">
                           <div className="flex justify-between items-start mb-5 relative z-10">
-                            {/* Google-style Icon Block */}
-                            <div className="w-12 h-12 rounded-[1rem] bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-sm group-hover:bg-blue-600 group-hover:text-white group-hover:shadow-blue-500/30 transition-all duration-300">
+                            <div className="w-12 h-12 rounded-[1rem] bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-sm">
                               <BookOpen size={20} strokeWidth={2.5} />
                             </div>
-                            
-                            {/* Google-style Pill Badge */}
                             <span className="px-3 py-1 bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 rounded-full text-[10px] font-bold uppercase tracking-wider border border-slate-200/60 dark:border-slate-700/60 shadow-sm backdrop-blur-sm">
                               {quiz.subject || 'General'}
                             </span>
                           </div>
 
                           <div className="flex-1 relative z-10">
-                            <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 mb-2 line-clamp-2 leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                            <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 mb-2 line-clamp-2 leading-snug">
                               {quiz.title}
                             </h3>
                           </div>
 
-                          {/* Google-style Footer Divider & Action */}
                           <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-200/60 dark:border-slate-700/60 relative z-10">
                             <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                               <Calendar size={14} className="text-slate-400" /> {quiz.date}
+                              <Calendar size={14} className="text-slate-400" /> {quiz.date}
                             </div>
-                            
-                            {/* Sleek Text CTA */}
-                            <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 text-xs font-bold opacity-80 group-hover:opacity-100 group-hover:translate-x-1 transition-all">
-                              Practice <ChevronRight size={14} />
+                            <div className="flex items-center gap-2">
+                              <Link to={`/quiz/attempt?date=${quiz.date}`}
+                                className="flex items-center gap-1 text-blue-600 dark:text-blue-400 text-xs font-bold hover:underline">
+                                Attempt <ChevronRight size={13} />
+                              </Link>
+                              <span className="text-slate-300 dark:text-slate-700 text-xs">|</span>
+                              <Link to={`/quiz/review?date=${quiz.date}`}
+                                className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-bold hover:underline">
+                                Solution <ChevronRight size={13} />
+                              </Link>
                             </div>
                           </div>
-                        </Link>
+                        </div>
                       </motion.div>
                     ))}
                   </div>

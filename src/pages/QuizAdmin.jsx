@@ -181,13 +181,10 @@ export default function QuizAdmin() {
     const doc = new jsPDF({ orientation: 'landscape' });
     doc.setFontSize(14);
     doc.text(title, 14, 15);
-    doc.setFontSize(9);
-    doc.setTextColor(120);
-    doc.text(`Generated: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`, 14, 21);
     autoTable(doc, {
       head: [head],
       body,
-      startY: 26,
+      startY: 22,
       styles: { fontSize: 8, cellPadding: 2 },
       headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold' },
       alternateRowStyles: { fillColor: [245, 245, 255] },
@@ -203,7 +200,9 @@ export default function QuizAdmin() {
       const head = ['Rank', 'Name', 'Phone', 'Score', 'Correct', 'Incorrect', 'Skipped', 'Time (s)'];
       const body = attempts.map((a, i) => [i + 1, a.displayName, a.phone, a.score, a.correct, a.incorrect, a.skipped, a.timeTaken]);
       if (format === 'pdf') {
-        downloadPDF(`leaderboard_${reportDate}.pdf`, `Daily Leaderboard — ${reportDate}`, head, body);
+        const pdfHead = ['Rank', 'Name', 'Score', 'Correct', 'Incorrect', 'Skipped', 'Time (s)'];
+        const pdfBody = attempts.map((a, i) => [i + 1, a.displayName, a.score, a.correct, a.incorrect, a.skipped, a.timeTaken]);
+        downloadPDF(`leaderboard_${reportDate}.pdf`, `Daily Leaderboard — ${reportDate}`, pdfHead, pdfBody);
       } else {
         downloadCSV(`leaderboard_${reportDate}.csv`, [head, ...body]);
       }
@@ -223,7 +222,9 @@ export default function QuizAdmin() {
       const head = ['Rank', 'Name', 'Phone', 'Total Score', 'Best Score', 'Quizzes Attempted', 'Last Attempt Date'];
       const body = stats.map((s, i) => [i + 1, s.displayName, s.phone, s.totalScore, s.bestScore, s.attemptCount, s.lastAttemptDate]);
       if (format === 'pdf') {
-        downloadPDF('cumulative_leaderboard.pdf', 'Cumulative Leaderboard — All Time', head, body);
+        const pdfHead = ['Rank', 'Name', 'Total Score', 'Best Score', 'Quizzes Attempted', 'Last Attempt Date'];
+        const pdfBody = stats.map((s, i) => [i + 1, s.displayName, s.totalScore, s.bestScore, s.attemptCount, s.lastAttemptDate]);
+        downloadPDF('cumulative_leaderboard.pdf', 'Cumulative Leaderboard — All Time', pdfHead, pdfBody);
       } else {
         downloadCSV('cumulative_leaderboard.csv', [head, ...body]);
       }
