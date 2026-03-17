@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import {
+  BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis,
+  Tooltip, ResponsiveContainer, CartesianGrid, Legend,
+} from 'recharts';
 import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../services/firebase';
 import {
   publishQuiz, fetchAllQuizzes,
   fetchQuizForEdit, toggleQuizPublished,
-  fetchDailyAttemptsAll, fetchAllUserStats,
+  fetchDailyAttemptsAll, fetchAllUserStats, fetchAdminStats,
 } from '../services/quizService';
 import {
   LogIn, LogOut, Upload, Plus, Trash2, CheckCircle, AlertCircle,
   Loader2, ShieldAlert, Eye, EyeOff, Pencil, List, FilePlus, Download,
+  BarChart2, RefreshCw, Users, Activity,
 } from 'lucide-react';
 
 const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || '')
@@ -133,6 +138,7 @@ export default function QuizAdmin() {
   const [date, setDate] = useState(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }));
   const [title, setTitle] = useState('');
   const [subject, setSubject] = useState('General Studies');
+  const [timeLimitMins, setTimeLimitMins] = useState(20);
   const [questions, setQuestions] = useState([{ ...EMPTY_Q, options: ['', '', '', ''] }]);
 
   // Manage list state
@@ -148,6 +154,10 @@ export default function QuizAdmin() {
   const [reportDate, setReportDate] = useState(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }));
   const [reportLoading, setReportLoading] = useState(null); // 'daily' | 'cumulative' | null
 
+  // Stats state
+  const [statsData, setStatsData] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+
   // Auth listener
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -161,6 +171,7 @@ export default function QuizAdmin() {
   // Auto-load list when switching to manage mode
   useEffect(() => {
     if (mode === 'manage' && isAdmin) loadQuizList();
+    if (mode === 'stats' && isAdmin) loadStats();
   }, [mode, isAdmin]);
 
   // ── Reports: Download CSV ──────────────────────────────────────────────────
@@ -280,6 +291,19 @@ export default function QuizAdmin() {
     }
   };
 
+  // ── Stats ──────────────────────────────────────────────────────────────────
+  const loadStats = async () => {
+    setStatsLoading(true);
+    try {
+      const data = await fetchAdminStats();
+      setStatsData(data);
+    } catch {
+      setStatus({ type: 'error', msg: 'Failed to load stats.' });
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
   // ── Manage: Toggle hide/show ───────────────────────────────────────────────
   const handleTogglePublish = async (date, current) => {
     setTogglingDate(date);
@@ -302,6 +326,7 @@ export default function QuizAdmin() {
       setDate(quizDate);
       setTitle(data.title || '');
       setSubject(data.subject || 'General Studies');
+      setTimeLimitMins(data.timeLimitMins || 20);
       setQuestions(data.questions);
       setEditingDate(quizDate);
       setStatus(null);
@@ -319,6 +344,7 @@ export default function QuizAdmin() {
     setDate(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }));
     setTitle('');
     setSubject('General Studies');
+    setTimeLimitMins(20);
     setQuestions([{ ...EMPTY_Q, options: ['', '', '', ''] }]);
     setStatus(null);
     setMode('create');
@@ -336,7 +362,7 @@ export default function QuizAdmin() {
     setPublishing(true);
     setStatus(null);
     try {
-      const result = await publishQuiz(date, { title, subject }, questions);
+      const result = await publishQuiz(date, { title, subject, timeLimitMins: Number(timeLimitMins) }, questions);
       setStatus({ type: 'success', msg: `${editingDate ? 'Updated' : 'Published'} ${result.totalQuestions} questions for ${result.date}!` });
       setEditingDate(date);
     } catch (err) {
@@ -415,6 +441,12 @@ export default function QuizAdmin() {
             className={`flex-1 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${mode === 'reports' ? 'bg-white dark:bg-slate-900 text-primary shadow-sm' : 'text-slate-400'}`}
           >
             <Download size={13} /> Reports
+          </button>
+          <button
+            onClick={() => { setMode('stats'); setStatus(null); }}
+            className={`flex-1 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${mode === 'stats' ? 'bg-white dark:bg-slate-900 text-primary shadow-sm' : 'text-slate-400'}`}
+          >
+            <BarChart2 size={13} /> Stats
           </button>
         </div>
 
@@ -553,6 +585,97 @@ export default function QuizAdmin() {
           </div>
         )}
 
+        {/* ── STATS MODE ──────────────────────────────────────────────────── */}
+        {mode === 'stats' && (
+          <div className="flex flex-col gap-6">
+
+            {/* Header + Refresh */}
+            <div className="flex items-center justify-between">
+              <h2 className="font-black text-slate-700 dark:text-slate-200 text-sm uppercase tracking-wider">Dashboard</h2>
+              <button onClick={loadStats} disabled={statsLoading}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-500 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-primary/50 hover:text-primary transition disabled:opacity-50">
+                <RefreshCw size={12} className={statsLoading ? 'animate-spin' : ''} /> Refresh
+              </button>
+            </div>
+
+            {statsLoading && (
+              <div className="py-20 flex justify-center"><Loader2 size={28} className="animate-spin text-primary/40" /></div>
+            )}
+
+            {!statsLoading && statsData && (
+              <>
+                {/* Summary cards */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                      <Users size={18} className="text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-black text-slate-800 dark:text-white">{statsData.totalStudents}</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Registered Students</p>
+                    </div>
+                  </div>
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center">
+                      <Activity size={18} className="text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-black text-slate-800 dark:text-white">{statsData.totalAttempts}</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Attempts</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bar chart — attempts per quiz */}
+                {statsData.perQuizAttempts.length > 0 && (
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
+                    <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Attempts Per Quiz</p>
+                    <ResponsiveContainer width="100%" height={220}>
+                      <BarChart data={statsData.perQuizAttempts} margin={{ top: 4, right: 8, left: -20, bottom: 40 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                        <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#94a3b8' }} angle={-40} textAnchor="end" interval={0} />
+                        <YAxis tick={{ fontSize: 9, fill: '#94a3b8' }} allowDecimals={false} />
+                        <Tooltip
+                          contentStyle={{ fontSize: 11, borderRadius: 10, border: '1px solid #e2e8f0' }}
+                          formatter={(v, name) => [v, name === 'attempts' ? 'Attempts' : 'Avg Score']}
+                        />
+                        <Legend wrapperStyle={{ fontSize: 10, paddingTop: 8 }} />
+                        <Bar dataKey="attempts" fill="#6366f1" radius={[4, 4, 0, 0]} name="Attempts" />
+                        <Bar dataKey="avgScore" fill="#10b981" radius={[4, 4, 0, 0]} name="Avg Score" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+
+                {/* Pie chart — score distribution */}
+                {statsData.scoreDistribution.some(d => d.count > 0) && (
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
+                    <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Score Distribution</p>
+                    <ResponsiveContainer width="100%" height={220}>
+                      <PieChart>
+                        <Pie data={statsData.scoreDistribution.filter(d => d.count > 0)}
+                          dataKey="count" nameKey="range" cx="50%" cy="50%" outerRadius={80} label={({ range, percent }) => `${range} (${(percent * 100).toFixed(0)}%)`}
+                          labelLine={false}>
+                          {statsData.scoreDistribution.map((_, i) => (
+                            <Cell key={i} fill={['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#6366f1'][i % 6]} />
+                          ))}
+                        </Pie>
+                        <Tooltip contentStyle={{ fontSize: 11, borderRadius: 10 }} formatter={(v) => [v, 'Students']} />
+                        <Legend wrapperStyle={{ fontSize: 10 }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </>
+            )}
+
+            {!statsLoading && !statsData && (
+              <div className="py-16 text-center text-sm text-slate-400 font-medium">Click Refresh to load stats.</div>
+            )}
+
+          </div>
+        )}
+
         {/* ── CREATE / EDIT MODE ──────────────────────────────────────────── */}
         {mode === 'create' && (
           <>
@@ -581,10 +704,16 @@ export default function QuizAdmin() {
                   <input type="text" value={subject} onChange={e => setSubject(e.target.value)} placeholder="e.g. General Studies"
                     className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200" />
                 </div>
-                <div className="sm:col-span-2">
+                <div>
                   <label className="text-xs font-bold text-slate-400 mb-1 block">Title</label>
                   <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder={`Daily Quiz — ${date}`}
                     className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-400 mb-1 block">Time Limit (minutes)</label>
+                  <input type="number" min={1} max={180} value={timeLimitMins} onChange={e => setTimeLimitMins(e.target.value)}
+                    className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200" />
+                  <p className="text-[10px] text-slate-400 mt-1">{timeLimitMins} min = {timeLimitMins * 60}s total</p>
                 </div>
               </div>
             </div>

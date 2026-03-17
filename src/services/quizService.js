@@ -343,6 +343,52 @@ export async function fetchAllUserStats() {
   return snap.docs.map((d) => d.data());
 }
 
+// ─── Admin: Stats ────────────────────────────────────────────────────────────
+
+/**
+ * Fetch admin dashboard stats:
+ * - totalStudents, totalAttempts
+ * - perQuizAttempts: [{ date, attempts, avgScore }]
+ * - scoreDistribution: [{ range, count }]
+ */
+export async function fetchAdminStats() {
+  const [attemptsSnap, usersSnap, quizzesSnap] = await Promise.all([
+    getDocs(collection(db, 'attempts')),
+    getCountFromServer(collection(db, 'userStats')),
+    getDocs(collection(db, 'quizzes')),
+  ]);
+
+  const attempts = attemptsSnap.docs.map(d => d.data());
+  const totalStudents = usersSnap.data().count;
+  const totalAttempts = attempts.length;
+
+  // Per-quiz attempt counts + avg score
+  const quizMap = {};
+  attempts.forEach(a => {
+    if (!quizMap[a.date]) quizMap[a.date] = { date: a.date, attempts: 0, totalScore: 0 };
+    quizMap[a.date].attempts++;
+    quizMap[a.date].totalScore += a.score || 0;
+  });
+  const perQuizAttempts = Object.values(quizMap)
+    .map(q => ({ date: q.date, attempts: q.attempts, avgScore: parseFloat((q.totalScore / q.attempts).toFixed(1)) }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  // Score distribution buckets
+  const buckets = { '≤0': 0, '1-5': 0, '6-10': 0, '11-15': 0, '16-20': 0, '20+': 0 };
+  attempts.forEach(a => {
+    const s = a.score || 0;
+    if (s <= 0) buckets['≤0']++;
+    else if (s <= 5) buckets['1-5']++;
+    else if (s <= 10) buckets['6-10']++;
+    else if (s <= 15) buckets['11-15']++;
+    else if (s <= 20) buckets['16-20']++;
+    else buckets['20+']++;
+  });
+  const scoreDistribution = Object.entries(buckets).map(([range, count]) => ({ range, count }));
+
+  return { totalStudents, totalAttempts, perQuizAttempts, scoreDistribution };
+}
+
 // ─── User History ─────────────────────────────────────────────────────────────
 
 /**
