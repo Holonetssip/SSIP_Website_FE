@@ -75,16 +75,18 @@ export async function fetchQuizForEdit(date) {
 /**
  * Publish a quiz for a given date.
  * @param {string} date - "YYYY-MM-DD"
- * @param {{ title: string, subject: string }} meta
+ * @param {{ title: string, subject: string, publishAt?: string }} meta
  * @param {Array<{ question, options, correct }>} questions
  */
 export async function publishQuiz(date, meta, questions) {
   const quizRef = doc(db, 'quizzes', date);
+  const { publishAt, ...restMeta } = meta;
 
   await setDoc(quizRef, {
-    ...meta,
+    ...restMeta,
     totalQuestions: questions.length,
-    published: true,
+    published: !publishAt,
+    ...(publishAt ? { publishAt } : {}),
     createdAt: new Date().toISOString(),
   });
 
@@ -117,9 +119,12 @@ export async function fetchQuiz(date = getTodayDate()) {
   const quizRef = doc(db, 'quizzes', date);
   const metaSnap = await getDoc(quizRef);
 
-  if (!metaSnap.exists() || !metaSnap.data().published) return null;
+  if (!metaSnap.exists()) return null;
+  const data = metaSnap.data();
+  const isLive = data.published || (data.publishAt && new Date() >= new Date(data.publishAt));
+  if (!isLive) return null;
 
-  const meta = metaSnap.data();
+  const meta = data;
 
   const questionsSnap = await getDocs(
     query(collection(db, 'quizzes', date, 'questions'), orderBy('__name__'))
@@ -141,7 +146,7 @@ export async function fetchRecentQuizzes(count = 30) {
   const snap = await getDocs(collection(db, 'quizzes'));
   return snap.docs
     .map((d) => ({ date: d.id, ...d.data() }))
-    .filter((q) => q.published)
+    .filter((q) => q.published || (q.publishAt && new Date() >= new Date(q.publishAt)))
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, count);
 }

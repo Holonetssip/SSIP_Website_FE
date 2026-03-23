@@ -88,7 +88,8 @@ export default function QuizAttempt() {
   // 3. Initialize overall timer when quiz starts
   useEffect(() => {
     if (appState === 'quiz' && quizData && overallTime === 0) {
-      setOverallTime(quizData.questions.length * 120); // 2 min per question
+      const totalSecs = (quizData.timeLimitMins || quizData.questions.length * 2) * 60;
+      setOverallTime(totalSecs);
     }
   }, [appState, quizData]);
 
@@ -332,7 +333,7 @@ export default function QuizAttempt() {
               
               <motion.div key={currentIdx} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 md:p-8 rounded-[1.5rem] shadow-sm mb-6 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-1 h-full bg-primary/20" />
-                <h2 className="text-sm md:text-base font-bold text-slate-800 dark:text-white leading-relaxed mb-8">
+                <h2 className="text-sm md:text-base font-bold text-slate-800 dark:text-white leading-relaxed mb-8 whitespace-pre-wrap">
                   <span className="text-primary font-black mr-2">Q.</span>{question.question}
                 </h2>
                 
@@ -444,7 +445,7 @@ export default function QuizAttempt() {
               return (
                 <div key={idx} className={`bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border-l-4 ${isSkipped ? 'border-slate-300' : isCorrect ? 'border-emerald-500' : 'border-red-500'}`}>
                   <p className="text-primary font-black mb-2 text-[10px] uppercase">Record #{idx + 1}</p>
-                  <h3 className="font-bold text-slate-800 dark:text-white mb-6 text-[13px] leading-relaxed">{q.question}</h3>
+                  <h3 className="font-bold text-slate-800 dark:text-white mb-6 text-[13px] leading-relaxed whitespace-pre-wrap">{q.question}</h3>
                   <div className="space-y-2 mb-6">
                     {q.options.map((opt, oIdx) => {
                       const isCorrectOpt = q.correct === oIdx;

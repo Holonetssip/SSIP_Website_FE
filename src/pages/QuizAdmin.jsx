@@ -15,7 +15,7 @@ import {
 import {
   LogIn, LogOut, Upload, Plus, Trash2, CheckCircle, AlertCircle,
   Loader2, ShieldAlert, Eye, EyeOff, Pencil, List, FilePlus, Download,
-  BarChart2, RefreshCw, Users, Activity,
+  BarChart2, RefreshCw, Users, Activity, Clock,
 } from 'lucide-react';
 
 const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || '')
@@ -139,6 +139,7 @@ export default function QuizAdmin() {
   const [title, setTitle] = useState('');
   const [subject, setSubject] = useState('General Studies');
   const [timeLimitMins, setTimeLimitMins] = useState(20);
+  const [publishTime, setPublishTime] = useState('21:00');
   const [questions, setQuestions] = useState([{ ...EMPTY_Q, options: ['', '', '', ''] }]);
 
   // Manage list state
@@ -327,6 +328,12 @@ export default function QuizAdmin() {
       setTitle(data.title || '');
       setSubject(data.subject || 'General Studies');
       setTimeLimitMins(data.timeLimitMins || 20);
+      if (data.publishAt) {
+        const t = new Date(data.publishAt).toLocaleTimeString('en-CA', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false });
+        setPublishTime(t);
+      } else {
+        setPublishTime('21:00');
+      }
       setQuestions(data.questions);
       setEditingDate(quizDate);
       setStatus(null);
@@ -345,6 +352,7 @@ export default function QuizAdmin() {
     setTitle('');
     setSubject('General Studies');
     setTimeLimitMins(20);
+    setPublishTime('21:00');
     setQuestions([{ ...EMPTY_Q, options: ['', '', '', ''] }]);
     setStatus(null);
     setMode('create');
@@ -362,8 +370,14 @@ export default function QuizAdmin() {
     setPublishing(true);
     setStatus(null);
     try {
-      const result = await publishQuiz(date, { title, subject, timeLimitMins: Number(timeLimitMins) }, questions);
-      setStatus({ type: 'success', msg: `${editingDate ? 'Updated' : 'Published'} ${result.totalQuestions} questions for ${result.date}!` });
+      const publishAt = publishTime
+        ? new Date(`${date}T${publishTime}:00+05:30`).toISOString()
+        : null;
+      const result = await publishQuiz(date, { title, subject, timeLimitMins: Number(timeLimitMins), publishAt }, questions);
+      const scheduledMsg = publishAt && new Date() < new Date(publishAt)
+        ? `Scheduled ${result.totalQuestions} questions for ${result.date} at ${publishTime} IST`
+        : `${editingDate ? 'Updated' : 'Published'} ${result.totalQuestions} questions for ${result.date}!`;
+      setStatus({ type: 'success', msg: scheduledMsg });
       setEditingDate(date);
     } catch (err) {
       setStatus({ type: 'error', msg: err.message });
@@ -491,21 +505,35 @@ export default function QuizAdmin() {
                         Edit
                       </button>
 
-                      {/* Hide / Show toggle */}
-                      <button
-                        onClick={() => handleTogglePublish(quiz.date, quiz.published)}
-                        disabled={togglingDate === quiz.date}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition border ${
-                          quiz.published
-                            ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800 hover:bg-red-50 hover:text-red-500 hover:border-red-200'
-                            : 'bg-slate-100 text-slate-400 border-slate-200 dark:bg-slate-800 dark:border-slate-700 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200'
-                        }`}
-                      >
-                        {togglingDate === quiz.date
-                          ? <Loader2 size={12} className="animate-spin" />
-                          : quiz.published ? <><Eye size={12} /> Visible</> : <><EyeOff size={12} /> Hidden</>
-                        }
-                      </button>
+                      {/* Hide / Show / Scheduled toggle */}
+                      {(() => {
+                        const isScheduled = !quiz.published && quiz.publishAt && new Date() < new Date(quiz.publishAt);
+                        const scheduledTime = isScheduled
+                          ? new Date(quiz.publishAt).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true })
+                          : null;
+                        return (
+                          <button
+                            onClick={() => handleTogglePublish(quiz.date, quiz.published)}
+                            disabled={togglingDate === quiz.date}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition border ${
+                              quiz.published
+                                ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800 hover:bg-red-50 hover:text-red-500 hover:border-red-200'
+                                : isScheduled
+                                  ? 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200'
+                                  : 'bg-slate-100 text-slate-400 border-slate-200 dark:bg-slate-800 dark:border-slate-700 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200'
+                            }`}
+                          >
+                            {togglingDate === quiz.date
+                              ? <Loader2 size={12} className="animate-spin" />
+                              : quiz.published
+                                ? <><Eye size={12} /> Visible</>
+                                : isScheduled
+                                  ? <><Clock size={12} /> {scheduledTime}</>
+                                  : <><EyeOff size={12} /> Hidden</>
+                            }
+                          </button>
+                        );
+                      })()}
                     </div>
                   </div>
                 ))}
@@ -714,6 +742,12 @@ export default function QuizAdmin() {
                   <input type="number" min={1} max={180} value={timeLimitMins} onChange={e => setTimeLimitMins(e.target.value)}
                     className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200" />
                   <p className="text-[10px] text-slate-400 mt-1">{timeLimitMins} min = {timeLimitMins * 60}s total</p>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-400 mb-1 block">Auto-Publish Time (IST)</label>
+                  <input type="time" value={publishTime} onChange={e => setPublishTime(e.target.value)}
+                    className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200" />
+                  <p className="text-[10px] text-slate-400 mt-1">Quiz goes live at this time on the quiz date</p>
                 </div>
               </div>
             </div>
