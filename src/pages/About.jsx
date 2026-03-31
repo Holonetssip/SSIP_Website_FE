@@ -24,15 +24,17 @@ const CountUp = ({ value, suffix = "" }) => {
   const springValue = useSpring(motionValue, { duration: 3000, bounce: 0 });
   const [displayValue, setDisplayValue] = useState(0);
 
-  const numericValue = parseInt(value.replace(/,/g, '').replace('+', ''), 10);
+  // Parse value to ensure it's a number for calculation
+  const numericValue = typeof value === 'string' 
+    ? parseInt(value.replace(/,/g, '').replace('+', ''), 10) 
+    : value;
 
   useEffect(() => {
     if (isInView) motionValue.set(numericValue);
   }, [isInView, motionValue, numericValue]);
 
   useEffect(() => {
-    springValue.on("change", (latest) => setDisplayValue(Math.floor(latest)));
-    return () => springValue.clearListeners();
+    return springValue.on("change", (latest) => setDisplayValue(Math.floor(latest)));
   }, [springValue]);
 
   return <span ref={ref}>{displayValue.toLocaleString()}{suffix}</span>;
@@ -66,8 +68,6 @@ const ArcheryAnimation = ({ inView }) => {
       onClick={() => setPlayCount(prev => prev + 1)}
     >
       <svg key={playCount} viewBox="0 0 500 100" className="w-full h-auto overflow-visible drop-shadow-xl md:group-hover:scale-105 transition-transform duration-300">
-        
-        {/* 1. Target (Shakes on impact) */}
         <motion.g
           initial={{ x: 0, scale: 1 }}
           animate={inView ? { x: [0, 0, 8, -6, 4, -2, 0], scale: [1, 1, 1.1, 0.95, 1.05, 1] } : {}}
@@ -78,26 +78,23 @@ const ArcheryAnimation = ({ inView }) => {
           <circle cx="450" cy="50" r="10" fill="#22c55e" />
         </motion.g>
 
-        {/* 2. Bow Frame */}
         <path d="M 60 10 Q 100 50 60 90" fill="none" stroke="#f59e0b" strokeWidth="6" strokeLinecap="round" />
 
-        {/* 3. Bow String */}
         <motion.path
           fill="none" stroke="#cbd5e1" strokeWidth="2"
           initial={{ d: "M 60 10 L 60 50 L 60 90" }}
           animate={inView ? {
             d: [
-              "M 60 10 L 60 50 L 60 90",    // Rest
-              "M 60 10 L 0 50 L 60 90",     // Pulled back
-              "M 60 10 L 80 50 L 60 90",    // Snap forward
-              "M 60 10 L 50 50 L 60 90",    // Vibrate back
-              "M 60 10 L 60 50 L 60 90"     // Rest
+              "M 60 10 L 60 50 L 60 90",
+              "M 60 10 L 0 50 L 60 90",
+              "M 60 10 L 80 50 L 60 90",
+              "M 60 10 L 50 50 L 60 90",
+              "M 60 10 L 60 50 L 60 90"
             ]
           } : {}}
           transition={{ duration: 2, times: [0, 0.5, 0.6, 0.7, 0.8] }}
         />
 
-        {/* 4. The Flying Arrow */}
         <motion.g
           initial={{ x: 0, opacity: 1 }}
           animate={inView ? { x: [0, -60, 360], opacity: [1, 1, 0] } : {}}
@@ -105,13 +102,8 @@ const ArcheryAnimation = ({ inView }) => {
         >
           <line x1="20" y1="50" x2="100" y2="50" stroke="#b45309" strokeWidth="4" strokeLinecap="round" />
           <polygon points="100,45 115,50 100,55" fill="#f59e0b" />
-          <line x1="25" y1="50" x2="15" y2="42" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
-          <line x1="25" y1="50" x2="15" y2="58" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
-          <line x1="35" y1="50" x2="25" y2="42" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
-          <line x1="35" y1="50" x2="25" y2="58" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
         </motion.g>
 
-        {/* 5. The Embedded Arrow */}
         <motion.g
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: [0, 0, 1, 1] } : {}}
@@ -119,14 +111,8 @@ const ArcheryAnimation = ({ inView }) => {
         >
           <line x1="380" y1="50" x2="460" y2="50" stroke="#b45309" strokeWidth="4" strokeLinecap="round" />
           <polygon points="460,45 475,50 460,55" fill="#f59e0b" />
-          <line x1="385" y1="50" x2="375" y2="42" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
-          <line x1="385" y1="50" x2="375" y2="58" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
-          <line x1="395" y1="50" x2="385" y2="42" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
-          <line x1="395" y1="50" x2="385" y2="58" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
         </motion.g>
-
       </svg>
-      
       <div className="absolute -bottom-6 text-[10px] md:text-xs font-bold text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 whitespace-nowrap">
         Click to shoot again!
       </div>
@@ -151,6 +137,33 @@ const About = () => {
   const sliderRef = useRef(null);
   const visionRef = useRef(null);
   
+  // --- DYNAMIC STUDENT CALCULATION ---
+  const [dynamicStudents, setDynamicStudents] = useState(8066);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+
+    const calculateStudents = () => {
+      const baseStudents = 8056;
+      const startDate = new Date('2026-03-30T00:00:00'); 
+      const now = new Date();
+      
+      const diffInMs = now - startDate;
+      const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+      
+      // If we haven't reached 48 hours yet, it will stay 8066
+      const intervalsOf48Hours = Math.max(0, Math.floor(diffInHours / 48));
+      
+      let increment = 0;
+      for (let i = 0; i < intervalsOf48Hours; i++) {
+        increment += (i % 3) + 1; 
+      }
+      setDynamicStudents(baseStudents + increment);
+    };
+
+    calculateStudents();
+  }, []);
+
   const isVisionInView = useInView(visionRef, { once: true, margin: "-100px" });
 
   const slide = (direction) => {
@@ -159,16 +172,10 @@ const About = () => {
       sliderRef.current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
     }
   };
-   // --- FORCE SCROLL TO TOP ON MOUNT ---
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
 
   return (
-    // Changed overflow-hidden to overflow-x-hidden to prevent vertical clipping on desktop
     <div className="pt-24 md:pt-28 min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 overflow-x-hidden relative font-sans w-full">
       
-      {/* --- Background Floating Items --- */}
       <div className="absolute inset-0 pointer-events-none lg:pointer-events-auto overflow-hidden">
         <FloatingItem Icon={BookOpen} label="Study Material" x="top-32" y="left-10" delay={0.2} color="group-hover:text-pink-500" />
         <FloatingItem Icon={Target} label="Focused Strategy" x="top-28" y="right-12" delay={0.4} color="group-hover:text-yellow-500" />
@@ -178,7 +185,6 @@ const About = () => {
         <FloatingItem Icon={MonitorPlay} label="Live Classes" x="bottom-1/4" y="right-16" delay={1.2} color="group-hover:text-orange-500" />
       </div>
 
-      {/* --- 1. HERO SECTION --- */}
       <section className="relative py-16 md:py-28 z-10">
         <div className="absolute top-0 right-0 w-64 md:w-96 h-64 md:h-96 bg-purple-500/10 dark:bg-purple-600/20 rounded-full blur-[80px] md:blur-[100px] -translate-y-10 translate-x-10 pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-56 md:w-72 h-56 md:h-72 bg-blue-500/10 dark:bg-blue-600/20 rounded-full blur-[80px] md:blur-[100px] translate-y-10 -translate-x-10 pointer-events-none"></div>
@@ -203,13 +209,12 @@ const About = () => {
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
-              { icon: Users, label: "Active Aspirants", value: "15,000", suffix: "+" },
+              { icon: Users, label: "Active Aspirants", value: dynamicStudents.toString(), suffix: "+" },
               { icon: Award, label: "Selections in mains", value: "650", suffix: "+" },
               { icon: FileText, label: "Total subscribers", value: "72,000", suffix: "+" },
               { icon: Target, label: "Viewers", value: "6,500,000", suffix: "+" },
             ].map((stat, index) => (
               <div key={index} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/50 shadow-sm md:bg-transparent md:shadow-none border border-slate-100 dark:border-slate-700/50 md:border-none flex flex-col items-center justify-center">
-                {/* STRICTLY CONTROLLED FONTS: text-3xl on mobile, shrinks to text-2xl/3xl on small desktop grids so it never overflows */}
                 <h3 className="text-3xl sm:text-4xl md:text-2xl lg:text-3xl xl:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-2 font-mono whitespace-nowrap tracking-tighter w-full overflow-hidden text-ellipsis">
                   <CountUp value={stat.value} suffix={stat.suffix} />
                 </h3>
@@ -439,7 +444,7 @@ const About = () => {
                  <div className="flex items-center justify-center lg:justify-start gap-3 md:gap-4 bg-slate-50 dark:bg-slate-800/50 px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl flex-1 border border-slate-100 dark:border-slate-700/50">
                     <Users size={28} className="md:w-9 md:h-9 text-purple-500 opacity-80 shrink-0" />
                     <div className="text-left">
-                       <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-none"><CountUp value="4,056" /></h3>
+                       <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-none"><CountUp value={dynamicStudents} /></h3>
                        <p className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Active Students</p>
                     </div>
                  </div>
