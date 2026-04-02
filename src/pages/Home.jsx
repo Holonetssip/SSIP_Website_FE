@@ -8,10 +8,10 @@ import {
   Youtube, MessageCircle, Instagram, Twitter, ChevronRight,
   ChevronLeft, Sparkles, BookMarked, PenTool, 
   Smartphone, Play, Apple, Compass, 
-  MapPin, Copy, ExternalLink, Flame, Lock
+  MapPin, Copy, ExternalLink
 } from 'lucide-react';
 
-// --- MENTORSHIP LOCAL IMAGES ---
+// --- MENTORSHIP LOCAL IMAGES (Preserved as requested) ---
 import mentorImg1 from '../assets/mentor/P1.jpg';
 import mentorImg2 from '../assets/mentor/P2.jpg';
 import mentorImg3 from '../assets/mentor/P3.jpg';
@@ -19,7 +19,27 @@ import mentorImg4 from '../assets/mentor/M3.jpg';
 import mentorImg5 from '../assets/mentor/M2.jpg';
 import mentorImg6 from '../assets/mentor/M1.jpg';
 
-// --- ANIMATED COUNTER COMPONENT ---
+// --- TESTIMONIAL ASSETS ---
+import as from '../assets/as.png';
+import gs from '../assets/gs.png';
+// New individual imports from assets folder
+import avatarSingh from '../assets/avatarsingh.png';
+import garimaSingh from '../assets/Garima-singh.png';
+
+// --- MOBILE SWIPE INDICATOR COMPONENT ---
+const MobileSwipeIndicator = () => (
+  <motion.div
+    initial={{ opacity: 0.8, x: 0 }}
+    animate={{ x: [0, 8, 0] }}
+    transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+    className="md:hidden absolute right-2 top-1/2 -translate-y-1/2 z-30 pointer-events-none bg-slate-900/80 dark:bg-white/20 backdrop-blur-md text-white px-3 py-2 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.3)] dark:shadow-[0_0_15px_rgba(255,255,255,0.15)] flex items-center gap-1 border border-white/20 will-change-transform transform-gpu"
+  >
+    <span className="text-[10px] font-bold tracking-widest uppercase">Swipe</span>
+    <ArrowRight size={14} />
+  </motion.div>
+);
+
+// --- ANIMATED COUNTER COMPONENT (Optimized) ---
 const Counter = ({ value, suffix = "+" }) => {
   const safeValue = String(value).replace(/,/g, '');
   const numericValue = parseInt(safeValue, 10) || 0;
@@ -32,33 +52,32 @@ const Counter = ({ value, suffix = "+" }) => {
   }, [spring, numericValue]);
 
   return (
-    <span className="flex items-center justify-center">
+    <span className="flex items-center justify-center will-change-contents">
       <motion.span>{displayValue}</motion.span>
       <span>{suffix}</span>
     </span>
   );
 };
 
-// --- MARQUEE COMPONENT FOR TEXT ---
+// --- MARQUEE COMPONENT FOR TEXT (GPU Accelerated & Anti-Thrashing) ---
 const Marquee = ({ children, direction = "left", speed = 25, pauseOnHover = false }) => {
   return (
-    <div className={`flex overflow-hidden transform-gpu ${pauseOnHover ? 'group' : ''}`}>
+    // REMOVED 'contain-strict' here
+    <div className={`relative flex overflow-hidden w-full ${pauseOnHover ? 'group' : ''}`}>
       <motion.div
         initial={{ x: direction === "left" ? 0 : "-100%" }}
         animate={{ x: direction === "left" ? "-100%" : 0 }}
         transition={{ duration: speed, repeat: Infinity, ease: "linear" }}
-        className="flex shrink-0 gap-8 group-hover:[play-state:paused] will-change-transform"
+        className="flex shrink-0 gap-8 py-2 group-hover:[play-state:paused] preserve-3d will-change-transform transform-gpu"
       >
-        {children}
         {children}
       </motion.div>
       <motion.div
         initial={{ x: direction === "left" ? 0 : "-100%" }}
         animate={{ x: direction === "left" ? "-100%" : 0 }}
         transition={{ duration: speed, repeat: Infinity, ease: "linear" }}
-        className="flex shrink-0 gap-8 group-hover:[play-state:paused] will-change-transform"
+        className="flex shrink-0 gap-8 py-2 group-hover:[play-state:paused] preserve-3d will-change-transform transform-gpu"
       >
-        {children}
         {children}
       </motion.div>
     </div>
@@ -72,7 +91,7 @@ const AnimatedText = ({ text, className }) => {
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className={`inline-block ${className} will-change-transform`}
+      className={`inline-block ${className} will-change-transform transform-gpu`}
     >
       {text}
     </motion.span>
@@ -122,7 +141,7 @@ const Home = () => {
   const scrollTestimonials = (direction) => {
     if (testimonialScrollRef.current) {
       const container = testimonialScrollRef.current;
-      const scrollAmount = window.innerWidth < 768 ? 300 : 400; 
+      const scrollAmount = window.innerWidth < 768 ? 320 : 450; 
       
       if (direction === 'right') {
         if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 10) container.scrollTo({ left: 0, behavior: 'smooth' });
@@ -177,21 +196,23 @@ const Home = () => {
     visible: { opacity: 1, scale: 1, transition: { duration: 0.4 } }
   };
 
-  // --- HARDCODED TESTIMONIALS ---
+  // --- HARDCODED TESTIMONIALS (Updated with individual images) ---
   const testimonials = [
-    { name: "Vaishali", rank: "Prelims Cleared", text: "Cleared Prelims with your support! I am really enjoying the MahaGranth lectures; the content is absolutely top-notch and exam-oriented.", avatar: "V" },
-    { name: "Harshita", rank: "Mentorship Student", text: "This mentorship group genuinely helped me focus better on my studies despite a busy schedule. The daily tasks and supportive space have kept me highly consistent.", avatar: "H" },
-    { name: "Nirmala", rank: "Granth 2.0 Student", text: "I joined Granth 2.0 and the videos are amazing. The assignments perfectly help in recalling the entire lecture, making memorization effortless!", avatar: "N" },
-    { name: "Priya", rank: "UPSC/UPPCS Aspirant", text: "After years of major coachings, you are the only ones who provided a clear, clutter-free path for Mains. No more bulky materials, just exact, sufficient content.", avatar: "P" },
-    { name: "Nayan", rank: "Mains Student", text: "The GS Paper 5 & 6 lectures are incredibly helpful and perfectly structured. The teachers' dedication and motivating approach make learning so much easier.", avatar: "N" },
-    { name: "Utkarsh", rank: "MahaGranth Student", text: "MahaGranth provides the complete, well-researched study matter at a fraction of the cost of big institutes. It saves months of time spent just finding the right content.", avatar: "U" },
-    { name: "Ish", rank: "UPPCS Aspirant", text: "Joining Granth for Prelims and MahaGranth for Mains was the best decision! The top-quality, effort-enriched content has completely sorted my UPPCS preparation.", avatar: "I" },
-    { name: "Uttera Singh R.", rank: "UPPCS Aspirant", text: "The teaching methodology is so impactful and engaging that I literally recall and revise the concepts in my sleep! Truly an unforgettable learning experience.", avatar: "UR" },
-    { name: "Shrishti", rank: "Foundation Student", text: "The best part is how easily I understand every single concept. The faculty's ability to explain complex subjects, especially History, is simply unmatched.", avatar: "S" },
-    { name: "Supriya Upadhyay", rank: "UPPCS Aspirant", text: "The syllabus is covered in such a crisp, concise manner. My PYQ answer writing has improved immensely, and I can now generate relevant points within the time limit.", avatar: "SU" }
+    { name: "Avtar Singh", rank: "Rank 14 [DSP]", text: "SSIP, videos were top notch. It helped during prelims. Trust me it were a great help during mains and prelims. I did Hindi from Shivangi mam lectures. Those modern History notes, videos were amazing. Thank you so much.", avatar: "A", image: avatarSingh },
+    { name: "Garima Singh", rank: "Rank 95 [Naib Tehsildar]", text: "SSIP played a key role in my selection. It's 'GhatnaChakra' and current affairs videos helped in prelims, while the answer writing program and notes for *paper 5 and 6* supported me in mains.Thank you to the entire team for your support.", avatar: "G", image: garimaSingh },
+    { name: "Vaishali", rank: "Prelims Cleared", text: "Cleared Prelims with your support! I am really enjoying the MahaGranth lectures; the content is absolutely top-notch and exam-oriented.", avatar: "V", image: gs },
+    { name: "Harshita", rank: "Mentorship Student", text: "This mentorship group genuinely helped me focus better on my studies despite a busy schedule. The daily tasks and supportive space have kept me highly consistent.", avatar: "H", image: gs },
+    { name: "Nirmala", rank: "Granth 2.0 Student", text: "I joined Granth 2.0 and the videos are amazing. The assignments perfectly help in recalling the entire lecture, making memorization effortless!", avatar: "N", image: gs },
+    { name: "Nayan", rank: "Mains Student", text: "The GS Paper 5 & 6 lectures are incredibly helpful and perfectly structured. The teachers' dedication and motivating approach make learning so much easier.", avatar: "N", image: as },
+    { name: "Utkarsh", rank: "MahaGranth Student", text: "MahaGranth provides the complete, well-researched study matter at a fraction of the cost of big institutes. It saves months of time spent just finding the right content.", avatar: "U", image: as },
+    { name: "Priya", rank: "UPSC/UPPCS Aspirant", text: "After years of major coachings, you are the only ones who provided a clear, clutter-free path for Mains. No more bulky materials, just exact, sufficient content.", avatar: "P", image: gs },
+    { name: "Ish", rank: "UPPCS Aspirant", text: "Joining Granth for Prelims and MahaGranth for Mains was the best decision! The top-quality, effort-enriched content has completely sorted my UPPCS preparation.", avatar: "I", image: as },
+    { name: "Shrishti", rank: "Foundation Student", text: "The best part is how easily I understand every single concept. The faculty's ability to explain complex subjects, especially History, is simply unmatched.", avatar: "S", image: gs },
+    { name: "Uttera Singh R.", rank: "UPPCS Aspirant", text: "The teaching methodology is so impactful and engaging that I literally recall and revise the concepts in my sleep! Truly an unforgettable learning experience.", avatar: "UR", image: as },
+    { name: "Supriya Upadhyay", rank: "UPPCS Aspirant", text: "The syllabus is covered in such a crisp, concise manner. My PYQ answer writing has improved immensely, and I can now generate relevant points within the time limit.", avatar: "SU", image: gs }
   ];
 
-  // --- FEATURED COURSES WITH PRICING (Strictly 5 items) ---
+  // --- FEATURED COURSES WITH PRICING ---
   const featuredCourses = [
     { id: "upsc-2", category: "UPSC Prelims", title: "PYQ Reverse Engineering", desc: "Master the art of decoding previous year questions to predict future exam patterns.", img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2F0326fec9-da8e-4e7f-b71f-6564bcae1122.png&w=384&q=75", link: "https://www.ssip.cloud/courses/770945?filterId=1&sortId=7", price: "₹2,999", oldPrice: "₹4,999", badge: "Must Have" },
     { id: "upsc-4", category: "UPSC Prelims", title: "NCERT Concept Roots", desc: "Line-by-line coverage of fundamental NCERTs to build a rock-solid base.", img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2F0fdd717f-65a9-4f92-9c22-87eb32d77a93.png&w=384&q=75", link: "https://www.ssip.cloud/courses/770972?filterId=1&sortId=7", price: "₹1,111", oldPrice: "₹2,199", badge: "Best Seller" },
@@ -206,20 +227,20 @@ const Home = () => {
       {/* --- HERO SECTION --- */}
       <section className="relative min-h-[85vh] flex flex-col justify-center z-10 pb-12 pt-8">
         
-        {/* Clean, Elegant Ambient Background */}
+        {/* Enhanced Ambient Background with Theme Depth */}
         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-          <div className="absolute inset-0 bg-slate-50 dark:bg-slate-900 transition-colors duration-300"></div>
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px]"></div>
+          <div className="absolute inset-0 bg-slate-50 dark:bg-slate-950 transition-colors duration-500"></div>
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px] dark:opacity-40"></div>
 
-          {/* Optimized Soft Glows */}
-          <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.25, 0.15] }} transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }} className="absolute top-[-10%] left-[-10%] w-[400px] md:w-[600px] h-[400px] md:h-[600px] bg-[radial-gradient(circle,rgba(59,130,246,0.25)_0%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(59,130,246,0.15)_0%,transparent_70%)] transform-gpu" />
-          <motion.div animate={{ scale: [1, 1.3, 1], opacity: [0.15, 0.25, 0.15] }} transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 1 }} className="absolute bottom-[-10%] right-[-10%] w-[500px] md:w-[700px] h-[500px] md:h-[700px] bg-[radial-gradient(circle,rgba(168,85,247,0.25)_0%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(168,85,247,0.15)_0%,transparent_70%)] transform-gpu" />
+          {/* Optimized Soft Glows with will-change-transform */}
+          <motion.div animate={{ scale: [1, 1.1, 1], opacity: [0.15, 0.2, 0.15] }} transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }} className="absolute top-[-10%] left-[-10%] w-[400px] md:w-[600px] h-[400px] md:h-[600px] bg-[radial-gradient(circle,rgba(59,130,246,0.25)_0%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(59,130,246,0.12)_0%,transparent_70%)] will-change-transform transform-gpu" />
+          <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.2, 0.15] }} transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 1 }} className="absolute bottom-[-10%] right-[-10%] w-[500px] md:w-[700px] h-[500px] md:h-[700px] bg-[radial-gradient(circle,rgba(168,85,247,0.25)_0%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(168,85,247,0.12)_0%,transparent_70%)] will-change-transform transform-gpu" />
         </div>
 
-        {/* FOREGROUND CONTENT */}
+        {/* FOREGROUND CONTENT --- */}
         <div className="container mx-auto px-4 md:px-6 relative z-20 max-w-7xl">
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="flex justify-center lg:justify-start mb-6 mt-4">
-            <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-primary p-[2px] rounded-full shadow-sm">
+            <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-primary p-[2px] rounded-full shadow-[0_0_15px_rgba(59,130,246,0.2)] dark:shadow-[0_0_15px_rgba(59,130,246,0.3)]">
               <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm px-6 py-1.5 md:py-2 rounded-full flex items-center gap-2">
                  <Sparkles className="text-blue-500" size={16} />
                  <span className="font-bold text-[11px] md:text-sm text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
@@ -231,10 +252,10 @@ const Home = () => {
 
           <div className="grid lg:grid-cols-2 gap-12 items-center mb-12">
             <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} className="text-center lg:text-left relative z-20">
-              <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm mb-6 mx-auto lg:mx-0 transition-shadow">
+              <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] mb-6 mx-auto lg:mx-0 transition-shadow">
                 <span className="relative flex h-3 w-3">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
                 </span>
                 <span className="text-xs font-bold text-slate-600 dark:text-slate-300 tracking-wide uppercase">
                   {activeStudents.toLocaleString()}+ ACTIVE STUDENTS
@@ -250,7 +271,7 @@ const Home = () => {
               </h1>
 
               <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl mx-auto lg:mx-0 mb-4 font-medium">
-                <span className="font-semibold text-primary">"Don't give up yet - your breakthrough is near"</span>
+                <span className="font-semibold text-primary drop-shadow-[0_0_10px_rgba(124,58,237,0.2)]">"Don't give up yet - your breakthrough is near"</span>
               </motion.p>
               <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="text-sm md:text-base text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl mx-auto lg:mx-0 mb-8 font-medium">
                 The world is evolving, and so are Exams - why should your preparation stay the same? Study Smart with expert faculty, comprehensive materials & active community support.
@@ -263,7 +284,7 @@ const Home = () => {
                   </motion.button>
                 </Link>
                 <a href="https://www.youtube.com/@studysmartiaspcs" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
-                  <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full px-8 py-3.5 md:py-4 bg-white/95 backdrop-blur-sm dark:bg-slate-800/95 text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl font-bold shadow-sm hover:border-primary flex items-center justify-center gap-2 transition-transform transform-gpu">
+                  <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full px-8 py-3.5 md:py-4 bg-white/95 backdrop-blur-sm dark:bg-slate-800/90 text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700/80 rounded-xl font-bold shadow-sm hover:border-primary dark:hover:border-primary dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] flex items-center justify-center gap-2 transition-transform transform-gpu">
                     <PlayCircle size={18} className="text-red-500" /> Free on YouTube
                   </motion.button>
                 </a>
@@ -273,12 +294,12 @@ const Home = () => {
                 <span className="text-xs md:text-sm font-semibold text-slate-500 dark:text-slate-400">Follow us:</span>
                 <div className="flex gap-3">
                   {[
-                    { icon: <Youtube size={16} />, href: "https://youtube.com/@studysmartiaspcs", color: "hover:text-red-500" },
-                    { icon: <Send size={16} />, href: "https://t.me/StudySmartIASPCS", color: "hover:text-blue-500" },
-                    { icon: <Instagram size={16} />, href: "https://instagram.com/studysmartiaspcs", color: "hover:text-pink-500" },
-                    { icon: <Twitter size={16} />, href: "https://twitter.com/Studysmartias", color: "hover:text-sky-500" },
+                    { icon: <Youtube size={16} />, href: "https://youtube.com/@studysmartiaspcs", color: "hover:text-red-500 dark:hover:text-red-400", glow: "hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]" },
+                    { icon: <Send size={16} />, href: "https://t.me/StudySmartIASPCS", color: "hover:text-blue-500 dark:hover:text-blue-400", glow: "hover:shadow-[0_0_15px_rgba(59,130,246,0.3)]" },
+                    { icon: <Instagram size={16} />, href: "https://instagram.com/studysmartiaspcs", color: "hover:text-pink-500 dark:hover:text-pink-400", glow: "hover:shadow-[0_0_15px_rgba(236,72,153,0.3)]" },
+                    { icon: <Twitter size={16} />, href: "https://twitter.com/Studysmartias", color: "hover:text-sky-500 dark:hover:text-sky-400", glow: "hover:shadow-[0_0_15px_rgba(14,165,233,0.3)]" },
                   ].map((social, idx) => (
-                    <motion.a key={idx} href={social.href} target="_blank" rel="noopener noreferrer" whileHover={{ scale: 1.2, y: -2 }} className={`p-2 rounded-full bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-400 shadow-sm transition-all transform-gpu hover:-translate-y-1 ${social.color}`}>
+                    <motion.a key={idx} href={social.href} target="_blank" rel="noopener noreferrer" whileHover={{ scale: 1.2, y: -2 }} className={`p-2 rounded-full bg-white dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700/50 text-slate-600 dark:text-slate-400 shadow-sm transition-all transform-gpu hover:-translate-y-1 ${social.color} ${social.glow}`}>
                       {social.icon}
                     </motion.a>
                   ))}
@@ -286,32 +307,32 @@ const Home = () => {
               </motion.div>
             </motion.div>
 
-            {/* Clean Hero Graphic */}
+            {/* Clean Hero Graphic --- */}
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.3 }} className="relative w-full max-w-sm md:max-w-md mx-auto block z-20">
               <div className="relative z-10">
-                <div className="p-2 sm:p-3 rounded-[2.5rem] bg-white/40 dark:bg-slate-800/40 backdrop-blur-md border border-white/50 dark:border-slate-700 shadow-2xl relative transform-gpu lg:hover:rotate-y-2 lg:hover:rotate-x-2 transition-transform duration-500" style={{ transformStyle: "preserve-3d" }}>
+                <div className="p-2 sm:p-3 rounded-[2.5rem] bg-white/40 dark:bg-slate-800/40 backdrop-blur-md border border-white/50 dark:border-slate-700/50 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] relative transform-gpu lg:hover:rotate-y-2 lg:hover:rotate-x-2 transition-transform duration-500" style={{ transformStyle: "preserve-3d" }}>
                   <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Student Studying" className="rounded-[2rem] w-full h-[300px] sm:h-[350px] lg:h-[400px] object-cover" loading="lazy" />
                   <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 via-purple-500/10 to-primary/10 rounded-[2rem] mix-blend-overlay pointer-events-none"></div>
                 </div>
 
                 <FloatingElement delay={0}>
-                  <div className="absolute top-4 sm:top-8 -right-2 sm:-right-4 bg-white/95 dark:bg-slate-800/95 p-2 sm:p-3 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 flex items-center gap-3 transform-gpu">
+                  <div className="absolute top-4 sm:top-8 -right-2 sm:-right-4 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md p-2 sm:p-3 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700/80 dark:shadow-[0_0_20px_rgba(255,255,255,0.05)] flex items-center gap-3 transform-gpu">
                     <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-1.5 sm:p-2 rounded-xl text-white shadow-md"><Video size={16} /></div>
                     <div><p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wide">Live Now</p><p className="font-bold text-xs sm:text-sm text-slate-800 dark:text-white">UPPCS Batch</p></div>
                   </div>
                 </FloatingElement>
 
                 <FloatingElement delay={1.5}>
-                  <div className="absolute -bottom-4 sm:-bottom-6 -left-2 sm:-left-4 bg-white/95 dark:bg-slate-800/95 p-2 sm:p-3 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 flex items-center gap-3 transform-gpu">
+                  <div className="absolute -bottom-4 sm:-bottom-6 -left-2 sm:-left-4 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md p-2 sm:p-3 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700/80 dark:shadow-[0_0_20px_rgba(255,255,255,0.05)] flex items-center gap-3 transform-gpu">
                     <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-1.5 sm:p-2 rounded-xl text-white shadow-md"><CheckCircle size={16} /></div>
-                    <div><p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wide">Results</p><p className="font-bold text-xs sm:text-sm text-slate-800 dark:text-white">250+ Selections in Mains</p></div>
+                    <div><p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wide">Results</p><p className="font-bold text-xs sm:text-sm text-slate-800 dark:text-white">650+ Selections in Mains</p></div>
                   </div>
                 </FloatingElement>
               </div>
             </motion.div>
           </div>
 
-          {/* Stats Row */}
+          {/* Stats Row --- */}
           <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 relative z-30 mt-8 md:mt-0">
             {[
               { label: "Active Students", value: activeStudents.toString(), icon: <Users size={20}/>, gradient: "from-blue-500 to-cyan-500" },
@@ -319,8 +340,8 @@ const Home = () => {
               { label: "Video Lessons", value: "1720", icon: <Video size={20}/>, gradient: "from-orange-500 to-red-500" },
               { label: "Free Videos", value: "2000", icon: <Award size={20}/>, gradient: "from-green-500 to-emerald-500" },
             ].map((stat, idx) => (
-               <motion.div key={idx} variants={scaleIn} className="relative overflow-hidden bg-white/95 dark:bg-slate-800/95 backdrop-blur-md p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-xl group transition-all transform-gpu lg:hover:-translate-y-1">
-                  <div className={`absolute inset-0 bg-gradient-to-r ${stat.gradient} opacity-0 lg:group-hover:opacity-10 transition-opacity duration-300 pointer-events-none`}></div>
+               <motion.div key={idx} variants={scaleIn} className="relative overflow-hidden bg-white/95 dark:bg-slate-800/80 backdrop-blur-md p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-slate-700/50 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] shadow-sm hover:shadow-xl dark:hover:shadow-[0_0_25px_rgba(255,255,255,0.05)] group transition-all transform-gpu lg:hover:-translate-y-1">
+                  <div className={`absolute inset-0 bg-gradient-to-r ${stat.gradient} opacity-0 lg:group-hover:opacity-10 dark:lg:group-hover:opacity-20 transition-opacity duration-300 pointer-events-none`}></div>
                   <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-gradient-to-r ${stat.gradient} text-white flex items-center justify-center mb-3 md:mb-4 shadow-md lg:group-hover:scale-110 transition-transform transform-gpu`}>
                     {stat.icon}
                   </div>
@@ -333,18 +354,24 @@ const Home = () => {
       </section>
 
       {/* --- MARQUEE --- */}
-      <section className="py-4 md:py-6 bg-gradient-to-r from-primary to-secondary relative z-20 overflow-hidden shadow-inner">
+<section className="relative z-40 w-full py-4 bg-indigo-600 dark:bg-indigo-900 overflow-hidden border-y border-white/10 shadow-2xl">
+  {/* We add a solid background color (indigo) just in case 'primary' gradient fails */}
+  <div className="absolute inset-0 bg-gradient-to-r from-primary via-purple-600 to-secondary opacity-90"></div>
+  
+      <div className="relative z-10">
         <Marquee speed={30}>
           {["Expert Faculty", "Live Classes", "Telegram Community", "Daily Targets", "Answer Writing", "Mock Tests", "Memory Tricks", "1:1 Mentorship", "NCERT Focus", "PYQ Analysis"].map((item, idx) => (
-            <span key={idx} className="text-white font-bold text-sm md:text-lg flex items-center gap-2 md:gap-3 whitespace-nowrap px-4 tracking-wide">
-              <Star size={14} className="text-yellow-300" fill="currentColor" /> {item}
+            <span key={idx} className="text-white font-bold text-sm md:text-lg flex items-center gap-3 whitespace-nowrap px-4 tracking-wide uppercase">
+              <Star size={16} className="text-yellow-300 drop-shadow-[0_0_8px_rgba(253,224,71,0.6)]" fill="currentColor" /> 
+              {item}
             </span>
           ))}
         </Marquee>
-      </section>
+      </div>
+    </section>
 
       {/* --- WHY CHOOSE US --- */}
-      <section className="py-16 md:py-24 relative z-10 bg-slate-50 dark:bg-slate-950">
+      <section className="py-16 md:py-24 relative z-10 bg-slate-50 dark:bg-slate-950 transition-colors">
         <div className="container mx-auto px-4 md:px-6 max-w-7xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
             <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary font-bold text-xs md:text-sm mb-4 tracking-widest uppercase">Why Study Smart?</span>
@@ -354,15 +381,15 @@ const Home = () => {
 
           <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {[
-              { icon: <GraduationCap />, title: "Expert Faculty", desc: "Instruction from experienced educators and former civil servants.", gradient: "from-blue-500 to-cyan-500" },
-              { icon: <BookOpen />, title: "Comprehensive Material", desc: "Structured notes, video lectures, and practice assessments.", gradient: "from-purple-500 to-pink-500" },
-              { icon: <MessageCircle />, title: "Active Community", desc: "Telegram-based peer network with daily updates and discussions.", gradient: "from-orange-500 to-red-500" },
-              { icon: <Target />, title: "Daily Targets", desc: "Structured daily goals and quizzes to keep you on track.", gradient: "from-green-500 to-emerald-500" },
-              { icon: <Video />, title: "Live Mentorship", desc: "Regular live sessions for doubt clearing and strategy discussions.", gradient: "from-indigo-500 to-violet-500" },
-              { icon: <Zap />, title: "Smart Techniques", desc: "Memory tricks, mnemonics, and proven exam strategies.", gradient: "from-rose-500 to-pink-500" },
+              { icon: <GraduationCap />, title: "Expert Faculty", desc: "Instruction from experienced educators and former civil servants.", gradient: "from-blue-500 to-cyan-500", glow: "dark:hover:shadow-[0_0_30px_rgba(59,130,246,0.15)]" },
+              { icon: <BookOpen />, title: "Comprehensive Material", desc: "Structured notes, video lectures, and practice assessments.", gradient: "from-purple-500 to-pink-500", glow: "dark:hover:shadow-[0_0_30px_rgba(168,85,247,0.15)]" },
+              { icon: <MessageCircle />, title: "Active Community", desc: "Telegram-based peer network with daily updates and discussions.", gradient: "from-orange-500 to-red-500", glow: "dark:hover:shadow-[0_0_30px_rgba(249,115,22,0.15)]" },
+              { icon: <Target />, title: "Daily Targets", desc: "Structured daily goals and quizzes to keep you on track.", gradient: "from-green-500 to-emerald-500", glow: "dark:hover:shadow-[0_0_30px_rgba(34,197,94,0.15)]" },
+              { icon: <Video />, title: "Live Mentorship", desc: "Regular live sessions for doubt clearing and strategy discussions.", gradient: "from-indigo-500 to-violet-500", glow: "dark:hover:shadow-[0_0_30px_rgba(99,102,241,0.15)]" },
+              { icon: <Zap />, title: "Smart Techniques", desc: "Memory tricks, mnemonics, and proven exam strategies.", gradient: "from-rose-500 to-pink-500", glow: "dark:hover:shadow-[0_0_30px_rgba(244,63,94,0.15)]" },
             ].map((feature, idx) => (
-               <motion.div key={idx} variants={fadeInUp} className="relative bg-white dark:bg-slate-800 p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 transition-all lg:hover:shadow-xl lg:hover:-translate-y-1 transform-gpu group overflow-hidden">
-                  <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-r ${feature.gradient} opacity-10 rounded-full blur-2xl lg:group-hover:opacity-30 transition-opacity duration-500 pointer-events-none`}></div>
+               <motion.div key={idx} variants={fadeInUp} className={`relative bg-white dark:bg-slate-800/80 p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700/80 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all lg:hover:-translate-y-1 transform-gpu group overflow-hidden ${feature.glow} lg:hover:shadow-xl`}>
+                  <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-r ${feature.gradient} opacity-10 dark:opacity-20 rounded-full blur-2xl lg:group-hover:opacity-30 dark:lg:group-hover:opacity-40 transition-opacity duration-500 pointer-events-none`}></div>
                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.gradient} text-white flex items-center justify-center mb-5 shadow-sm lg:group-hover:scale-110 transition-transform duration-300 transform-gpu`}>
                      {React.cloneElement(feature.icon, { size: 24 })}
                   </div>
@@ -375,15 +402,14 @@ const Home = () => {
       </section>
 
       {/* --- FEATURED COURSES SLIDER --- */}
-      <section className="py-16 md:py-24 bg-gradient-to-b from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900 border-y border-slate-100 dark:border-slate-800 relative z-10">
-        <div className="container mx-auto px-4 md:px-6 lg:px-10 max-w-[1400px]">
+      <section className="py-16 md:py-24 bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950 border-y border-slate-100 dark:border-slate-800/80 relative z-10">
+        <div className="container mx-auto px-4 md:px-6 lg:px-10 max-w-[1400px] relative">
           
-          {/* Header Controls (ARROWS MOVED BACK HERE) */}
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
             <div>
               <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary font-bold text-xs mb-3 tracking-widest uppercase">POPULAR COURSES</span>
               <h2 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white flex items-center gap-3 tracking-tight flex-wrap">
-                <span className="w-1.5 h-8 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full hidden md:block"></span>
+                <span className="w-1.5 h-8 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full hidden md:block shadow-[0_0_10px_rgba(59,130,246,0.5)]"></span>
                 Our Best Selling Programs
                 <span className="text-sm md:text-base font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1 rounded-full shadow-sm border border-slate-200 dark:border-slate-700">
                   {featuredCourses.length}
@@ -399,7 +425,6 @@ const Home = () => {
                 View All Courses <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform duration-300" />
               </Link>
               
-              {/* SQUARE GLASSY ARROWS - TOP RIGHT */}
               <div className="hidden md:flex gap-2 shrink-0">
                 <button 
                   onClick={() => scrollFeatured('left')} 
@@ -415,17 +440,10 @@ const Home = () => {
                 </button>
               </div>
             </div>
-            
-            {/* Mobile swipe indicator */}
-            <div className="md:hidden flex items-center shrink-0 w-full justify-end">
-              <motion.div animate={{ x: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }} className="flex items-center gap-1.5 text-primary font-bold text-[11px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-full shadow-sm">
-                Swipe <ArrowRight size={12} strokeWidth={3} />
-              </motion.div>
-            </div>
           </motion.div>
 
-          {/* The Slider Container */}
           <div className="relative w-full py-2">
+            <MobileSwipeIndicator />
             <div ref={featuredSliderRef} className="flex items-stretch overflow-x-auto snap-x snap-mandatory gap-6 pb-10 pt-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth w-full px-1">
               {featuredCourses.map((course, idx) => (
                 <motion.a 
@@ -437,11 +455,11 @@ const Home = () => {
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true, margin: "-50px" }}
-                  className="w-[85vw] sm:w-[320px] md:w-[360px] lg:w-[380px] shrink-0 snap-center sm:snap-start bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-[2rem] shadow-xl lg:hover:shadow-2xl border border-white/50 dark:border-slate-700 overflow-hidden flex flex-col transition-all duration-300 transform-gpu lg:hover:-translate-y-2 h-full group/card"
+                  className="w-[85vw] sm:w-[320px] md:w-[360px] lg:w-[380px] shrink-0 snap-center sm:snap-start bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl rounded-[2rem] shadow-xl dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_10px_30px_rgba(0,0,0,0.5)] lg:hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)] dark:lg:hover:shadow-[0_0_30px_rgba(124,58,237,0.15)] border border-white/50 dark:border-slate-700/80 overflow-hidden flex flex-col transition-all duration-300 transform-gpu lg:hover:-translate-y-2 h-full group/card"
                 >
-                  <div className="w-full aspect-[5/4] bg-slate-100 dark:bg-slate-800/50 p-2 overflow-hidden border-b border-slate-100/50 dark:border-slate-700/50 relative shrink-0">
+                  <div className="w-full aspect-[5/4] bg-slate-100 dark:bg-slate-900/50 p-2 overflow-hidden border-b border-slate-100/50 dark:border-slate-700/50 relative shrink-0">
                     {course.badge && (
-                      <div className="absolute top-4 right-4 z-20 px-2.5 py-1 text-white text-[10px] font-black uppercase tracking-wider rounded-md shadow-sm bg-gradient-to-r from-orange-500 to-red-500">
+                      <div className="absolute top-4 right-4 z-20 px-2.5 py-1 text-white text-[10px] font-black uppercase tracking-wider rounded-md shadow-[0_4px_10px_rgba(249,115,22,0.4)] bg-gradient-to-r from-orange-500 to-red-500">
                         {course.badge}
                       </div>
                     )}
@@ -478,22 +496,22 @@ const Home = () => {
       </section>
 
       {/* --- TARGETED PROGRAMS --- */}
-      <section className="py-16 md:py-24 bg-slate-50 dark:bg-slate-950">
+      <section className="py-16 md:py-24 bg-slate-50 dark:bg-slate-950 transition-colors">
         <div className="container mx-auto px-4 md:px-6 max-w-7xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
-            <span className="inline-block px-4 py-2 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-bold text-xs mb-4 tracking-widest uppercase">Targeted Programs</span>
+            <span className="inline-block px-4 py-2 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-bold text-xs mb-4 tracking-widest uppercase shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">Targeted Programs</span>
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">Focused Exam Preparation</h2>
             <p className="text-slate-600 dark:text-slate-400">Choose your destination, and let us guide you through the smartest route to success.</p>
           </motion.div>
 
           <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {[
-              { title: "UPSC Civil Services", desc: "Holistic coverage of Prelims & Mains.", icon: <Compass size={28} />, color: "bg-blue-500 dark:bg-blue-600", link: "/courses" },
-              { title: "UPPCS PCS", desc: "State-specific GS, current affairs & tests.", icon: <MapPin size={28} />, color: "bg-purple-500 dark:bg-purple-600", link: "/courses" },
-              { title: "RO / ARO", desc: "Focused batches targeting exact syllabus.", icon: <BookMarked size={28} />, color: "bg-rose-500 dark:bg-rose-600", link: "/courses" },
-              { title: "Answer Writing", desc: "Daily mains practice with evaluation.", icon: <PenTool size={28} />, color: "bg-emerald-500 dark:bg-emerald-600", link: "/courses" }
+              { title: "UPSC Civil Services", desc: "Holistic coverage of Prelims & Mains.", icon: <Compass size={28} />, color: "bg-blue-500 dark:bg-blue-600", glow: "dark:hover:shadow-[0_0_25px_rgba(59,130,246,0.15)]", link: "/courses" },
+              { title: "UPPCS PCS", desc: "State-specific GS, current affairs & tests.", icon: <MapPin size={28} />, color: "bg-purple-500 dark:bg-purple-600", glow: "dark:hover:shadow-[0_0_25px_rgba(168,85,247,0.15)]", link: "/courses" },
+              { title: "RO / ARO", desc: "Focused batches targeting exact syllabus.", icon: <BookMarked size={28} />, color: "bg-rose-500 dark:bg-rose-600", glow: "dark:hover:shadow-[0_0_25px_rgba(244,63,94,0.15)]", link: "/courses" },
+              { title: "Answer Writing", desc: "Daily mains practice with evaluation.", icon: <PenTool size={28} />, color: "bg-emerald-500 dark:bg-emerald-600", glow: "dark:hover:shadow-[0_0_25px_rgba(16,185,129,0.15)]", link: "/courses" }
             ].map((program, idx) => (
-              <motion.div key={idx} variants={fadeInUp} className="bg-white dark:bg-slate-800 p-6 md:p-8 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow group transform-gpu lg:hover:-translate-y-1">
+              <motion.div key={idx} variants={fadeInUp} className={`bg-white dark:bg-slate-800/80 p-6 md:p-8 rounded-3xl border border-slate-100 dark:border-slate-700/80 shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] hover:shadow-md transition-all group transform-gpu lg:hover:-translate-y-1 ${program.glow}`}>
                 <div className={`w-14 h-14 rounded-2xl ${program.color} text-white flex items-center justify-center mb-5 lg:group-hover:scale-110 transition-transform duration-300 transform-gpu`}>{program.icon}</div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{program.title}</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">{program.desc}</p>
@@ -509,14 +527,14 @@ const Home = () => {
       {/* --- APP DOWNLOAD SECTION --- */}
       <section className="py-20 md:py-24 relative bg-slate-900 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900"></div>
-        <div className="hidden md:block absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none transform-gpu"></div>
-        <div className="hidden md:block absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[100px] pointer-events-none transform-gpu"></div>
+        <div className="hidden md:block absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none transform-gpu will-change-transform"></div>
+        <div className="hidden md:block absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[100px] pointer-events-none transform-gpu will-change-transform"></div>
 
         <div className="container mx-auto px-4 md:px-6 relative z-10 max-w-7xl">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
             
             <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-bold text-xs mb-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-bold text-xs mb-6 shadow-[0_0_15px_rgba(59,130,246,0.15)]">
                 <Smartphone size={14} /> Official Mobile App
               </div>
               <h2 className="text-3xl md:text-5xl font-black text-white mb-4 leading-tight">
@@ -527,9 +545,9 @@ const Home = () => {
                 Experience seamless learning with our highly-rated mobile application. Get access to live classes, offline video downloads, and mock tests directly on your smartphone.
               </p>
 
-              <div className="mb-8 p-4 rounded-2xl bg-white/5 border border-white/10 inline-flex flex-col items-center lg:items-start max-w-full mx-auto lg:mx-0">
+              <div className="mb-8 p-4 rounded-2xl bg-white/5 border border-white/10 inline-flex flex-col items-center lg:items-start max-w-full mx-auto lg:mx-0 backdrop-blur-sm">
                  <p className="text-slate-400 text-xs font-medium mb-2">Use Organization Code to log in:</p>
-                 <button onClick={handleCopyOrgCode} className="flex items-center gap-3 bg-slate-800 hover:bg-slate-700 px-5 py-2.5 rounded-xl border border-slate-600 transition-colors">
+                 <button onClick={handleCopyOrgCode} className="flex items-center gap-3 bg-slate-800 hover:bg-slate-700 px-5 py-2.5 rounded-xl border border-slate-600 transition-colors shadow-[0_4px_15px_rgba(0,0,0,0.3)]">
                     <span className="text-xl md:text-2xl font-black tracking-widest text-white uppercase">KEDVTR</span>
                     <div className="flex items-center gap-1.5 text-primary font-bold text-[10px] md:text-xs bg-primary/10 px-2 py-1 rounded-lg">
                       {copied ? <CheckCircle size={14} className="text-emerald-400" /> : <Copy size={14} />}
@@ -567,15 +585,15 @@ const Home = () => {
               </div>
             </motion.div>
 
-            {/* 3D App UI Graphic */}
+            {/* 3D App UI Graphic --- */}
             <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="relative flex justify-center items-center h-[400px] md:h-[500px] z-20">
               
-              <motion.div animate={{ y: [-10, 10, -10] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute top-0 md:top-10 right-0 md:right-10 z-20 bg-white/10 backdrop-blur-xl border border-white/20 p-3 md:p-4 rounded-2xl shadow-2xl flex items-center gap-3 transform-gpu">
+              <motion.div animate={{ y: [-10, 10, -10] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute top-0 md:top-10 right-0 md:right-10 z-20 bg-white/10 backdrop-blur-xl border border-white/20 p-3 md:p-4 rounded-2xl shadow-2xl flex items-center gap-3 will-change-transform transform-gpu">
                 <div className="w-8 h-8 md:w-10 md:h-10 bg-yellow-500/20 rounded-full flex items-center justify-center text-yellow-400"><Star size={16} fill="currentColor" /></div>
                 <div><p className="text-white font-bold text-xs md:text-sm">4.9/5 Rating</p><p className="text-slate-400 text-[10px] md:text-xs">Based on 10k+ reviews</p></div>
               </motion.div>
               
-              <motion.div animate={{ y: [10, -10, 10] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }} className="absolute bottom-4 md:bottom-20 left-0 md:left-10 z-20 bg-white/10 backdrop-blur-xl border border-white/20 p-3 md:p-4 rounded-2xl shadow-2xl flex items-center gap-3 transform-gpu">
+              <motion.div animate={{ y: [10, -10, 10] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }} className="absolute bottom-4 md:bottom-20 left-0 md:left-10 z-20 bg-white/10 backdrop-blur-xl border border-white/20 p-3 md:p-4 rounded-2xl shadow-2xl flex items-center gap-3 will-change-transform transform-gpu">
                 <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-500/20 rounded-full flex items-center justify-center text-blue-400"><Play size={16} fill="currentColor" /></div>
                 <div><p className="text-white font-bold text-xs md:text-sm">Live Classes</p><p className="text-slate-400 text-[10px] md:text-xs">Watch anywhere</p></div>
               </motion.div>
@@ -602,60 +620,58 @@ const Home = () => {
         </div>
       </section>
 
-      {/* --- TESTIMONIALS --- */}
-      <section className="py-20 md:py-24 relative bg-slate-50 dark:bg-slate-900 border-y border-slate-100 dark:border-slate-800 z-10">
-        <div className="container mx-auto px-4 md:px-6 max-w-7xl overflow-hidden">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} className="text-left max-w-2xl relative z-20">
-              <span className="inline-block px-3 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 font-bold text-xs mb-3 tracking-widest uppercase">TESTIMONIALS</span>
-              <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-2 leading-tight">Trusted by Toppers</h2>
-              <p className="text-sm md:text-base text-slate-600 dark:text-slate-300">Hear from students who transformed their preparation.</p>
+      {/* --- TESTIMONIALS SECTION --- */}
+      <section className="py-24 relative bg-slate-50 dark:bg-slate-950 border-y border-slate-100 dark:border-slate-800/80 z-10 overflow-hidden transition-colors">
+        <div className="container mx-auto px-4 md:px-6 max-w-7xl relative">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} className="text-left max-w-2xl">
+              <span className="inline-block px-3 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 font-bold text-xs mb-3 uppercase tracking-widest shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">Trusted Stories</span>
+              <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white mb-2 leading-tight">Topper's Success Stories</h2>
+              <p className="text-sm md:text-base text-slate-600 dark:text-slate-300">Join the thousands who transformed their IAS & PCS journey with us.</p>
             </motion.div>
-            
-            <div className="flex gap-2 relative z-20">
-              <button onClick={() => scrollTestimonials('left')} className="p-2.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm active:scale-95 text-slate-600 dark:text-slate-300 transform-gpu transition-all">
-                <ChevronLeft size={20} />
-              </button>
-              <button onClick={() => scrollTestimonials('right')} className="p-2.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm active:scale-95 text-slate-600 dark:text-slate-300 transform-gpu transition-all">
-                <ChevronRight size={20} />
-              </button>
+            <div className="flex gap-2">
+              <button onClick={() => scrollTestimonials('left')} className="p-3 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700/80 shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] active:scale-95 transition-all transform-gpu hover:text-primary dark:hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"><ChevronLeft size={24} /></button>
+              <button onClick={() => scrollTestimonials('right')} className="p-3 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700/80 shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] active:scale-95 transition-all transform-gpu hover:text-primary dark:hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"><ChevronRight size={24} /></button>
             </div>
           </div>
           
-          <div 
-            ref={testimonialScrollRef} 
-            className="flex gap-4 md:gap-6 overflow-x-auto pb-8 pt-2 snap-x snap-mandatory scrollbar-hide scroll-smooth w-full relative z-10"
-          >
-            {testimonials.map((testimonial, idx) => (
-              <div 
-                key={idx} 
-                className="w-[85vw] sm:w-[300px] md:w-[350px] shrink-0 snap-center p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm lg:hover:shadow-xl transition-shadow flex flex-col justify-between transform-gpu"
-              >
-                <div className="absolute top-4 right-4 text-slate-100 dark:text-slate-700">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
-                  </svg>
-                </div>
-                
-                <div className="flex text-yellow-400 mb-3 relative z-10 pointer-events-none">
-                  {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
-                </div>
-                
-                <div className="flex-grow pr-2 mb-4 pointer-events-none">
-                  <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-sm md:text-base font-medium">"{testimonial.text}"</p>
-                </div>
-                
-                <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-700 mt-auto shrink-0 pointer-events-none">
-                  <div className="w-10 h-10 shrink-0 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center font-bold text-white text-sm shadow-sm">
-                    {testimonial.avatar}
-                  </div>
+          <div className="relative w-full">
+            <MobileSwipeIndicator />
+            <div ref={testimonialScrollRef} className="flex gap-8 overflow-x-auto pb-12 pt-4 snap-x snap-mandatory scrollbar-hide scroll-smooth w-full px-4">
+              {testimonials.map((t, idx) => (
+                <motion.div key={idx} whileHover={{ y: -10 }} className="w-[88vw] sm:w-[350px] md:w-[450px] shrink-0 snap-center p-8 md:p-10 rounded-[2.5rem] bg-white dark:bg-slate-800/90 border border-slate-100 dark:border-slate-700/80 shadow-xl dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_10px_30px_rgba(0,0,0,0.4)] hover:shadow-2xl dark:hover:shadow-[0_0_30px_rgba(255,255,255,0.08)] transition-all flex flex-col justify-between transform-gpu group">
                   <div>
-                    <h4 className="font-bold text-slate-900 dark:text-white text-sm line-clamp-1">{testimonial.name}</h4>
-                    <p className="text-[10px] font-bold text-primary uppercase">{testimonial.rank}</p>
+                    <div className="flex text-yellow-400 mb-6 gap-0.5">
+                      {[...Array(5)].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
+                    </div>
+                    <div className="flex-grow mb-8 relative">
+                      <div className="absolute -top-4 -left-4 text-slate-100 dark:text-slate-700/50 z-0 opacity-50">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/></svg>
+                      </div>
+                      <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-base md:text-lg font-medium relative z-10 italic">"{t.text}"</p>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                  
+                  {/* HIGH-END HORIZONTAL ALIGNED PROFILE TESTIMONIAL FOOTER --- */}
+                  <div className="flex items-center justify-between pt-6 border-t border-slate-100 dark:border-slate-700 mt-auto">
+                     <div className="flex items-center gap-4">
+                        <div className="relative group/img">
+                          <img src={t.image} alt={`${t.name}'s Profile`} className="w-16 h-16 rounded-full object-cover border-2 border-primary/20 shadow-md group-hover/img:rotate-6 transition-transform duration-300 transform-gpu" loading="lazy" />
+                        </div>
+                        <div className="flex flex-col text-left">
+                          <h4 className="font-bold text-slate-900 dark:text-white text-sm md:text-base leading-tight">{t.name}</h4>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px] sm:max-w-none">• {t.rank}</span>
+                          </div>
+                        </div>
+                     </div>
+                     <div className="hidden sm:block text-slate-200 dark:text-slate-700/50">
+                        {t.image === gs ? <Star size={32} /> : <Award size={32} />}
+                     </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -663,9 +679,9 @@ const Home = () => {
       {/* --- CTA SECTION --- */}
       <section className="py-20 md:py-28 relative bg-white dark:bg-slate-950 z-10">
         <div className="container mx-auto px-4 md:px-6 max-w-5xl relative z-10">
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true, margin: "-50px" }} className="relative bg-gradient-to-r from-primary via-purple-600 to-secondary rounded-[2rem] md:rounded-[3rem] p-12 md:p-24 text-center text-white shadow-xl overflow-hidden transform-gpu min-h-[350px] md:min-h-[450px] flex flex-col justify-center">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none transform-gpu"></div>
-            <div className="absolute bottom-0 left-0 w-96 h-96 bg-black/10 rounded-full blur-3xl pointer-events-none transform-gpu"></div>
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true, margin: "-50px" }} className="relative bg-gradient-to-r from-primary via-purple-600 to-secondary rounded-[2rem] md:rounded-[3rem] p-12 md:p-24 text-center text-white shadow-xl dark:shadow-[0_0_40px_rgba(124,58,237,0.2)] overflow-hidden transform-gpu min-h-[350px] md:min-h-[450px] flex flex-col justify-center border border-white/10">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none transform-gpu will-change-transform"></div>
+            <div className="absolute bottom-0 left-0 w-96 h-96 bg-black/10 rounded-full blur-3xl pointer-events-none transform-gpu will-change-transform"></div>
 
             <div className="relative z-10">
               <h2 className="text-3xl md:text-5xl font-extrabold mb-6 tracking-tight leading-tight">Ready to Start Your Journey?</h2>
@@ -674,12 +690,12 @@ const Home = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/courses" className="w-full sm:w-auto">
-                  <button className="w-full px-10 py-4 bg-white text-primary rounded-xl font-bold text-base md:text-lg shadow-md active:scale-95 transition-transform transform-gpu">
+                  <button className="w-full px-10 py-4 bg-white text-primary rounded-xl font-bold text-base md:text-lg shadow-[0_4px_15px_rgba(0,0,0,0.1)] active:scale-95 transition-transform transform-gpu">
                     Get Started Now
                   </button>
                 </Link>
                 <a href="https://t.me/StudySmartIASPCS" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
-                  <button className="w-full px-10 py-4 bg-white/20 backdrop-blur-md border border-white/30 text-white rounded-xl font-bold text-base md:text-lg flex items-center justify-center gap-2 active:scale-95 transition-transform transform-gpu">
+                  <button className="w-full px-10 py-4 bg-white/20 backdrop-blur-md border border-white/30 text-white rounded-xl font-bold text-base md:text-lg flex items-center justify-center gap-2 active:scale-95 transition-transform transform-gpu hover:bg-white/30">
                     <Send size={18} /> Join Telegram
                   </button>
                 </a>
@@ -690,11 +706,11 @@ const Home = () => {
       </section>
 
       {/* --- CONTACT INFO --- */}
-      <section className="py-10 bg-slate-100 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-10 relative">
+      <section className="py-10 bg-slate-100 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-10 relative transition-colors">
         <div className="container mx-auto px-4 md:px-6 max-w-7xl relative z-10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left">
             <div className="flex flex-col md:flex-row items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-primary to-secondary rounded-xl flex items-center justify-center shadow-md">
+              <div className="w-12 h-12 bg-gradient-to-r from-primary to-secondary rounded-xl flex items-center justify-center shadow-md dark:shadow-[0_0_15px_rgba(124,58,237,0.3)]">
                 <GraduationCap size={24} className="text-white" />
               </div>
               <div>
@@ -703,10 +719,10 @@ const Home = () => {
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-              <a href="mailto:studysmartiaspcs@gmail.com" className="flex items-center justify-center gap-2 text-sm text-slate-600 dark:text-slate-300 font-semibold transition-colors hover:text-primary">
+              <a href="mailto:studysmartiaspcs@gmail.com" className="flex items-center justify-center gap-2 text-sm text-slate-600 dark:text-slate-300 font-semibold transition-colors hover:text-primary dark:hover:text-primary">
                 <Mail size={16} /> studysmartiaspcs@gmail.com
               </a>
-              <a href="tel:+918810843292" className="flex items-center justify-center gap-2 text-sm text-slate-600 dark:text-slate-300 font-semibold transition-colors hover:text-primary">
+              <a href="tel:+918810843292" className="flex items-center justify-center gap-2 text-sm text-slate-600 dark:text-slate-300 font-semibold transition-colors hover:text-primary dark:hover:text-primary">
                 <Phone size={16} /> +91 8810843292
               </a>
             </div>
