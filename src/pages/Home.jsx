@@ -24,7 +24,7 @@ import as from '../assets/as.png';
 import gs from '../assets/gs.png';
 // New individual imports from assets folder
 import avatarSingh from '../assets/avatarsingh.png';
-import garimaSingh from '../assets/Garima-singh.png';
+import garimaSingh from '../assets/garima-singh.png';
 
 // --- MOBILE SWIPE INDICATOR COMPONENT ---
 const MobileSwipeIndicator = () => (
