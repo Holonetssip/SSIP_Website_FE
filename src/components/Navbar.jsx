@@ -104,6 +104,10 @@ const Navbar = ({ theme, toggleTheme }) => {
               <Link to="/quiz" className={`px-3 py-2 rounded-xl hover:text-primary dark:hover:text-white transition flex items-center gap-1.5 ${location.pathname.includes('/quiz') ? 'text-primary font-bold' : ''}`}>
                 <BrainCircuit size={16} className={`${location.pathname.includes('/quiz') ? 'text-primary' : 'text-purple-500'}`} /> Quiz
               </Link>
+              
+              <Link to="/upsc-calculator" className={`px-3 py-2 rounded-xl hover:text-primary dark:hover:text-white transition flex items-center gap-1.5 ${location.pathname.includes('/upsc-calculator') ? 'text-primary font-bold' : ''}`}>
+                <Target size={16} className={`${location.pathname.includes('/upsc-calculator') ? 'text-primary' : 'text-indigo-500'}`} /> OMR Calculator
+              </Link>
             </div>
 
             {/* Right Side Tools */}
@@ -146,6 +150,10 @@ const Navbar = ({ theme, toggleTheme }) => {
             {/* QUIZ LINK MOBILE */}
             <Link to="/quiz" onClick={() => setIsOpen(false)} className="px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
               <BrainCircuit size={18} className="text-purple-500"/> Daily Quiz
+            </Link>
+
+            <Link to="/upsc-calculator" onClick={() => setIsOpen(false)} className="px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+              <Target size={18} className="text-indigo-500"/> OMR Calculator
             </Link>
             
             {/* Mobile Login Button */}
