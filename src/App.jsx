@@ -14,8 +14,7 @@ import QuizPage from './pages/QuizPage';       // Your quiz listing page
 import QuizAdmin from './pages/QuizAdmin';     // Admin upload panel
 import GlobalLeaderboard from './pages/GlobalLeaderboard';
 import QuizReview from './pages/QuizReview';
-import UPSCScoreCalculator from './pages/UPSCScoreCalculator';
-
+import UPSCCalculator from './pages/UPSCCalculator';
 
 function App() {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
@@ -51,7 +50,7 @@ function App() {
           <Route path="/quiz/leaderboard" element={<GlobalLeaderboard />} />
           <Route path="/quiz/review" element={<QuizReview />} />
           <Route path="/quiz-admin" element={<QuizAdmin />} />
-          <Route path="/upsc-calculator" element={<UPSCScoreCalculator />} />
+          <Route path="/upsc-calculator" element={<UPSCCalculator />} />
           
         </Routes>
         <ChatBot />

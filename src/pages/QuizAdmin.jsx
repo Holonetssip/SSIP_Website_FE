@@ -13,9 +13,12 @@ import {
   fetchDailyAttemptsAll, fetchAllUserStats, fetchAdminStats,
 } from '../services/quizService';
 import {
+  saveAnswerKey, fetchAllAnswerKeys, deleteAnswerKey, PAPER_CONFIG,
+} from '../services/upscService';
+import {
   LogIn, LogOut, Upload, Plus, Trash2, CheckCircle, AlertCircle,
   Loader2, ShieldAlert, Eye, EyeOff, Pencil, List, FilePlus, Download,
-  BarChart2, RefreshCw, Users, Activity, Clock,
+  BarChart2, RefreshCw, Users, Activity, Clock, Key, FileText,
 } from 'lucide-react';
 
 const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || '')
@@ -159,6 +162,17 @@ export default function QuizAdmin() {
   const [statsData, setStatsData] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
 
+  // UPSC keys state
+  const [upscPaper, setUpscPaper] = useState('gs');
+  const [upscSet, setUpscSet] = useState('A');
+  const [upscCoaching, setUpscCoaching] = useState('');
+  const [upscCsv, setUpscCsv] = useState('');
+  const [upscKeys, setUpscKeys] = useState([]);
+  const [upscLoading, setUpscLoading] = useState(false);
+  const [upscUploading, setUpscUploading] = useState(false);
+  const [upscMsg, setUpscMsg] = useState(null);
+  const upscFileRef = React.useRef(null);
+
   // Auth listener
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -173,6 +187,7 @@ export default function QuizAdmin() {
   useEffect(() => {
     if (mode === 'manage' && isAdmin) loadQuizList();
     if (mode === 'stats' && isAdmin) loadStats();
+    if (mode === 'upsc' && isAdmin) loadUpscKeys();
   }, [mode, isAdmin]);
 
   // ── Reports: Download CSV ──────────────────────────────────────────────────
@@ -386,6 +401,69 @@ export default function QuizAdmin() {
     }
   };
 
+  // ── UPSC: Answer key management ───────────────────────────────────────────
+  const loadUpscKeys = async () => {
+    setUpscLoading(true);
+    try { setUpscKeys(await fetchAllAnswerKeys()); }
+    catch { setUpscKeys([]); }
+    finally { setUpscLoading(false); }
+  };
+
+  // Accepts "a,b,c" or "A,B,C" or multi-row CSV — flattens to single answer array
+  const parseUpscCsv = (text) =>
+    text.replace(/\r?\n/g, ',').split(',')
+      .map(s => s.trim().toLowerCase())
+      .filter(s => s !== '');
+
+  const handleUpscFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      // Flatten all rows into a single comma-separated string for display
+      const answers = ev.target.result.replace(/\r?\n/g, ',').split(',')
+        .map(s => s.trim().toLowerCase()).filter(s => s !== '');
+      setUpscCsv(answers.join(','));
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const handleUpscUpload = async () => {
+    setUpscMsg(null);
+    if (!upscCoaching.trim()) { setUpscMsg({ type: 'error', msg: 'Enter a coaching name.' }); return; }
+    const answers = parseUpscCsv(upscCsv);
+    const expected = PAPER_CONFIG[upscPaper].questions;
+    if (answers.length !== expected) {
+      setUpscMsg({ type: 'error', msg: `Expected ${expected} answers for ${PAPER_CONFIG[upscPaper].name}, got ${answers.length}.` });
+      return;
+    }
+    const invalid = answers.filter(a => !['a', 'b', 'c', 'd'].includes(a));
+    if (invalid.length > 0) {
+      setUpscMsg({ type: 'error', msg: `Invalid values: ${[...new Set(invalid)].join(', ')}. Only a, b, c, d allowed.` });
+      return;
+    }
+    setUpscUploading(true);
+    try {
+      await saveAnswerKey(upscCoaching.trim(), upscPaper, upscSet, answers);
+      setUpscMsg({ type: 'success', msg: `Saved: ${upscCoaching} · ${PAPER_CONFIG[upscPaper].name} · Set ${upscSet}` });
+      setUpscCoaching('');
+      setUpscCsv('');
+      if (upscFileRef.current) upscFileRef.current.value = '';
+      await loadUpscKeys();
+    } catch {
+      setUpscMsg({ type: 'error', msg: 'Upload failed. Please try again.' });
+    } finally {
+      setUpscUploading(false);
+    }
+  };
+
+  const handleUpscDelete = async (id, label) => {
+    if (!window.confirm(`Delete answer key: ${label}?`)) return;
+    await deleteAnswerKey(id);
+    setUpscKeys(prev => prev.filter(k => k.id !== id));
+  };
+
   // ── Render: loading ────────────────────────────────────────────────────────
   if (authLoading) return (
     <div className="min-h-screen pt-28 flex items-center justify-center bg-slate-50 dark:bg-slate-950">
@@ -461,6 +539,12 @@ export default function QuizAdmin() {
             className={`flex-1 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${mode === 'stats' ? 'bg-white dark:bg-slate-900 text-primary shadow-sm' : 'text-slate-400'}`}
           >
             <BarChart2 size={13} /> Stats
+          </button>
+          <button
+            onClick={() => { setMode('upsc'); setUpscMsg(null); }}
+            className={`flex-1 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${mode === 'upsc' ? 'bg-white dark:bg-slate-900 text-primary shadow-sm' : 'text-slate-400'}`}
+          >
+            <Key size={13} /> UPSC Keys
           </button>
         </div>
 
@@ -700,6 +784,130 @@ export default function QuizAdmin() {
             {!statsLoading && !statsData && (
               <div className="py-16 text-center text-sm text-slate-400 font-medium">Click Refresh to load stats.</div>
             )}
+
+          </div>
+        )}
+
+        {/* ── UPSC KEYS MODE ──────────────────────────────────────────────── */}
+        {mode === 'upsc' && (
+          <div className="flex flex-col gap-5">
+
+            {/* Upload form */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
+              <h2 className="font-black text-slate-700 dark:text-slate-200 text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Upload size={14} /> Upload Answer Key
+              </h2>
+
+              {upscMsg && (
+                <div className={`flex items-start gap-2 p-3 rounded-xl text-sm font-medium border mb-4 ${upscMsg.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 text-emerald-700' : 'bg-red-50 dark:bg-red-900/20 border-red-200 text-red-600'}`}>
+                  {upscMsg.type === 'success' ? <CheckCircle size={15} className="mt-0.5 shrink-0" /> : <AlertCircle size={15} className="mt-0.5 shrink-0" />}
+                  {upscMsg.msg}
+                </div>
+              )}
+
+              <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-400 mb-1 block">Paper</label>
+                  <select value={upscPaper} onChange={e => setUpscPaper(e.target.value)}
+                    className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200"
+                  >
+                    <option value="gs">GS Paper 1 (100 Qs)</option>
+                    <option value="csat">CSAT Paper 2 (80 Qs)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-400 mb-1 block">Set</label>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {['A','B','C','D'].map(s => (
+                      <button key={s} onClick={() => setUpscSet(s)}
+                        className={`py-2 rounded-xl font-black text-xs transition ${upscSet === s ? 'bg-primary text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-primary/10'}`}
+                      >{s}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="text-xs font-bold text-slate-400 mb-1 block">Coaching Name</label>
+                <input value={upscCoaching} onChange={e => setUpscCoaching(e.target.value)}
+                  placeholder="e.g. Vision IAS, Drishti IAS, Vajiram"
+                  className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200"
+                />
+              </div>
+
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-bold text-slate-400">
+                    Answer Key <span className="font-normal">(comma-separated: a,b,c,d,...)</span>
+                  </label>
+                  <label className="cursor-pointer flex items-center gap-1 text-xs font-bold text-primary hover:underline">
+                    <FileText size={12} /> Upload file
+                    <input ref={upscFileRef} type="file" accept=".csv,.txt" className="hidden" onChange={handleUpscFileUpload} />
+                  </label>
+                </div>
+                <textarea value={upscCsv} onChange={e => setUpscCsv(e.target.value)}
+                  rows={3} placeholder="a,b,c,d,a,b,..."
+                  className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 font-mono focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200 resize-none"
+                />
+                <p className={`text-[10px] mt-1 font-medium ${parseUpscCsv(upscCsv).length === PAPER_CONFIG[upscPaper].questions ? 'text-emerald-500' : 'text-slate-400'}`}>
+                  {parseUpscCsv(upscCsv).length} / {PAPER_CONFIG[upscPaper].questions} answers
+                  {parseUpscCsv(upscCsv).length === PAPER_CONFIG[upscPaper].questions && ' ✓'}
+                </p>
+              </div>
+
+              <button onClick={handleUpscUpload} disabled={upscUploading}
+                className="w-full py-3 bg-gradient-to-r from-blue-600 to-primary hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-black text-sm shadow-sm disabled:opacity-60 flex items-center justify-center gap-2 transition"
+              >
+                {upscUploading ? <><Loader2 size={15} className="animate-spin" /> Saving…</> : <><Upload size={15} /> Save Answer Key</>}
+              </button>
+            </div>
+
+            {/* Uploaded keys list */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                <h2 className="font-black text-slate-700 dark:text-slate-200 text-sm uppercase tracking-wider">
+                  Uploaded Keys ({upscKeys.length})
+                </h2>
+                <button onClick={loadUpscKeys} disabled={upscLoading}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-500 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-primary/50 hover:text-primary transition"
+                >
+                  {upscLoading ? <Loader2 size={12} className="animate-spin" /> : '↻'} Refresh
+                </button>
+              </div>
+
+              {upscLoading ? (
+                <div className="py-16 flex justify-center"><Loader2 size={28} className="animate-spin text-primary/40" /></div>
+              ) : upscKeys.length === 0 ? (
+                <div className="py-12 text-center text-sm text-slate-400 font-medium">No answer keys uploaded yet.</div>
+              ) : (
+                <div className="divide-y divide-slate-50 dark:divide-slate-800">
+                  {['gs', 'csat'].map(p => {
+                    const group = upscKeys.filter(k => k.paper === p);
+                    if (!group.length) return null;
+                    return (
+                      <div key={p}>
+                        <p className="px-5 pt-3 pb-1 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                          {PAPER_CONFIG[p].name}
+                        </p>
+                        {group.map(k => (
+                          <div key={k.id} className="flex items-center gap-4 px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{k.coachingName}</p>
+                              <p className="text-[11px] text-slate-400 font-medium">Set {k.set} · {k.answers?.length} answers</p>
+                            </div>
+                            <button onClick={() => handleUpscDelete(k.id, `${k.coachingName} · Set ${k.set}`)}
+                              className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
           </div>
         )}
