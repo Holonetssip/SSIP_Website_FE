@@ -438,9 +438,9 @@ export default function QuizAdmin() {
       setUpscMsg({ type: 'error', msg: `Expected ${expected} answers for ${PAPER_CONFIG[upscPaper].name}, got ${answers.length}.` });
       return;
     }
-    const invalid = answers.filter(a => !['a', 'b', 'c', 'd'].includes(a));
+    const invalid = answers.filter(a => !['a', 'b', 'c', 'd', 'n'].includes(a));
     if (invalid.length > 0) {
-      setUpscMsg({ type: 'error', msg: `Invalid values: ${[...new Set(invalid)].join(', ')}. Only a, b, c, d allowed.` });
+      setUpscMsg({ type: 'error', msg: `Invalid values: ${[...new Set(invalid)].join(', ')}. Only a, b, c, d, N allowed.` });
       return;
     }
     setUpscUploading(true);
@@ -451,8 +451,8 @@ export default function QuizAdmin() {
       setUpscCsv('');
       if (upscFileRef.current) upscFileRef.current.value = '';
       await loadUpscKeys();
-    } catch {
-      setUpscMsg({ type: 'error', msg: 'Upload failed. Please try again.' });
+    } catch (e) {
+      setUpscMsg({ type: 'error', msg: `Upload failed: ${e?.message || e}` });
     } finally {
       setUpscUploading(false);
     }
@@ -838,7 +838,7 @@ export default function QuizAdmin() {
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-xs font-bold text-slate-400">
-                    Answer Key <span className="font-normal">(comma-separated: a,b,c,d,...)</span>
+                    Answer Key <span className="font-normal">(a,b,c,d,... — use N if answer unknown)</span>
                   </label>
                   <label className="cursor-pointer flex items-center gap-1 text-xs font-bold text-primary hover:underline">
                     <FileText size={12} /> Upload file

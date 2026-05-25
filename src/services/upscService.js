@@ -29,6 +29,7 @@ export function calculateScore(studentAnswers, keyAnswers, paper) {
   for (let i = 0; i < keyAnswers.length; i++) {
     const s = (studentAnswers[i] || '').toLowerCase();
     const k = (keyAnswers[i] || '').toLowerCase();
+    if (k === 'n') continue; // unknown in key — skip entirely, no marks either way
     if (!s) skipped++;
     else if (s === k) correct++;
     else wrong++;
