@@ -157,12 +157,19 @@ const allCourses = [
   // MENTORSHIP: UPPCS Prelims
   // ==========================================
   {
+    id: "m-pre-4", category: "Mentorship", subCategory: "UPPCS Prelims Mentorship", title: "Prelims Mentorship - Batch 4",
+    desc: "Daily targets, 1-on-1 guidance, strict monitoring, and doubt clearing sessions.",
+    price: "₹4,999", oldPrice: "₹7,000", rating: "New", students: "Filling Fast",
+    duration: "Till Prelims", startDate: "08-06-2026", badge: "Admissions Open", isClosed: false,
+    img: mentorImg3,
+    link: "https://t.me/m/MzXlzGepNWY1"
+  },
+  {
     id: "m-pre-3", category: "Mentorship", subCategory: "UPPCS Prelims Mentorship", title: "Prelims Mentorship - Batch 3",
     desc: "Daily targets, 1-on-1 guidance, strict monitoring, and doubt clearing sessions.",
     price: "₹4,999", oldPrice: "₹7,000", rating: "New", students: "Filling Fast",
-    duration: "Till Prelims", startDate: "15-03-2026", badge: "Admissions Open", isClosed: false,
+    duration: "Till Prelims", startDate: "15-03-2026", badge: "Admissions closed", isClosed: true,
     img: mentorImg3,
-    link: "https://t.me/m/MzXlzGepNWY1"
   },
   {
     id: "m-pre-2", category: "Mentorship", subCategory: "UPPCS Prelims Mentorship", title: "Prelims Mentorship - Batch 2",
@@ -183,12 +190,19 @@ const allCourses = [
   // MENTORSHIP: UPPCS Prelims+Mains
   // ==========================================
   {
+    id: "m-premains-4", category: "Mentorship", subCategory: "UPPCS Prelims+Mains Mentorship", title: "Pre+Mains Mentorship - Batch 4",
+    desc: "Integrated preparation strategy, daily answer writing evaluation, and personalized mentor calls.",
+    price: "₹9,999", oldPrice: "₹14,000", rating: "New", students: "Filling Fast",
+    duration: "1 Year", startDate: "08-06-2026", badge: "Admissions Open", isClosed: false,
+    img: mentorImg4,
+    link: "https://t.me/m/MzXlzGepNWY1"
+  },
+  {
     id: "m-premains-3", category: "Mentorship", subCategory: "UPPCS Prelims+Mains Mentorship", title: "Pre+Mains Mentorship - Batch 3",
     desc: "Integrated preparation strategy, daily answer writing evaluation, and personalized mentor calls.",
     price: "₹9,999", oldPrice: "₹14,000", rating: "New", students: "Filling Fast",
-    duration: "1 Year", startDate: "15-03-2026", badge: "Admissions Open", isClosed: false,
+    duration: "1 Year", startDate: "15-03-2026", badge: "Admissions closed", isClosed: true,
     img: mentorImg4,
-    link: "https://t.me/m/MzXlzGepNWY1"
   },
   {
     id: "m-premains-2", category: "Mentorship", subCategory: "UPPCS Prelims+Mains Mentorship", title: "Pre+Mains Mentorship - Batch 2",
@@ -223,11 +237,43 @@ const allCourses = [
     duration: "Foundation", badge: "Coming Soon", isClosed: false,
     img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2F90b41348-c796-4ee3-9115-23fc688fa632.jpg&w=384&q=75",
     link: "https://www.ssip.cloud/courses/814578?mainCategory=142664"
-  }
+  },
+  {
+    id: "ukpcs-1", category: "UKPCS", title: "UKPCS (UK, GK & GS)",
+    desc: "Seats are limited and batches fill very fast. Thousands prepare… only a few prepare smart. Don’t miss the chance to crack UKPSC in one go. 🎯",
+    price: "1,299", oldPrice: "3,999", rating: "4.9", students: "1.2k+",
+    duration: "Foundation", badge: "Trending", isClosed: false,
+    img: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&q=80&w=600",
+    link: "https://t.me/RushirajSinghRathore"
+  },
+  // {
+  //   id: "ukpcs-2", category: "UKPCS", title: "UKPCS Prelims Test Series & VOD",
+  //   desc: "High-yield rapid revision video lectures along with 25+ comprehensive mock tests optimized for UKPSC.",
+  //   price: "999", oldPrice: "2,499", rating: "4.8", students: "850+",
+  //   duration: "VOD + Test Series", badge: "New Launch", isClosed: false,
+  //   img: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&q=80&w=600",
+  //   link: "https://www.ssip.cloud"
+  // },
+  {
+    id: "ras-1", category: "RAS", title: "RAS Prelims Batch",
+    desc: "Rajasthan GK with Current Affairs.",
+    price: "1,299", oldPrice: "3,999", rating: "4.9", students: "1.5k+",
+    duration: "Upto Prelims", badge: "Best Seller", isClosed: false,
+    img: "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&q=80&w=600",
+    link: "https://t.me/RushirajSinghRathore"
+  },
+  // {
+  //   id: "ras-2", category: "RAS", title: "Rajasthan GK Special (Mewar to Marwar)",
+  //   desc: "Master Rajasthan General Knowledge with memory tricks. 100% syllabus coverage for all state administrative exams.",
+  //   price: "799", oldPrice: "1,999", rating: "4.8", students: "2.1k+",
+  //   duration: "VOD", badge: "Must Have", isClosed: false,
+  //   img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=600",
+  //   link: "https://www.ssip.cloud"
+  // }
 ];
 
 // --- UPDATED CATEGORIES ---
-const categories = ["All", "UPSC Prelims", "UPPCS Prelims", "UPPCS Mains", "Mentorship", "MPPSC", "BPSC"];
+const categories = ["All", "UPSC Prelims", "UPPCS Prelims", "UPPCS Mains", "Mentorship", "MPPSC", "BPSC", "UKPCS", "RAS"];
 
 const preloadImages = () => {
   const imagesToPreload = allCourses.slice(0, 6).map(course => course.img);
@@ -362,10 +408,12 @@ const CourseRow = ({ title, courses }) => {
     }
   };
 
-  // Safe Guard: Check if the category is empty. Display coming soon placeholder for BPSC/MPPSC.
+  // Safe Guard: Check if the category is empty. Display coming soon placeholder for BPSC/MPPSC/UKPCS/RAS.
   if (!courses || courses.length === 0) {
     if (title && title.includes("BPSC")) return <ComingSoonPlaceholder title="BPSC" />;
     if (title && title.includes("MPPSC")) return <ComingSoonPlaceholder title="MPPSC" />;
+    if (title && title.includes("UKPCS")) return <ComingSoonPlaceholder title="UKPCS" />;
+    if (title && title.includes("RAS")) return <ComingSoonPlaceholder title="RAS" />;
     return null;
   }
 
@@ -428,6 +476,17 @@ const CourseRow = ({ title, courses }) => {
 // --- MAIN PAGE COMPONENT ---
 export default function Courses() {
   const [activeCategory, setActiveCategory] = useState("All");
+  const categoryContainerRef = useRef(null);
+
+  const scrollCategories = (direction) => {
+    if (categoryContainerRef.current) {
+      const scrollAmount = 240;
+      categoryContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   useEffect(() => {
     preloadImages();
@@ -474,22 +533,46 @@ export default function Courses() {
         </div>
 
         {/* --- Segmented Control Filter Bar --- */}
-        <div className="flex justify-start sm:justify-center mb-12 md:mb-16 px-4 sm:px-6 lg:px-10 overflow-x-auto pb-4 scrollbar-hide relative z-20">
-          <div className="flex p-1.5 md:p-2 bg-white dark:bg-slate-800 rounded-xl md:rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm min-w-max">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`relative px-4 sm:px-6 md:px-8 py-2 md:py-3.5 rounded-lg md:rounded-xl text-xs sm:text-sm md:text-base font-bold transition-all whitespace-nowrap z-10 ${activeCategory === cat ? 'text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-              >
-                {activeCategory === cat && (
-                  <motion.div layoutId="courseFilter" className="absolute inset-0 bg-slate-900 dark:bg-slate-600 rounded-lg md:rounded-xl shadow-md -z-10" transition={{ type: "spring", stiffness: 400, damping: 30 }} />
-                )}
-                <span>{cat}</span>
-              </button>
-            ))}
+        <div className="flex items-center justify-center mb-12 md:mb-16 px-4 sm:px-6 lg:px-10 relative z-20 max-w-full">
+          {/* Left Arrow Button */}
+          <button
+            onClick={() => scrollCategories('left')}
+            className="p-3 mr-3 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center shrink-0 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+            aria-label="Scroll left"
+          >
+            <ChevronLeft size={16} />
+          </button>
+
+          {/* Scrollable Container with Custom Sleek Scrollbar */}
+          <div
+            ref={categoryContainerRef}
+            className="flex overflow-x-auto scroll-smooth pb-3 gap-2 [&::-webkit-scrollbar]:h-[6px] [&::-webkit-scrollbar-track]:bg-slate-100/50 dark:[&::-webkit-scrollbar-track]:bg-slate-800/20 [&::-webkit-scrollbar-thumb]:bg-gradient-to-r [&::-webkit-scrollbar-thumb]:from-blue-500 [&::-webkit-scrollbar-thumb]:to-purple-500 [&::-webkit-scrollbar-thumb]:rounded-full w-full justify-start"
+          >
+            <div className="flex p-1.5 md:p-2 bg-white dark:bg-slate-800 rounded-xl md:rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm min-w-max mx-auto">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`relative px-4 sm:px-6 md:px-8 py-2 md:py-3.5 rounded-lg md:rounded-xl text-xs sm:text-sm md:text-base font-bold transition-all whitespace-nowrap z-10 ${activeCategory === cat ? 'text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                >
+                  {activeCategory === cat && (
+                    <motion.div layoutId="courseFilter" className="absolute inset-0 bg-slate-900 dark:bg-slate-600 rounded-lg md:rounded-xl shadow-md -z-10" transition={{ type: "spring", stiffness: 400, damping: 30 }} />
+                  )}
+                  <span>{cat}</span>
+                </button>
+              ))}
+            </div>
           </div>
+
+          {/* Right Arrow Button */}
+          <button
+            onClick={() => scrollCategories('right')}
+            className="p-2.5 ml-3 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center shrink-0 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+            aria-label="Scroll right"
+          >
+            <ChevronRight size={16} />
+          </button>
         </div>
 
         {/* --- Dynamic Course Sliders --- */}
