@@ -43,144 +43,144 @@ const allCourses = [
   {
     id: "upsc-m-0", category: "UPSC Mains", title: "Complete Combo (The Mains HQ)",
     desc: "The Mains HQ (UPSC 2026)",
-    price: "9,999", oldPrice: "19,999", rating: "4.9", students: "1.1k+",
-    duration: "Self Paced", badge: "Flagship",
+    price: "9,999", oldPrice: "19,999",
+    duration: "Self Paced",
     img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2F8d1a119b-a750-4737-bc0a-ee21a9ca523c.jpg&w=384&q=75",
     link: "https://www.ssip.cloud/courses/863274?mainCategory=20&filterId=27&sortId=7"
   },
   {
     id: "upsc-m-1", category: "UPSC Mains", title: "Essay + Ethics (TMH)",
     desc: "The Mains HQ (UPSC 2026)",
-    price: "3,499", oldPrice: "6,999", rating: "4.9", students: "1.1k+",
-    duration: "Self Paced", badge: "Flagship",
+    price: "3,499", oldPrice: "6,999",
+    duration: "Self Paced",
     img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2F4dc394a3-3495-4cd7-892e-1e7e0393001a.png&w=384&q=75",
     link: "https://www.ssip.cloud/courses/862770?mainCategory=20"
   },
   {
     id: "upsc-m-2", category: "UPSC Mains", title: "Disaster Management + Internal Security (TMH)",
     desc: "The Mains HQ (UPSC 2026)",
-    price: "1,299", oldPrice: "2,999", rating: "4.9", students: "800+",
-    duration: "Self Paced", badge: "Flagship",
+    price: "1,299", oldPrice: "2,999",
+    duration: "Self Paced",
     img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2Fff3cdb02-d929-42bc-93e0-c6ee20454ee5.png&w=384&q=75",
     link: "https://www.ssip.cloud/courses/862768?mainCategory=20&filterId=27&sortId=7"
   },
   {
     id: "upsc-m-3", category: "UPSC Mains", title: "Environment & Biodiversity (TMH)",
     desc: "The Mains HQ (UPSC 2026)",
-    price: "799", oldPrice: "2,499", rating: "4.9", students: "500+",
-    duration: "Self Paced", badge: "Flagship",
+    price: "799", oldPrice: "2,499",
+    duration: "Self Paced",
     img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2Fa04aa471-d006-437f-b018-f1c2075fc4a4.png&w=384&q=75",
     link: "https://www.ssip.cloud/courses/862765?mainCategory=20&filterId=27&sortId=7"
   },
   {
     id: "upsc-m-4", category: "UPSC Mains", title: "Science & Technology (TMH)",
     desc: "The Mains HQ (UPSC 2026)",
-    price: "1,299", oldPrice: "2,499", rating: "4.9", students: "400+",
-    duration: "Self Paced", badge: "Flagship",
+    price: "1,299", oldPrice: "2,499",
+    duration: "Self Paced",
     img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2Fa04aa471-d006-437f-b018-f1c2075fc4a4.png&w=384&q=75",
     link: "https://www.ssip.cloud/courses/862764?mainCategory=20&filterId=27&sortId=7"
   },
   {
     id: "upsc-m-5", category: "UPSC Mains", title: "Indian Economy (TMH)",
     desc: "The Mains HQ (UPSC 2026)",
-    price: "1,499", oldPrice: "3,499", rating: "4.9", students: "900+",
-    duration: "Self Paced", badge: "Flagship",
+    price: "1,499", oldPrice: "3,499",
+    duration: "Self Paced",
     img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2Fb38fc2ee-e384-442f-aa91-8ddb2d7f1b2b.png&w=384&q=75",
     link: "https://www.ssip.cloud/courses/862763?mainCategory=20&filterId=27&sortId=7"
   },
   {
     id: "upsc-m-6", category: "UPSC Mains", title: "International Relations (TMH)",
     desc: "The Mains HQ (UPSC 2026)",
-    price: "1,299", oldPrice: "2,499", rating: "4.9", students: "300+",
-    duration: "Self Paced", badge: "Flagship",
+    price: "1,299", oldPrice: "2,499",
+    duration: "Self Paced",
     img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2Ff326c25e-13eb-410a-a905-13b910aa2dbe.png&w=384&q=75",
     link: "https://www.ssip.cloud/courses/862762?mainCategory=20&filterId=27&sortId=7"
   },
   {
     id: "upsc-m-7", category: "UPSC Mains", title: "Governance + Social Justice (TMH)",
     desc: "The Mains HQ (UPSC 2026)",
-    price: "1,299", oldPrice: "2,499", rating: "4.9", students: "300+",
-    duration: "Self Paced", badge: "Flagship",
+    price: "1,299", oldPrice: "2,499",
+    duration: "Self Paced",
     img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2F3904038f-265f-4547-8f2c-cec8c3db72e9.png&w=384&q=75",
     link: "https://www.ssip.cloud/courses/862761?mainCategory=20&filterId=27&sortId=7"
   },
   {
     id: "upsc-m-8", category: "UPSC Mains", title: "Indian Polity (TMH)",
     desc: "The Mains HQ (UPSC 2026)",
-    price: "1,499", oldPrice: "3,499", rating: "4.9", students: "900+",
-    duration: "Self Paced", badge: "Flagship",
+    price: "1,499", oldPrice: "3,499",
+    duration: "Self Paced",
     img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2Fee879c24-0ee3-4bbd-8160-6d4f139ee665.png&w=384&q=75",
     link: "https://www.ssip.cloud/courses/862757?mainCategory=20&filterId=27&sortId=7"
   },
   {
     id: "upsc-m-9", category: "UPSC Mains", title: "Geography (TMH)",
     desc: "The Mains HQ (UPSC 2026)",
-    price: "1,299", oldPrice: "2,499", rating: "4.9", students: "600+",
-    duration: "Self Paced", badge: "Flagship",
+    price: "1,299", oldPrice: "2,499",
+    duration: "Self Paced",
     img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2F0908b7c9-901c-4fcf-b2a3-3e98698e498c.png&w=384&q=75",
     link: "https://www.ssip.cloud/courses/862756?mainCategory=20&filterId=27&sortId=7"
   },
   {
     id: "upsc-m-10", category: "UPSC Mains", title: "Indian Society(TMH)",
     desc: "The Mains HQ (UPSC 2026)",
-    price: "799", oldPrice: "2,499", rating: "4.9", students: "300+",
-    duration: "Self Paced", badge: "Flagship",
+    price: "799", oldPrice: "2,499",
+    duration: "Self Paced",
     img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2F431b95ea-fa89-4e46-bf80-61241f98bbb2.png&w=384&q=75",
     link: "https://www.ssip.cloud/courses/862755?mainCategory=20&filterId=27&sortId=7"
   },
   {
     id: "upsc-m-11", category: "UPSC Mains", title: "World History (TMH)",
     desc: "The Mains HQ (UPSC 2026)",
-    price: "799", oldPrice: "2,499", rating: "4.9", students: "300+",
-    duration: "Self Paced", badge: "Flagship",
+    price: "799", oldPrice: "2,499",
+    duration: "Self Paced",
     img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2Fb2fd7628-1239-48e3-ba4c-f3b219f562b7.png&w=384&q=75",
     link: "https://www.ssip.cloud/courses/862518?mainCategory=20&filterId=27&sortId=7"
   },
   {
     id: "upsc-m-12", category: "UPSC Mains", title: "Modern History + Post Independence (TMH)",
     desc: "The Mains HQ (UPSC 2026)",
-    price: "1,299", oldPrice: "2,499", rating: "4.9", students: "300+",
-    duration: "Self Paced", badge: "Flagship",
+    price: "1,299", oldPrice: "2,499",
+    duration: "Self Paced",
     img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2F53834ff2-367d-4961-a4c2-c06928ae19f3.png&w=384&q=75",
     link: "https://www.ssip.cloud/courses/862517?mainCategory=20&filterId=27&sortId=7"
   },
   {
     id: "upsc-m-13", category: "UPSC Mains", title: "Indian Heritage & Culture (TMH)",
     desc: "The Mains HQ (UPSC 2026)",
-    price: "799", oldPrice: "2,499", rating: "4.9", students: "300+",
-    duration: "Self Paced", badge: "Flagship",
+    price: "799", oldPrice: "2,499",
+    duration: "Self Paced",
     img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2F349dc150-dfc3-4e33-9329-e31892d2fd4f.png&w=384&q=75",
     link: "https://www.ssip.cloud/courses/862516?mainCategory=20&filterId=27&sortId=7"
   },
   {
     id: "upsc-m-14", category: "UPSC Mains", title: "General Studies 01 (TMH)",
     desc: "Complete GS 01 (UPSC 2026)",
-    price: "2,999", oldPrice: "3,999", rating: "4.8", students: "850+",
-    duration: "Self Paced", badge: "Must Have",
+    price: "2,999", oldPrice: "3,999",
+    duration: "Self Paced",
     img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2Ffbbd1466-85de-41aa-b92d-dd5601bc7125.png&w=384&q=75",
     link: "https://www.ssip.cloud/courses/862780?mainCategory=20&filterId=27&sortId=7"
   },
   {
     id: "upsc-m-15", category: "UPSC Mains", title: "General Studies 02 (TMH)",
     desc: "Complete GS 02 (UPSC 2026)",
-    price: "2,999", oldPrice: "4,999", rating: "4.9", students: "950+",
-    duration: "Self Paced", badge: "Best Seller",
+    price: "2,999", oldPrice: "4,999",
+    duration: "Self Paced",
     img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2F9f50bca2-6874-4ab6-b825-a464abd08977.png&w=384&q=75",
     link: "https://www.ssip.cloud/courses/862782?mainCategory=20&filterId=27&sortId=7"
   },
   {
     id: "upsc-m-16", category: "UPSC Mains", title: "General Studies 03 (TMH)",
     desc: "Complete GS 03 (UPSC 2026)",
-    price: "2,999", oldPrice: "4,999", rating: "4.9", students: "950+",
-    duration: "Self Paced", badge: "Best Seller",
+    price: "2,999", oldPrice: "4,999",
+    duration: "Self Paced",
     img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2Fac4d3110-7520-4c67-9d4a-814577a993a0.png&w=384&q=75",
     link: "https://www.ssip.cloud/courses/862785?mainCategory=20&filterId=27&sortId=7"
   },
   {
     id: "upsc-m-17", category: "UPSC Mains", title: "General Studies 04 (TMH)",
     desc: "Complete GS 04 (UPSC 2026)",
-    price: "1,999", oldPrice: "4,999", rating: "4.9", students: "950+",
-    duration: "Self Paced", badge: "Best Seller",
+    price: "1,999", oldPrice: "4,999",
+    duration: "Self Paced",
     img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2F3e5f5ec1-ae18-4bf8-a073-a5323c559090.png&w=384&q=75",
     link: "https://www.ssip.cloud/courses/862773?mainCategory=20&filterId=27&sortId=7"
   },
@@ -493,12 +493,16 @@ const CourseCard = ({ course, index }) => {
             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/10 to-transparent pointer-events-none"></div>
 
             <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center text-white z-10 pointer-events-none">
-              <div className="flex items-center gap-1 sm:gap-1.5 text-yellow-400 text-xs sm:text-sm font-bold bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10">
-                <Star size={12} fill="currentColor" /> {course.rating}
-              </div>
-              <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-medium text-white/90 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10">
-                <Users size={10} /> {course.students}
-              </div>
+              {course.rating && (
+                <div className="flex items-center gap-1 sm:gap-1.5 text-yellow-400 text-xs sm:text-sm font-bold bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10">
+                  <Star size={12} fill="currentColor" /> {course.rating}
+                </div>
+              )}
+              {course.students && (
+                <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-medium text-white/90 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10">
+                  <Users size={10} /> {course.students}
+                </div>
+              )}
             </div>
           </div>
         </div>

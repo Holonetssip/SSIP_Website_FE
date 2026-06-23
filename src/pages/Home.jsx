@@ -373,11 +373,18 @@ const Home = () => {
       </section>
 
       {/* --- PROMOTIONAL BANNER SECTION --- */}
-      <section className="relative z-30 w-full max-w-7xl mx-auto px-4 md:px-6 my-10 md:my-16">
-        <div className="relative overflow-hidden rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-slate-200/80 dark:border-slate-800/80 group">
+      <section className="relative z-30 w-full max-w-7xl mx-auto px-4 md:px-6 my-10 md:my-16 group">
+
+        {/* Soft Ambient Glow */}
+        <div className="absolute -inset-x-2 -inset-y-6 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-[1.7rem] md:rounded-[2.2rem] opacity-25 dark:opacity-40 blur-xl transition-all duration-700 group-hover:opacity-35 dark:group-hover:opacity-60 pointer-events-none"></div>
+
+        {/* Sharp Glowing Border Ring */}
+        <div className="absolute -inset-x-[1px] -inset-y-[3px] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-[1.55rem] md:rounded-[2.05rem] opacity-40 dark:opacity-60 blur-[3px] transition-all duration-700 pointer-events-none"></div>
+
+        <div className="relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] shadow-[0_0_35px_rgba(168,85,247,0.15)] dark:shadow-[0_0_50px_rgba(168,85,247,0.35)] border border-purple-500/20 dark:border-purple-500/35 bg-white dark:bg-slate-950 transition-all duration-500">
 
           {/* Responsive Banner Image wrapper targeting optimal crop-free heights */}
-          <div className="w-full h-[150px] sm:h-[260px] md:h-[420px] lg:h-[520px]">
+          <div className="w-full h-[190px] sm:h-[260px] md:h-[420px] lg:h-[520px]">
             <img
               src={bannerImg}
               alt="Study Smart Program Banner"
@@ -390,7 +397,7 @@ const Home = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent pointer-events-none hidden dark:block"></div>
 
           {/* Centered Action Buttons at the Bottom */}
-          <div className="absolute bottom-1 sm:bottom-3 md:bottom-6 lg:bottom-8 left-0 right-0 flex justify-center px-4">
+          <div className="absolute bottom-2 sm:bottom-3 md:bottom-6 lg:bottom-8 left-0 right-0 flex justify-center px-4">
             <div className="flex flex-row gap-2 sm:gap-4 md:gap-6 lg:gap-8 items-center justify-center w-full max-w-4xl flex-wrap">
               {/* Brochure Button */}
               <motion.a
@@ -399,7 +406,7 @@ const Home = () => {
                 rel="noopener noreferrer"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="px-3 py-1.5 sm:px-7 sm:py-3.5 bg-sky-50/90 dark:bg-sky-950/40 backdrop-blur-md text-sky-700 dark:text-sky-300 border-2 border-sky-950 dark:border-sky-800/60 font-bold rounded-full text-[9px] sm:text-xs md:text-sm uppercase tracking-wider shadow-lg hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-all flex items-center justify-center"
+                className="px-2 py-0.5 sm:px-7 sm:py-3.5 bg-sky-50/90 dark:bg-sky-950/40 backdrop-blur-md text-sky-700 dark:text-sky-300 border-[1px] sm:border-2 border-sky-950 dark:border-sky-800/60 font-bold rounded-full text-[7px] sm:text-xs md:text-sm uppercase tracking-wider shadow-lg hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-all flex items-center justify-center"
               >
                 Brochure
               </motion.a>
@@ -415,7 +422,7 @@ const Home = () => {
                   boxShadow: "0 10px 25px rgba(147, 51, 234, 0.4)"
                 }}
                 whileTap={{ scale: 0.98 }}
-                className="px-4 py-2 sm:px-8 sm:py-4 bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-500 dark:to-blue-500 text-white font-extrabold rounded-full text-[10px] sm:text-sm md:text-base uppercase tracking-wider shadow-lg shadow-purple-500/20 transition-all flex items-center justify-center border-2 border-slate-900 dark:border-transparent"
+                className="px-2.5 py-1 sm:px-8 sm:py-4 bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-500 dark:to-blue-500 text-white font-extrabold rounded-full text-[8px] sm:text-sm md:text-base uppercase tracking-wider shadow-lg shadow-purple-500/20 transition-all flex items-center justify-center border-[1px] sm:border-2 border-slate-900 dark:border-transparent"
               >
                 Enroll Now
               </motion.a>
@@ -427,7 +434,7 @@ const Home = () => {
                 rel="noopener noreferrer"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="px-3 py-1.5 sm:px-7 sm:py-3.5 bg-emerald-50/90 dark:bg-emerald-950/40 backdrop-blur-md text-emerald-700 dark:text-emerald-300 border-2 border-emerald-950 dark:border-emerald-800/60 font-bold rounded-full text-[9px] sm:text-xs md:text-sm uppercase tracking-wider shadow-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-all flex items-center justify-center"
+                className="px-2 py-0.5 sm:px-7 sm:py-3.5 bg-emerald-50/90 dark:bg-emerald-950/40 backdrop-blur-md text-emerald-700 dark:text-emerald-300 border-[1px] sm:border-2 border-emerald-950 dark:border-emerald-800/60 font-bold rounded-full text-[7px] sm:text-xs md:text-sm uppercase tracking-wider shadow-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-all flex items-center justify-center"
               >
                 Contact Us
               </motion.a>
