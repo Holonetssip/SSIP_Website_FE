@@ -406,7 +406,7 @@ const Home = () => {
 
               {/* Enroll Now Button */}
               <motion.a
-                href="https://www.ssip.cloud"
+                href="https://www.ssip.cloud/courses?mainCategory=0&subCatList=[376401]"
                 target="_blank"
                 rel="noopener noreferrer"
                 whileHover={{
