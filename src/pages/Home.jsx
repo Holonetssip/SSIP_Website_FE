@@ -6,8 +6,8 @@ import {
   Award, Zap, Video, CheckCircle, Send,
   GraduationCap, Target, Phone, Mail,
   Youtube, MessageCircle, Instagram, Twitter, ChevronRight,
-  ChevronLeft, Sparkles, BookMarked, PenTool, 
-  Smartphone, Play, Apple, Compass, 
+  ChevronLeft, Sparkles, BookMarked, PenTool,
+  Smartphone, Play, Apple, Compass,
   MapPin, Copy, ExternalLink
 } from 'lucide-react';
 
@@ -25,6 +25,7 @@ import gs from '../assets/gs.png';
 // New individual imports from assets folder
 import avatarSingh from '../assets/avatarsingh.png';
 import garimaSingh from '../assets/garima-singh.png';
+import bannerImg from '../assets/banner.png';
 
 // --- MOBILE SWIPE INDICATOR COMPONENT ---
 const MobileSwipeIndicator = () => (
@@ -43,7 +44,7 @@ const MobileSwipeIndicator = () => (
 const Counter = ({ value, suffix = "+" }) => {
   const safeValue = String(value).replace(/,/g, '');
   const numericValue = parseInt(safeValue, 10) || 0;
-  
+
   const spring = useSpring(0, { mass: 1, stiffness: 50, damping: 20, duration: 2000 });
   const displayValue = useTransform(spring, (current) => Math.round(current).toLocaleString());
 
@@ -103,7 +104,7 @@ const FloatingElement = ({ children, delay = 0, duration = 3 }) => (
   <motion.div
     animate={{ y: [0, -15, 0] }}
     transition={{ duration, repeat: Infinity, ease: "easeInOut", delay }}
-    className="will-change-transform transform-gpu hidden lg:block" 
+    className="will-change-transform transform-gpu hidden lg:block"
   >
     {children}
   </motion.div>
@@ -124,25 +125,25 @@ const Home = () => {
     const baseNumber = 6542;
     const startDate = new Date('2024-01-01T00:00:00Z').getTime();
     const now = Date.now();
-    
+
     const hoursPassed = Math.max(0, (now - startDate) / (1000 * 60 * 60));
     const intervalsPassed = Math.floor(hoursPassed / 26);
 
     let addition = 0;
     const randomPattern = [2, 1, 3, 1, 2, 3, 2, 3, 1, 2];
-    
+
     for (let i = 0; i < intervalsPassed; i++) {
       addition += randomPattern[i % randomPattern.length];
     }
-    
+
     return baseNumber + addition;
   }, []);
 
   const scrollTestimonials = (direction) => {
     if (testimonialScrollRef.current) {
       const container = testimonialScrollRef.current;
-      const scrollAmount = window.innerWidth < 768 ? 320 : 450; 
-      
+      const scrollAmount = window.innerWidth < 768 ? 320 : 450;
+
       if (direction === 'right') {
         if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 10) container.scrollTo({ left: 0, behavior: 'smooth' });
         else container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
@@ -227,7 +228,7 @@ const Home = () => {
 
       {/* --- HERO SECTION --- */}
       <section className="relative min-h-[85vh] flex flex-col justify-center z-10 pb-12 pt-8">
-        
+
         {/* Enhanced Ambient Background with Theme Depth */}
         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
           <div className="absolute inset-0 bg-slate-50 dark:bg-slate-950 transition-colors duration-500"></div>
@@ -243,10 +244,10 @@ const Home = () => {
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="flex justify-center lg:justify-start mb-6 mt-4">
             <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-primary p-[2px] rounded-full shadow-[0_0_15px_rgba(59,130,246,0.2)] dark:shadow-[0_0_15px_rgba(59,130,246,0.3)]">
               <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm px-6 py-1.5 md:py-2 rounded-full flex items-center gap-2">
-                 <Sparkles className="text-blue-500" size={16} />
-                 <span className="font-bold text-[11px] md:text-sm text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
-                   Ignite Your Potential! Start Your Success Story Today
-                 </span>
+                <Sparkles className="text-blue-500" size={16} />
+                <span className="font-bold text-[11px] md:text-sm text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
+                  Ignite Your Potential! Start Your Success Story Today
+                </span>
               </div>
             </div>
           </motion.div>
@@ -267,7 +268,7 @@ const Home = () => {
                 <AnimatedText text="Turn Your " className="inline-block mr-2" />
                 <span className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-500 to-secondary animate-gradient bg-[length:200%_auto] will-change-transform">
                   IAS Dreams
-                </span> <br className="hidden lg:block"/>
+                </span> <br className="hidden lg:block" />
                 <AnimatedText text=" Into Reality" className="inline-block" />
               </h1>
 
@@ -336,40 +337,105 @@ const Home = () => {
           {/* Stats Row --- */}
           <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 relative z-30 mt-8 md:mt-0">
             {[
-              { label: "Active Students", value: activeStudents.toString(), icon: <Users size={20}/>, gradient: "from-blue-500 to-cyan-500" },
-              { label: "Total Courses", value: "21", icon: <BookOpen size={20}/>, gradient: "from-purple-500 to-pink-500" },
-              { label: "Video Lessons", value: "1720", icon: <Video size={20}/>, gradient: "from-orange-500 to-red-500" },
-              { label: "Free Videos", value: "2000", icon: <Award size={20}/>, gradient: "from-green-500 to-emerald-500" },
+              { label: "Active Students", value: activeStudents.toString(), icon: <Users size={20} />, gradient: "from-blue-500 to-cyan-500" },
+              { label: "Total Courses", value: "21", icon: <BookOpen size={20} />, gradient: "from-purple-500 to-pink-500" },
+              { label: "Video Lessons", value: "1720", icon: <Video size={20} />, gradient: "from-orange-500 to-red-500" },
+              { label: "Free Videos", value: "2000", icon: <Award size={20} />, gradient: "from-green-500 to-emerald-500" },
             ].map((stat, idx) => (
-               <motion.div key={idx} variants={scaleIn} className="relative overflow-hidden bg-white/95 dark:bg-slate-800/80 backdrop-blur-md p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-slate-700/50 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] shadow-sm hover:shadow-xl dark:hover:shadow-[0_0_25px_rgba(255,255,255,0.05)] group transition-all transform-gpu lg:hover:-translate-y-1">
-                  <div className={`absolute inset-0 bg-gradient-to-r ${stat.gradient} opacity-0 lg:group-hover:opacity-10 dark:lg:group-hover:opacity-20 transition-opacity duration-300 pointer-events-none`}></div>
-                  <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-gradient-to-r ${stat.gradient} text-white flex items-center justify-center mb-3 md:mb-4 shadow-md lg:group-hover:scale-110 transition-transform transform-gpu`}>
-                    {stat.icon}
-                  </div>
-                  <h3 className="text-xl md:text-3xl font-extrabold text-slate-900 dark:text-white"><Counter value={stat.value} /></h3>
-                  <p className="text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">{stat.label}</p>
-               </motion.div>
+              <motion.div key={idx} variants={scaleIn} className="relative overflow-hidden bg-white/95 dark:bg-slate-800/80 backdrop-blur-md p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-slate-700/50 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] shadow-sm hover:shadow-xl dark:hover:shadow-[0_0_25px_rgba(255,255,255,0.05)] group transition-all transform-gpu lg:hover:-translate-y-1">
+                <div className={`absolute inset-0 bg-gradient-to-r ${stat.gradient} opacity-0 lg:group-hover:opacity-10 dark:lg:group-hover:opacity-20 transition-opacity duration-300 pointer-events-none`}></div>
+                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-gradient-to-r ${stat.gradient} text-white flex items-center justify-center mb-3 md:mb-4 shadow-md lg:group-hover:scale-110 transition-transform transform-gpu`}>
+                  {stat.icon}
+                </div>
+                <h3 className="text-xl md:text-3xl font-extrabold text-slate-900 dark:text-white"><Counter value={stat.value} /></h3>
+                <p className="text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">{stat.label}</p>
+              </motion.div>
             ))}
           </motion.div>
         </div>
       </section>
 
       {/* --- MARQUEE --- */}
-<section className="relative z-40 w-full py-4 bg-indigo-600 dark:bg-indigo-900 overflow-hidden border-y border-white/10 shadow-2xl">
-  {/* We add a solid background color (indigo) just in case 'primary' gradient fails */}
-  <div className="absolute inset-0 bg-gradient-to-r from-primary via-purple-600 to-secondary opacity-90"></div>
-  
-      <div className="relative z-10">
-        <Marquee speed={30}>
-          {["Expert Faculty", "Live Classes", "Telegram Community", "Daily Targets", "Answer Writing", "Mock Tests", "Memory Tricks", "1:1 Mentorship", "NCERT Focus", "PYQ Analysis"].map((item, idx) => (
-            <span key={idx} className="text-white font-bold text-sm md:text-lg flex items-center gap-3 whitespace-nowrap px-4 tracking-wide uppercase">
-              <Star size={16} className="text-yellow-300 drop-shadow-[0_0_8px_rgba(253,224,71,0.6)]" fill="currentColor" /> 
-              {item}
-            </span>
-          ))}
-        </Marquee>
-      </div>
-    </section>
+      <section className="relative z-40 w-full py-4 bg-indigo-600 dark:bg-indigo-900 overflow-hidden border-y border-white/10 shadow-2xl">
+        {/* We add a solid background color (indigo) just in case 'primary' gradient fails */}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary via-purple-600 to-secondary opacity-90"></div>
+
+        <div className="relative z-10">
+          <Marquee speed={30}>
+            {["Expert Faculty", "Live Classes", "Telegram Community", "Daily Targets", "Answer Writing", "Mock Tests", "Memory Tricks", "1:1 Mentorship", "NCERT Focus", "PYQ Analysis"].map((item, idx) => (
+              <span key={idx} className="text-white font-bold text-sm md:text-lg flex items-center gap-3 whitespace-nowrap px-4 tracking-wide uppercase">
+                <Star size={16} className="text-yellow-300 drop-shadow-[0_0_8px_rgba(253,224,71,0.6)]" fill="currentColor" />
+                {item}
+              </span>
+            ))}
+          </Marquee>
+        </div>
+      </section>
+
+      {/* --- PROMOTIONAL BANNER SECTION --- */}
+      <section className="relative z-30 w-full max-w-7xl mx-auto px-4 md:px-6 my-10 md:my-16">
+        <div className="relative overflow-hidden rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-slate-200/80 dark:border-slate-800/80 group">
+
+          {/* Responsive Banner Image wrapper targeting optimal crop-free heights */}
+          <div className="w-full h-[150px] sm:h-[260px] md:h-[420px] lg:h-[520px]">
+            <img
+              src={bannerImg}
+              alt="Study Smart Program Banner"
+              className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.01]"
+              loading="lazy"
+            />
+          </div>
+
+          {/* Elegant Dark/Glow Overlay - hidden in light mode, shown in dark mode */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent pointer-events-none hidden dark:block"></div>
+
+          {/* Centered Action Buttons at the Bottom */}
+          <div className="absolute bottom-1 sm:bottom-3 md:bottom-6 lg:bottom-8 left-0 right-0 flex justify-center px-4">
+            <div className="flex flex-row gap-2 sm:gap-4 md:gap-6 lg:gap-8 items-center justify-center w-full max-w-4xl flex-wrap">
+              {/* Brochure Button */}
+              <motion.a
+                href="https://t.me/StudySmartIASPCS/2938"
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className="px-3 py-1.5 sm:px-7 sm:py-3.5 bg-sky-50/90 dark:bg-sky-950/40 backdrop-blur-md text-sky-700 dark:text-sky-300 border-2 border-sky-950 dark:border-sky-800/60 font-bold rounded-full text-[9px] sm:text-xs md:text-sm uppercase tracking-wider shadow-lg hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-all flex items-center justify-center"
+              >
+                Brochure
+              </motion.a>
+
+              {/* Enroll Now Button */}
+              <motion.a
+                href="https://www.ssip.cloud"
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{
+                  scale: 1.05,
+                  y: -2,
+                  boxShadow: "0 10px 25px rgba(147, 51, 234, 0.4)"
+                }}
+                whileTap={{ scale: 0.98 }}
+                className="px-4 py-2 sm:px-8 sm:py-4 bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-500 dark:to-blue-500 text-white font-extrabold rounded-full text-[10px] sm:text-sm md:text-base uppercase tracking-wider shadow-lg shadow-purple-500/20 transition-all flex items-center justify-center border-2 border-slate-900 dark:border-transparent"
+              >
+                Enroll Now
+              </motion.a>
+
+              {/* Contact Us Button */}
+              <motion.a
+                href="https://t.me/ssip_support"
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className="px-3 py-1.5 sm:px-7 sm:py-3.5 bg-emerald-50/90 dark:bg-emerald-950/40 backdrop-blur-md text-emerald-700 dark:text-emerald-300 border-2 border-emerald-950 dark:border-emerald-800/60 font-bold rounded-full text-[9px] sm:text-xs md:text-sm uppercase tracking-wider shadow-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-all flex items-center justify-center"
+              >
+                Contact Us
+              </motion.a>
+            </div>
+          </div>
+
+        </div>
+      </section>
 
       {/* --- WHY CHOOSE US --- */}
       <section className="py-16 md:py-24 relative z-10 bg-slate-50 dark:bg-slate-950 transition-colors">
@@ -389,14 +455,14 @@ const Home = () => {
               { icon: <Video />, title: "Live Mentorship", desc: "Regular live sessions for doubt clearing and strategy discussions.", gradient: "from-indigo-500 to-violet-500", glow: "dark:hover:shadow-[0_0_30px_rgba(99,102,241,0.15)]" },
               { icon: <Zap />, title: "Smart Techniques", desc: "Memory tricks, mnemonics, and proven exam strategies.", gradient: "from-rose-500 to-pink-500", glow: "dark:hover:shadow-[0_0_30px_rgba(244,63,94,0.15)]" },
             ].map((feature, idx) => (
-               <motion.div key={idx} variants={fadeInUp} className={`relative bg-white dark:bg-slate-800/80 p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700/80 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all lg:hover:-translate-y-1 transform-gpu group overflow-hidden ${feature.glow} lg:hover:shadow-xl`}>
-                  <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-r ${feature.gradient} opacity-10 dark:opacity-20 rounded-full blur-2xl lg:group-hover:opacity-30 dark:lg:group-hover:opacity-40 transition-opacity duration-500 pointer-events-none`}></div>
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.gradient} text-white flex items-center justify-center mb-5 shadow-sm lg:group-hover:scale-110 transition-transform duration-300 transform-gpu`}>
-                     {React.cloneElement(feature.icon, { size: 24 })}
-                  </div>
-                  <h3 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white mb-2 relative z-10 lg:group-hover:text-primary transition-colors">{feature.title}</h3>
-                  <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 leading-relaxed relative z-10">{feature.desc}</p>
-               </motion.div>
+              <motion.div key={idx} variants={fadeInUp} className={`relative bg-white dark:bg-slate-800/80 p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700/80 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all lg:hover:-translate-y-1 transform-gpu group overflow-hidden ${feature.glow} lg:hover:shadow-xl`}>
+                <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-r ${feature.gradient} opacity-10 dark:opacity-20 rounded-full blur-2xl lg:group-hover:opacity-30 dark:lg:group-hover:opacity-40 transition-opacity duration-500 pointer-events-none`}></div>
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.gradient} text-white flex items-center justify-center mb-5 shadow-sm lg:group-hover:scale-110 transition-transform duration-300 transform-gpu`}>
+                  {React.cloneElement(feature.icon, { size: 24 })}
+                </div>
+                <h3 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white mb-2 relative z-10 lg:group-hover:text-primary transition-colors">{feature.title}</h3>
+                <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 leading-relaxed relative z-10">{feature.desc}</p>
+              </motion.div>
             ))}
           </motion.div>
         </div>
@@ -405,7 +471,7 @@ const Home = () => {
       {/* --- FEATURED COURSES SLIDER --- */}
       <section className="py-16 md:py-24 bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950 border-y border-slate-100 dark:border-slate-800/80 relative z-10">
         <div className="container mx-auto px-4 md:px-6 lg:px-10 max-w-[1400px] relative">
-          
+
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
             <div>
               <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary font-bold text-xs mb-3 tracking-widest uppercase">POPULAR COURSES</span>
@@ -417,24 +483,24 @@ const Home = () => {
                 </span>
               </h2>
             </div>
-            
+
             <div className="flex items-center gap-3 w-full md:w-auto">
-              <Link 
-                to="/courses" 
+              <Link
+                to="/courses"
                 className="group px-5 py-2.5 bg-slate-900 dark:bg-white/10 backdrop-blur-xl border border-slate-900 dark:border-white/10 text-white rounded-xl font-bold hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:border-transparent dark:hover:border-transparent hover:shadow-[0_0_20px_rgba(124,58,237,0.3)] transition-all duration-300 flex items-center justify-center gap-2 text-sm shadow-md flex-1 md:flex-none transform-gpu active:scale-95"
               >
                 View All Courses <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform duration-300" />
               </Link>
-              
+
               <div className="hidden md:flex gap-2 shrink-0">
-                <button 
-                  onClick={() => scrollFeatured('left')} 
+                <button
+                  onClick={() => scrollFeatured('left')}
                   className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl border border-white/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-200 shadow-sm hover:bg-white/90 dark:hover:bg-slate-800/90 hover:shadow-[0_0_15px_rgba(124,58,237,0.4)] hover:border-purple-500/50 transition-all duration-300 transform-gpu active:scale-95"
                 >
                   <ChevronLeft size={22} className="-ml-0.5" />
                 </button>
-                <button 
-                  onClick={() => scrollFeatured('right')} 
+                <button
+                  onClick={() => scrollFeatured('right')}
                   className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl border border-white/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-200 shadow-sm hover:bg-white/90 dark:hover:bg-slate-800/90 hover:shadow-[0_0_15px_rgba(124,58,237,0.4)] hover:border-purple-500/50 transition-all duration-300 transform-gpu active:scale-95"
                 >
                   <ChevronRight size={22} className="-mr-0.5" />
@@ -447,12 +513,12 @@ const Home = () => {
             <MobileSwipeIndicator />
             <div ref={featuredSliderRef} className="flex items-stretch overflow-x-auto snap-x snap-mandatory gap-6 pb-10 pt-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth w-full px-1">
               {featuredCourses.map((course, idx) => (
-                <motion.a 
-                  key={idx} 
+                <motion.a
+                  key={idx}
                   href={course.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  variants={fadeInUp} 
+                  variants={fadeInUp}
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true, margin: "-50px" }}
@@ -469,19 +535,19 @@ const Home = () => {
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/10 to-transparent opacity-80 lg:group-hover/card:opacity-40 transition-opacity duration-300 pointer-events-none"></div>
                     </div>
                   </div>
-                  
+
                   <div className="p-5 flex-1 flex flex-col justify-between bg-white/5 dark:bg-transparent">
                     <div className="mb-4 text-center">
                       <span className="text-[10px] font-bold text-primary uppercase tracking-wider">{course.category}</span>
                       <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white mt-1 line-clamp-2 leading-snug lg:group-hover/card:text-primary transition-colors">{course.title}</h3>
                     </div>
-                    
+
                     <div className="flex items-center justify-between gap-3 pt-4 border-t border-slate-200/50 dark:border-slate-700/50 mt-auto">
                       <div className="flex flex-col text-left shrink-0">
                         <span className="text-[10px] text-slate-500 dark:text-slate-400 line-through font-semibold mb-0.5 whitespace-nowrap">{course.oldPrice}</span>
                         <span className="text-sm sm:text-base font-black text-slate-900 dark:text-white leading-none tracking-tight">{course.price}</span>
                       </div>
-                      
+
                       <button className="px-3 sm:px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-[10px] sm:text-xs shadow-md lg:group-hover/card:bg-primary dark:lg:group-hover/card:bg-primary lg:group-hover/card:text-white transition-all flex items-center justify-center gap-1.5 transform-gpu active:scale-95 shrink-0">
                         Enroll<span className="hidden sm:inline"> Now</span><ExternalLink size={12} className="hidden sm:block lg:group-hover/card:translate-x-0.5 lg:group-hover/card:-translate-y-0.5 transition-transform" />
                       </button>
@@ -533,13 +599,13 @@ const Home = () => {
 
         <div className="container mx-auto px-4 md:px-6 relative z-10 max-w-7xl">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
-            
+
             <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-bold text-xs mb-6 shadow-[0_0_15px_rgba(59,130,246,0.15)]">
                 <Smartphone size={14} /> Official Mobile App
               </div>
               <h2 className="text-3xl md:text-5xl font-black text-white mb-4 leading-tight">
-                Take your prep <br className="hidden lg:block"/>
+                Take your prep <br className="hidden lg:block" />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">everywhere you go.</span>
               </h2>
               <p className="text-slate-400 text-sm md:text-base mb-8 max-w-xl mx-auto lg:mx-0">
@@ -547,20 +613,20 @@ const Home = () => {
               </p>
 
               <div className="mb-8 p-4 rounded-2xl bg-white/5 border border-white/10 inline-flex flex-col items-center lg:items-start max-w-full mx-auto lg:mx-0 backdrop-blur-sm">
-                 <p className="text-slate-400 text-xs font-medium mb-2">Use Organization Code to log in:</p>
-                 <button onClick={handleCopyOrgCode} className="flex items-center gap-3 bg-slate-800 hover:bg-slate-700 px-5 py-2.5 rounded-xl border border-slate-600 transition-colors shadow-[0_4px_15px_rgba(0,0,0,0.3)]">
-                    <span className="text-xl md:text-2xl font-black tracking-widest text-white uppercase">KEDVTR</span>
-                    <div className="flex items-center gap-1.5 text-primary font-bold text-[10px] md:text-xs bg-primary/10 px-2 py-1 rounded-lg">
-                      {copied ? <CheckCircle size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                      {copied ? "Copied" : "Copy"}
-                    </div>
-                 </button>
+                <p className="text-slate-400 text-xs font-medium mb-2">Use Organization Code to log in:</p>
+                <button onClick={handleCopyOrgCode} className="flex items-center gap-3 bg-slate-800 hover:bg-slate-700 px-5 py-2.5 rounded-xl border border-slate-600 transition-colors shadow-[0_4px_15px_rgba(0,0,0,0.3)]">
+                  <span className="text-xl md:text-2xl font-black tracking-widest text-white uppercase">KEDVTR</span>
+                  <div className="flex items-center gap-1.5 text-primary font-bold text-[10px] md:text-xs bg-primary/10 px-2 py-1 rounded-lg">
+                    {copied ? <CheckCircle size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                    {copied ? "Copied" : "Copy"}
+                  </div>
+                </button>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <a 
-                  href="https://aalexis.page.link/BYyH" 
-                  target="_blank" 
+                <a
+                  href="https://aalexis.page.link/BYyH"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="group flex items-center justify-center gap-4 px-6 py-3.5 bg-black/60 backdrop-blur-md border border-white/10 lg:hover:border-blue-500 text-white rounded-2xl transition-all shadow-lg lg:hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] lg:hover:-translate-y-1 w-full sm:w-auto transform-gpu"
                 >
@@ -570,10 +636,10 @@ const Home = () => {
                     <span className="text-lg font-black leading-none tracking-wide">Google Play</span>
                   </div>
                 </a>
-                
-                <a 
-                  href="https://apps.apple.com/in/app/classplus/id1324522260" 
-                  target="_blank" 
+
+                <a
+                  href="https://apps.apple.com/in/app/classplus/id1324522260"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="group flex items-center justify-center gap-4 px-6 py-3.5 bg-black/60 backdrop-blur-md border border-white/10 lg:hover:border-white/50 text-white rounded-2xl transition-all shadow-lg lg:hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] lg:hover:-translate-y-1 w-full sm:w-auto transform-gpu"
                 >
@@ -588,32 +654,32 @@ const Home = () => {
 
             {/* 3D App UI Graphic --- */}
             <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="relative flex justify-center items-center h-[400px] md:h-[500px] z-20">
-              
+
               <motion.div animate={{ y: [-10, 10, -10] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute top-0 md:top-10 right-0 md:right-10 z-20 bg-white/10 backdrop-blur-xl border border-white/20 p-3 md:p-4 rounded-2xl shadow-2xl flex items-center gap-3 will-change-transform transform-gpu">
                 <div className="w-8 h-8 md:w-10 md:h-10 bg-yellow-500/20 rounded-full flex items-center justify-center text-yellow-400"><Star size={16} fill="currentColor" /></div>
                 <div><p className="text-white font-bold text-xs md:text-sm">4.9/5 Rating</p><p className="text-slate-400 text-[10px] md:text-xs">Based on 10k+ reviews</p></div>
               </motion.div>
-              
+
               <motion.div animate={{ y: [10, -10, 10] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }} className="absolute bottom-4 md:bottom-20 left-0 md:left-10 z-20 bg-white/10 backdrop-blur-xl border border-white/20 p-3 md:p-4 rounded-2xl shadow-2xl flex items-center gap-3 will-change-transform transform-gpu">
                 <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-500/20 rounded-full flex items-center justify-center text-blue-400"><Play size={16} fill="currentColor" /></div>
                 <div><p className="text-white font-bold text-xs md:text-sm">Live Classes</p><p className="text-slate-400 text-[10px] md:text-xs">Watch anywhere</p></div>
               </motion.div>
-              
+
               <div className="relative w-[220px] sm:w-[260px] h-[450px] sm:h-[520px] bg-slate-800 rounded-[2.5rem] border-[8px] border-slate-900 shadow-2xl overflow-hidden lg:animate-[float_6s_ease-in-out_infinite] transform-gpu">
                 <div className="absolute top-0 inset-x-0 h-5 bg-slate-900 rounded-b-xl w-[40%] mx-auto z-30"></div>
                 <div className="absolute inset-0 bg-slate-900 z-10">
-                   <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=600&q=80" alt="Study App UI" className="w-full h-full object-cover opacity-60" loading="lazy" />
-                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent flex flex-col justify-end p-5 pointer-events-none">
-                      <div className="w-full h-20 md:h-24 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl mb-4 p-4 flex flex-col justify-between">
-                         <div className="w-1/2 h-3 bg-white/30 rounded-full"></div>
-                         <div className="flex gap-2">
-                           <div className="w-6 h-6 md:w-8 md:h-8 rounded-lg bg-blue-500/50"></div>
-                           <div className="w-6 h-6 md:w-8 md:h-8 rounded-lg bg-purple-500/50"></div>
-                         </div>
+                  <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=600&q=80" alt="Study App UI" className="w-full h-full object-cover opacity-60" loading="lazy" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent flex flex-col justify-end p-5 pointer-events-none">
+                    <div className="w-full h-20 md:h-24 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl mb-4 p-4 flex flex-col justify-between">
+                      <div className="w-1/2 h-3 bg-white/30 rounded-full"></div>
+                      <div className="flex gap-2">
+                        <div className="w-6 h-6 md:w-8 md:h-8 rounded-lg bg-blue-500/50"></div>
+                        <div className="w-6 h-6 md:w-8 md:h-8 rounded-lg bg-purple-500/50"></div>
                       </div>
-                      <div className="w-3/4 h-4 md:h-5 bg-white/20 backdrop-blur-md rounded-full mb-3"></div>
-                      <div className="w-1/2 h-4 md:h-5 bg-white/20 backdrop-blur-md rounded-full"></div>
-                   </div>
+                    </div>
+                    <div className="w-3/4 h-4 md:h-5 bg-white/20 backdrop-blur-md rounded-full mb-3"></div>
+                    <div className="w-1/2 h-4 md:h-5 bg-white/20 backdrop-blur-md rounded-full"></div>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -635,7 +701,7 @@ const Home = () => {
               <button onClick={() => scrollTestimonials('right')} className="p-3 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700/80 shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] active:scale-95 transition-all transform-gpu hover:text-primary dark:hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"><ChevronRight size={24} /></button>
             </div>
           </div>
-          
+
           <div className="relative w-full">
             <MobileSwipeIndicator />
             <div ref={testimonialScrollRef} className="flex gap-8 overflow-x-auto pb-12 pt-4 snap-x snap-mandatory scrollbar-hide scroll-smooth w-full px-4">
@@ -647,28 +713,28 @@ const Home = () => {
                     </div>
                     <div className="flex-grow mb-8 relative">
                       <div className="absolute -top-4 -left-4 text-slate-100 dark:text-slate-700/50 z-0 opacity-50">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/></svg>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" /></svg>
                       </div>
                       <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-base md:text-lg font-medium relative z-10 italic">"{t.text}"</p>
                     </div>
                   </div>
-                  
+
                   {/* HIGH-END HORIZONTAL ALIGNED PROFILE TESTIMONIAL FOOTER --- */}
                   <div className="flex items-center justify-between pt-6 border-t border-slate-100 dark:border-slate-700 mt-auto">
-                     <div className="flex items-center gap-4">
-                        <div className="relative group/img">
-                          <img src={t.image} alt={`${t.name}'s Profile`} className="w-16 h-16 rounded-full object-cover border-2 border-primary/20 shadow-md group-hover/img:rotate-6 transition-transform duration-300 transform-gpu" loading="lazy" />
+                    <div className="flex items-center gap-4">
+                      <div className="relative group/img">
+                        <img src={t.image} alt={`${t.name}'s Profile`} className="w-16 h-16 rounded-full object-cover border-2 border-primary/20 shadow-md group-hover/img:rotate-6 transition-transform duration-300 transform-gpu" loading="lazy" />
+                      </div>
+                      <div className="flex flex-col text-left">
+                        <h4 className="font-bold text-slate-900 dark:text-white text-sm md:text-base leading-tight">{t.name}</h4>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <span className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px] sm:max-w-none">• {t.rank}</span>
                         </div>
-                        <div className="flex flex-col text-left">
-                          <h4 className="font-bold text-slate-900 dark:text-white text-sm md:text-base leading-tight">{t.name}</h4>
-                          <div className="flex items-center gap-1.5 mt-1">
-                            <span className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px] sm:max-w-none">• {t.rank}</span>
-                          </div>
-                        </div>
-                     </div>
-                     <div className="hidden sm:block text-slate-200 dark:text-slate-700/50">
-                        {t.image === gs ? <Star size={32} /> : <Award size={32} />}
-                     </div>
+                      </div>
+                    </div>
+                    <div className="hidden sm:block text-slate-200 dark:text-slate-700/50">
+                      {t.image === gs ? <Star size={32} /> : <Award size={32} />}
+                    </div>
                   </div>
                 </motion.div>
               ))}
