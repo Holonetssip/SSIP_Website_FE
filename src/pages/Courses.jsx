@@ -77,7 +77,7 @@ const allCourses = [
     desc: "The Mains HQ (UPSC 2026)",
     price: "1,299", oldPrice: "2,499",
     duration: "Self Paced",
-    img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2Fa04aa471-d006-437f-b018-f1c2075fc4a4.png&w=384&q=75",
+    img: "https://courses-assets-v2.classplus.co/_next/image?url=/api/proxyimage?url=https%3A%2F%2Fcdn-wl-assets.classplus.co%2Fproduction%2Fsingle%2Fkedvtr%2F25607710-10a5-4cb6-aaf3-7fa64cc4c8d5.png&w=384&q=75",
     link: "https://www.ssip.cloud/courses/862764?mainCategory=20&filterId=27&sortId=7"
   },
   {
