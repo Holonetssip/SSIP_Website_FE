@@ -1,15 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, useInView, useSpring, useMotionValue } from 'framer-motion';
-import { 
-  Users, Award, BookOpen, Target, PenTool, FileText, 
-  MonitorPlay, Landmark, ChevronLeft, ChevronRight, CheckCircle, GraduationCap, 
+import {
+  Users, Award, BookOpen, Target, PenTool, FileText,
+  MonitorPlay, Landmark, ChevronLeft, ChevronRight, CheckCircle, GraduationCap,
   Smartphone, DownloadCloud, Play, Star, Apple, Lightbulb
 } from 'lucide-react';
 
 // --- IMPORT IMAGES DIRECTLY ---
 import shubhamImg from '../assets/shubham-prakash.jpg';
 import rushirajImg from '../assets/RB.jpg';
-import vikasImg from '../assets/vikas-sharma.jpg';
 import nehaImg from '../assets/neha-vashisht.jpg';
 import saurabhImg from '../assets/saurabh-singh.jpg';
 import khwahishImg from '../assets/khwahish-sharma.jpg';
@@ -25,8 +24,8 @@ const CountUp = ({ value, suffix = "" }) => {
   const [displayValue, setDisplayValue] = useState(0);
 
   // Parse value to ensure it's a number for calculation
-  const numericValue = typeof value === 'string' 
-    ? parseInt(value.replace(/,/g, '').replace('+', ''), 10) 
+  const numericValue = typeof value === 'string'
+    ? parseInt(value.replace(/,/g, '').replace('+', ''), 10)
     : value;
 
   useEffect(() => {
@@ -63,7 +62,7 @@ const ArcheryAnimation = ({ inView }) => {
   const [playCount, setPlayCount] = useState(0);
 
   return (
-    <div 
+    <div
       className="w-full max-w-[280px] sm:max-w-sm md:max-w-md lg:max-w-lg mx-auto relative flex flex-col items-center justify-center cursor-pointer group px-4"
       onClick={() => setPlayCount(prev => prev + 1)}
     >
@@ -124,7 +123,6 @@ const ArcheryAnimation = ({ inView }) => {
 const teamMembers = [
   { name: "Shubham Prakash", role: "Founder, Btech, IIT (Dhn)", exp: "4+ Years", subject: "Current Affairs & CSAT", img: shubhamImg },
   { name: "Rushiraj Singh Rathore", role: "Btech, SSGMCE", exp: "2+ Years", subject: "Economy", img: rushirajImg },
-  { name: "Vikas Sharma", role: "BA & MA (History)", exp: "2+ Years", subject: "History", img: vikasImg },
   { name: "Neha Vashisht", role: "BA & MA(Psychology)", exp: "1.5+ Years", subject: "Current Affairs & Answer Writing", img: nehaImg },
   { name: "Saurabh Singh", role: "B.tech(JNU), BA", exp: "3+ Years", subject: "History, Polity", img: saurabhImg },
   { name: "Khwahish Sharma", role: "MBA(IIM Indore), BSc (Geography)", exp: "5+ Years", subject: "Geography & Environment", img: khwahishImg },
@@ -136,7 +134,7 @@ const teamMembers = [
 const About = () => {
   const sliderRef = useRef(null);
   const visionRef = useRef(null);
-  
+
   // --- DYNAMIC STUDENT CALCULATION ---
   const [dynamicStudents, setDynamicStudents] = useState(8066);
 
@@ -145,18 +143,18 @@ const About = () => {
 
     const calculateStudents = () => {
       const baseStudents = 8056;
-      const startDate = new Date('2026-03-30T00:00:00'); 
+      const startDate = new Date('2026-03-30T00:00:00');
       const now = new Date();
-      
+
       const diffInMs = now - startDate;
       const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-      
+
       // If we haven't reached 48 hours yet, it will stay 8066
       const intervalsOf48Hours = Math.max(0, Math.floor(diffInHours / 48));
-      
+
       let increment = 0;
       for (let i = 0; i < intervalsOf48Hours; i++) {
-        increment += (i % 3) + 1; 
+        increment += (i % 3) + 1;
       }
       setDynamicStudents(baseStudents + increment);
     };
@@ -168,14 +166,14 @@ const About = () => {
 
   const slide = (direction) => {
     if (sliderRef.current) {
-      const scrollAmount = window.innerWidth < 768 ? window.innerWidth * 0.8 : 320; 
+      const scrollAmount = window.innerWidth < 768 ? window.innerWidth * 0.8 : 320;
       sliderRef.current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
     }
   };
 
   return (
     <div className="pt-24 md:pt-28 min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 overflow-x-hidden relative font-sans w-full">
-      
+
       <div className="absolute inset-0 pointer-events-none lg:pointer-events-auto overflow-hidden">
         <FloatingItem Icon={BookOpen} label="Study Material" x="top-32" y="left-10" delay={0.2} color="group-hover:text-pink-500" />
         <FloatingItem Icon={Target} label="Focused Strategy" x="top-28" y="right-12" delay={0.4} color="group-hover:text-yellow-500" />
@@ -191,13 +189,13 @@ const About = () => {
 
         <div className="container mx-auto px-4 sm:px-6 relative z-10 text-center">
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="inline-flex items-center gap-2 mb-6 p-2 px-4 md:px-5 rounded-full bg-primary/10 border border-primary/20 text-primary dark:text-purple-400 font-bold text-xs md:text-sm shadow-sm">
-            <Award size={14} className="md:w-4 md:h-4"/> Study Smart IAS PCS
+            <Award size={14} className="md:w-4 md:h-4" /> Study Smart IAS PCS
           </motion.div>
-          
+
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-4xl sm:text-5xl md:text-7xl font-black text-slate-900 dark:text-white mb-6 md:mb-8 tracking-tight leading-tight px-2">
             Empowering <br className="sm:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Future Bureaucrats</span>
           </motion.h1>
-          
+
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed font-medium px-4">
             We blend experience and knowledge with modern technology to provide hyper-focused notes, strategic mentoring, and top-tier classes to crack India's toughest exams.
           </motion.p>
@@ -219,7 +217,7 @@ const About = () => {
                   <CountUp value={stat.value} suffix={stat.suffix} />
                 </h3>
                 <p className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center justify-center gap-1.5 mt-1">
-                  <stat.icon size={14} className="shrink-0"/> <span className="truncate">{stat.label}</span>
+                  <stat.icon size={14} className="shrink-0" /> <span className="truncate">{stat.label}</span>
                 </p>
               </div>
             ))}
@@ -235,8 +233,8 @@ const About = () => {
 
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 md:gap-16 lg:gap-8 items-center">
-            
-            <motion.div 
+
+            <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
@@ -247,7 +245,7 @@ const About = () => {
                 <Smartphone size={14} className="sm:w-4 sm:h-4" /> Official Mobile App
               </div>
               <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white mb-4 sm:mb-6 leading-tight tracking-tight">
-                Take your prep <br className="hidden lg:block"/>
+                Take your prep <br className="hidden lg:block" />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">everywhere you go.</span>
               </h2>
               <p className="text-slate-400 text-sm sm:text-lg md:text-xl mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-medium px-2 sm:px-0">
@@ -255,9 +253,9 @@ const About = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start mb-8 sm:mb-10 px-4 sm:px-0">
-                <a 
-                  href="https://aalexis.page.link/BYyH" 
-                  target="_blank" 
+                <a
+                  href="https://aalexis.page.link/BYyH"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="group flex items-center justify-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 sm:py-3.5 bg-black/60 backdrop-blur-md border border-white/10 hover:border-blue-500 text-white rounded-xl sm:rounded-2xl transition-all shadow-lg hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] md:hover:-translate-y-1 w-full sm:w-auto"
                 >
@@ -267,10 +265,10 @@ const About = () => {
                     <span className="text-base sm:text-lg font-black leading-none tracking-wide">Google Play</span>
                   </div>
                 </a>
-                
-                <a 
-                  href="https://apps.apple.com/in/app/classplus/id1324522260" 
-                  target="_blank" 
+
+                <a
+                  href="https://apps.apple.com/in/app/classplus/id1324522260"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="group flex items-center justify-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 sm:py-3.5 bg-black/60 backdrop-blur-md border border-white/10 hover:border-white/50 text-white rounded-xl sm:rounded-2xl transition-all shadow-lg hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] md:hover:-translate-y-1 w-full sm:w-auto"
                 >
@@ -282,7 +280,7 @@ const About = () => {
                 </a>
               </div>
 
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.5, type: "spring" }}
@@ -297,10 +295,10 @@ const About = () => {
                   KEDVTR
                 </span>
               </motion.div>
-              
+
             </motion.div>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -320,18 +318,18 @@ const About = () => {
               <div className="relative w-[180px] sm:w-[220px] lg:w-[260px] h-[380px] sm:h-[460px] lg:h-[540px] bg-slate-800 rounded-[2rem] lg:rounded-[3rem] border-[6px] lg:border-[10px] border-slate-900 shadow-2xl ring-2 lg:ring-4 ring-slate-800/50 overflow-hidden lg:animate-[float_6s_ease-in-out_infinite]">
                 <div className="absolute top-0 inset-x-0 h-4 sm:h-5 lg:h-6 bg-slate-900 rounded-b-xl lg:rounded-b-2xl w-[40%] mx-auto z-30"></div>
                 <div className="absolute inset-0 bg-slate-900 z-10">
-                   <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=600&q=80" alt="Study App" className="w-full h-full object-cover opacity-60" loading="lazy" />
-                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent flex flex-col justify-end p-4 lg:p-5">
-                      <div className="w-full h-16 sm:h-20 lg:h-24 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl lg:rounded-2xl mb-3 lg:mb-4 p-3 lg:p-4 flex flex-col justify-between">
-                         <div className="w-1/2 h-2 lg:h-3 bg-white/30 rounded-full"></div>
-                         <div className="flex gap-2">
-                           <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-md lg:rounded-lg bg-blue-500/50"></div>
-                           <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-md lg:rounded-lg bg-purple-500/50"></div>
-                         </div>
+                  <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=600&q=80" alt="Study App" className="w-full h-full object-cover opacity-60" loading="lazy" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent flex flex-col justify-end p-4 lg:p-5">
+                    <div className="w-full h-16 sm:h-20 lg:h-24 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl lg:rounded-2xl mb-3 lg:mb-4 p-3 lg:p-4 flex flex-col justify-between">
+                      <div className="w-1/2 h-2 lg:h-3 bg-white/30 rounded-full"></div>
+                      <div className="flex gap-2">
+                        <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-md lg:rounded-lg bg-blue-500/50"></div>
+                        <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-md lg:rounded-lg bg-purple-500/50"></div>
                       </div>
-                      <div className="w-3/4 h-3 sm:h-4 lg:h-5 bg-white/20 backdrop-blur-md rounded-full mb-2 lg:mb-3"></div>
-                      <div className="w-1/2 h-3 sm:h-4 lg:h-5 bg-white/20 backdrop-blur-md rounded-full"></div>
-                   </div>
+                    </div>
+                    <div className="w-3/4 h-3 sm:h-4 lg:h-5 bg-white/20 backdrop-blur-md rounded-full mb-2 lg:mb-3"></div>
+                    <div className="w-1/2 h-3 sm:h-4 lg:h-5 bg-white/20 backdrop-blur-md rounded-full"></div>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -342,13 +340,13 @@ const About = () => {
       {/* --- 4. OUR TEAM (SLIDER/CAROUSEL SECTION) --- */}
       <section className="py-16 md:py-24 bg-slate-100 dark:bg-slate-950/50 relative z-10 border-t border-slate-200 dark:border-slate-800">
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
-          
+
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-12 gap-4 md:gap-6">
             <div>
               <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-2 md:mb-4 tracking-tight">Meet Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Expert Team</span></h2>
               <p className="text-sm md:text-base text-slate-600 dark:text-slate-400 max-w-xl font-medium">Learn from the best. Our faculty includes subject matter experts, former bureaucrats, and seasoned evaluators.</p>
             </div>
-            
+
             <div className="hidden sm:flex gap-2 md:gap-3 shrink-0">
               <button onClick={() => slide('left')} className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-slate-300 dark:border-slate-700 flex items-center justify-center hover:bg-white hover:shadow-md text-slate-700 dark:text-slate-300 transition-all active:scale-95">
                 <ChevronLeft size={20} className="md:w-6 md:h-6" />
@@ -363,27 +361,27 @@ const About = () => {
             {teamMembers.map((member, idx) => (
               <motion.div key={idx} whileHover={{ y: -8 }} className="snap-center sm:snap-start shrink-0 w-[80vw] sm:w-[280px] md:w-[300px] bg-white dark:bg-slate-800 rounded-3xl md:rounded-[2rem] p-5 md:p-6 border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all group shadow-md hover:shadow-xl">
                 <div className="relative mb-5 md:mb-6">
-                   <div className="w-20 h-20 md:w-24 md:h-24 mx-auto rounded-full p-1 bg-gradient-to-r from-blue-500 to-purple-500 shadow-md">
-                     <img 
-                       src={member.img} 
-                       alt={member.name} 
-                       onError={(e) => { e.target.src = "https://ui-avatars.com/api/?name=" + member.name + "&background=random" }}
-                       className="w-full h-full rounded-full object-cover border-[3px] md:border-4 border-white dark:border-slate-800 bg-slate-200 dark:bg-slate-700" 
-                     />
-                   </div>
-                   <div className="absolute -bottom-2 md:-bottom-3 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-700 px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold text-white shadow-lg whitespace-nowrap">
-                     {member.exp}
-                   </div>
+                  <div className="w-20 h-20 md:w-24 md:h-24 mx-auto rounded-full p-1 bg-gradient-to-r from-blue-500 to-purple-500 shadow-md">
+                    <img
+                      src={member.img}
+                      alt={member.name}
+                      onError={(e) => { e.target.src = "https://ui-avatars.com/api/?name=" + member.name + "&background=random" }}
+                      className="w-full h-full rounded-full object-cover border-[3px] md:border-4 border-white dark:border-slate-800 bg-slate-200 dark:bg-slate-700"
+                    />
+                  </div>
+                  <div className="absolute -bottom-2 md:-bottom-3 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-700 px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold text-white shadow-lg whitespace-nowrap">
+                    {member.exp}
+                  </div>
                 </div>
-                
+
                 <div className="text-center mt-4 md:mt-6">
                   <h3 className="text-lg md:text-xl font-extrabold mb-1 text-slate-900 dark:text-white group-hover:text-primary transition-colors">{member.name}</h3>
                   <p className="text-primary font-bold text-xs md:text-sm mb-4 md:mb-5">{member.role}</p>
-                  
+
                   <div className="bg-slate-50 dark:bg-slate-900/50 p-2.5 md:p-3.5 rounded-lg md:rounded-xl border border-slate-100 dark:border-slate-700/50">
                     <p className="text-[9px] md:text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1 md:mb-1.5">Expertise</p>
                     <p className="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center justify-center gap-1.5">
-                      <GraduationCap size={14} className="text-slate-400 md:w-4 md:h-4"/> {member.subject}
+                      <GraduationCap size={14} className="text-slate-400 md:w-4 md:h-4" /> {member.subject}
                     </p>
                   </div>
                 </div>
@@ -398,29 +396,29 @@ const About = () => {
       {/* --- 5. ANIMATED VISION & MISSION SECTION --- */}
       <section className="py-20 md:py-32 relative z-10 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
-          
+
           <div className="grid lg:grid-cols-2 gap-12 md:gap-16 lg:gap-24 items-center">
-            
+
             <div ref={visionRef} className="w-full flex flex-col items-center lg:items-start">
-               
-               <ArcheryAnimation inView={isVisionInView} />
-               
-               <motion.div 
-                 initial={{ opacity: 0, y: 30 }} 
-                 animate={isVisionInView ? { opacity: 1, y: 0 } : {}} 
-                 transition={{ delay: 1.4, duration: 0.8 }}
-                 className="text-center lg:text-left mt-10 md:mt-12"
-               >
-                 <span className="inline-block px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-primary/10 text-primary font-bold text-xs md:text-sm tracking-widest uppercase mb-4 md:mb-6">Our Vision</span>
-                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
-                   Welcome to Study Smart <br className="hidden sm:block lg:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">IAS PCS</span>
-                 </h2>
-               </motion.div>
+
+              <ArcheryAnimation inView={isVisionInView} />
+
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={isVisionInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: 1.4, duration: 0.8 }}
+                className="text-center lg:text-left mt-10 md:mt-12"
+              >
+                <span className="inline-block px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-primary/10 text-primary font-bold text-xs md:text-sm tracking-widest uppercase mb-4 md:mb-6">Our Vision</span>
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
+                  Welcome to Study Smart <br className="hidden sm:block lg:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">IAS PCS</span>
+                </h2>
+              </motion.div>
             </div>
 
-            <motion.div 
-              initial={{ opacity: 0, x: 30 }} 
-              animate={isVisionInView ? { opacity: 1, x: 0 } : {}} 
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={isVisionInView ? { opacity: 1, x: 0 } : {}}
               transition={{ delay: 1.8, duration: 0.8 }}
               className="px-2 sm:px-0"
             >
@@ -434,20 +432,20 @@ const About = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 md:gap-6 mt-6 md:mt-8 pt-6 md:pt-8 border-t border-slate-200 dark:border-slate-800">
-                 <div className="flex items-center justify-center lg:justify-start gap-3 md:gap-4 bg-slate-50 dark:bg-slate-800/50 px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl flex-1 border border-slate-100 dark:border-slate-700/50">
-                    <BookOpen size={28} className="md:w-9 md:h-9 text-blue-500 opacity-80 shrink-0" />
-                    <div className="text-left">
-                       <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-none"><CountUp value="21" /></h3>
-                       <p className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Courses</p>
-                    </div>
-                 </div>
-                 <div className="flex items-center justify-center lg:justify-start gap-3 md:gap-4 bg-slate-50 dark:bg-slate-800/50 px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl flex-1 border border-slate-100 dark:border-slate-700/50">
-                    <Users size={28} className="md:w-9 md:h-9 text-purple-500 opacity-80 shrink-0" />
-                    <div className="text-left">
-                       <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-none"><CountUp value={dynamicStudents} /></h3>
-                       <p className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Active Students</p>
-                    </div>
-                 </div>
+                <div className="flex items-center justify-center lg:justify-start gap-3 md:gap-4 bg-slate-50 dark:bg-slate-800/50 px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl flex-1 border border-slate-100 dark:border-slate-700/50">
+                  <BookOpen size={28} className="md:w-9 md:h-9 text-blue-500 opacity-80 shrink-0" />
+                  <div className="text-left">
+                    <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-none"><CountUp value="21" /></h3>
+                    <p className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Courses</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-center lg:justify-start gap-3 md:gap-4 bg-slate-50 dark:bg-slate-800/50 px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl flex-1 border border-slate-100 dark:border-slate-700/50">
+                  <Users size={28} className="md:w-9 md:h-9 text-purple-500 opacity-80 shrink-0" />
+                  <div className="text-left">
+                    <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-none"><CountUp value={dynamicStudents} /></h3>
+                    <p className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Active Students</p>
+                  </div>
+                </div>
               </div>
             </motion.div>
 
