@@ -172,7 +172,8 @@ export default function QuizAttempt() {
     try {
       const result = await saveAttempt(userId, date,
         { score: finalScore, correct, incorrect, skipped: unattempted, timeTaken },
-        { displayName: userData.name, email: userData.email, phone: userData.phone }
+        { displayName: userData.name, email: userData.email, phone: userData.phone },
+        quizData?.examType || 'UPSC'
       );
       savedTotalScore = result.totalScore;
       setMyTotalScore(savedTotalScore);

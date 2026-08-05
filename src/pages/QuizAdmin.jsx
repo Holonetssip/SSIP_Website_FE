@@ -141,6 +141,7 @@ export default function QuizAdmin() {
   const [date, setDate] = useState(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }));
   const [title, setTitle] = useState('');
   const [subject, setSubject] = useState('General Studies');
+  const [examType, setExamType] = useState('UPSC');
   const [timeLimitMins, setTimeLimitMins] = useState(20);
   const [publishTime, setPublishTime] = useState('21:00');
   const [questions, setQuestions] = useState([{ ...EMPTY_Q, options: ['', '', '', ''] }]);
@@ -342,6 +343,7 @@ export default function QuizAdmin() {
       setDate(quizDate);
       setTitle(data.title || '');
       setSubject(data.subject || 'General Studies');
+      setExamType(data.examType || 'UPSC');
       setTimeLimitMins(data.timeLimitMins || 20);
       if (data.publishAt) {
         const t = new Date(data.publishAt).toLocaleTimeString('en-CA', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false });
@@ -366,6 +368,7 @@ export default function QuizAdmin() {
     setDate(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }));
     setTitle('');
     setSubject('General Studies');
+    setExamType('UPSC');
     setTimeLimitMins(20);
     setPublishTime('21:00');
     setQuestions([{ ...EMPTY_Q, options: ['', '', '', ''] }]);
@@ -388,7 +391,7 @@ export default function QuizAdmin() {
       const publishAt = publishTime
         ? new Date(`${date}T${publishTime}:00+05:30`).toISOString()
         : null;
-      const result = await publishQuiz(date, { title, subject, timeLimitMins: Number(timeLimitMins), publishAt }, questions);
+      const result = await publishQuiz(date, { title, subject, examType, timeLimitMins: Number(timeLimitMins), publishAt }, questions);
       const scheduledMsg = publishAt && new Date() < new Date(publishAt)
         ? `Scheduled ${result.totalQuestions} questions for ${result.date} at ${publishTime} IST`
         : `${editingDate ? 'Updated' : 'Published'} ${result.totalQuestions} questions for ${result.date}!`;
@@ -573,7 +576,7 @@ export default function QuizAdmin() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{quiz.title || 'Untitled'}</p>
                       <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-                        {quiz.date} · {quiz.totalQuestions} questions · {quiz.subject}
+                        {quiz.date} · {quiz.totalQuestions} questions · {quiz.subject} · <span className="text-primary font-semibold">{quiz.examType || 'UPSC'}</span>
                       </p>
                     </div>
 
@@ -939,6 +942,14 @@ export default function QuizAdmin() {
                   <label className="text-xs font-bold text-slate-400 mb-1 block">Subject</label>
                   <input type="text" value={subject} onChange={e => setSubject(e.target.value)} placeholder="e.g. General Studies"
                     className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-400 mb-1 block">Exam Type</label>
+                  <select value={examType} onChange={e => setExamType(e.target.value)}
+                    className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200">
+                    <option value="UPSC">UPSC</option>
+                    <option value="UPPCS-2026">UPPCS-2026</option>
+                  </select>
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-400 mb-1 block">Title</label>

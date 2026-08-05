@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   BrainCircuit, Sparkles, Calendar, BookOpen,
   ChevronRight, Send, Trophy, Play, Target,
@@ -11,20 +11,65 @@ import { getTodayDate, fetchRecentQuizzes } from '../services/quizService';
 export default function QuizPage() {
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [examType, setExamType] = useState('UPSC');
+  const [showPopup, setShowPopup] = useState(true);
   const today = getTodayDate();
-  
+  const location = useLocation();
+  const prevPathRef = useRef(location.pathname);
+
   // Reference for the smooth scroll
   const quizSectionRef = useRef(null);
 
+  // Show popup when returning to quiz page or clicking Quiz tab
+  useEffect(() => {
+    const currentPath = location.pathname;
+
+    // Show popup if coming from a different page back to /quiz
+    if ((currentPath === '/quiz' || currentPath.endsWith('/quiz')) &&
+        prevPathRef.current !== currentPath) {
+      setShowPopup(true);
+    }
+
+    prevPathRef.current = currentPath;
+  }, [location.pathname]);
+
+  // Listen for Quiz link clicks in navbar to show popup
+  useEffect(() => {
+    const handleClick = (e) => {
+      // Find all Quiz links in navbar (contain BrainCircuit icon and "Quiz" text)
+      const quizLinks = document.querySelectorAll('a');
+      for (let link of quizLinks) {
+        if (link.textContent.includes('Quiz') &&
+            (link.getAttribute('href') === '/quiz' || link.getAttribute('href')?.includes('/quiz'))) {
+          if (link.contains(e.target) || link === e.target) {
+            // Delay slightly to ensure state updates properly
+            setTimeout(() => setShowPopup(true), 10);
+            break;
+          }
+        }
+      }
+    };
+
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, []);
+
   const scrollToQuizzes = () => {
     quizSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const handleExamSelect = (type) => {
+    setExamType(type);
+    // Close popup after brief delay for better UX
+    setTimeout(() => setShowPopup(false), 300);
   };
 
   useEffect(() => {
     window.scrollTo(0, 0);
 
     // Fetch real data directly from Firebase
-    fetchRecentQuizzes(30)
+    setLoading(true);
+    fetchRecentQuizzes(30, examType)
       .then(setQuizzes)
       .catch((err) => {
         console.error("Failed to fetch quizzes:", err);
@@ -32,7 +77,7 @@ export default function QuizPage() {
       })
       .finally(() => setLoading(false));
 
-  }, []);
+  }, [examType]);
 
   const todayQuiz = quizzes.find(q => q.date === today);
   const pastQuizzes = quizzes.filter(q => q.date !== today);
@@ -75,8 +120,8 @@ export default function QuizPage() {
               FLOATING ANIMATED ELEMENTS (Desktop Only) 
               ========================================= */}
           
-          {/* 1. Exam Ready Card (Top Left) */}
-          <motion.div animate={{ y: [0, -12, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute hidden lg:flex top-12 left-10 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl shadow-xl items-center gap-3 transform-gpu -rotate-6">
+          {/* 1. Exam Ready Card (Top Left) - Clickable */}
+          <motion.button onClick={() => setShowPopup(true)} animate={{ y: [0, -12, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute hidden lg:flex top-12 left-10 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl shadow-xl items-center gap-3 transform-gpu -rotate-6 hover:shadow-2xl hover:border-blue-400 cursor-pointer transition-all">
             <div className="bg-emerald-100 dark:bg-emerald-900/30 p-2 rounded-lg text-emerald-600 dark:text-emerald-400">
               <CheckCircle2 size={18} />
             </div>
@@ -84,10 +129,10 @@ export default function QuizPage() {
               <p className="text-xs font-black text-slate-900 dark:text-white">Exam Ready</p>
               <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Syllabus Aligned</p>
             </div>
-          </motion.div>
+          </motion.button>
 
-          {/* 2. Global Rank Card (Top Right) */}
-          <motion.div animate={{ y: [0, 12, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }} className="absolute hidden lg:flex top-16 right-10 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl shadow-xl items-center gap-3 transform-gpu rotate-6">
+          {/* 2. Global Rank Card (Top Right) - Clickable */}
+          <motion.button onClick={() => setShowPopup(true)} animate={{ y: [0, 12, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }} className="absolute hidden lg:flex top-16 right-10 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl shadow-xl items-center gap-3 transform-gpu rotate-6 hover:shadow-2xl hover:border-blue-400 cursor-pointer transition-all">
             <div className="bg-yellow-100 dark:bg-yellow-900/30 p-2 rounded-lg text-yellow-600 dark:text-yellow-500">
               <Trophy size={18} />
             </div>
@@ -95,10 +140,10 @@ export default function QuizPage() {
               <p className="text-xs font-black text-slate-900 dark:text-white">Global Rank</p>
               <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Live Leaderboard</p>
             </div>
-          </motion.div>
+          </motion.button>
 
-          {/* 3. UPSC Standard Card (Bottom Left) */}
-          <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }} className="absolute hidden lg:flex bottom-16 left-20 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl shadow-xl items-center gap-3 transform-gpu rotate-3">
+          {/* 3. UPSC Standard Card (Bottom Left) - Clickable */}
+          <motion.button onClick={() => setShowPopup(true)} animate={{ y: [0, -8, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }} className="absolute hidden lg:flex bottom-16 left-20 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl shadow-xl items-center gap-3 transform-gpu rotate-3 hover:shadow-2xl hover:border-blue-400 cursor-pointer transition-all">
             <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-lg text-purple-600 dark:text-purple-400">
               <Target size={18} />
             </div>
@@ -106,7 +151,7 @@ export default function QuizPage() {
               <p className="text-xs font-black text-slate-900 dark:text-white">UPSC Standard</p>
               <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Detailed Explanations</p>
             </div>
-          </motion.div>
+          </motion.button>
 
 
           <motion.div initial={{ opacity: 0, y: -15 }} animate={{ opacity: 1, y: 0 }} className="relative z-20">
@@ -152,6 +197,53 @@ export default function QuizPage() {
 
           </motion.div>
         </div>
+
+        {/* --- EXAM TYPE BIG POPUP --- */}
+        {showPopup && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          >
+            {/* Dark overlay */}
+            <div className="absolute inset-0 bg-black/30 dark:bg-black/50" />
+
+            {/* Blinking popup */}
+            <motion.div
+              animate={{ boxShadow: ["0 0 40px rgba(59, 130, 246, 0.5)", "0 0 80px rgba(147, 51, 234, 0.8)", "0 0 40px rgba(59, 130, 246, 0.5)"] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="relative bg-white dark:bg-slate-900 border-3 border-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-12 shadow-2xl backdrop-blur-xl max-w-md w-full"
+            >
+              <div className="text-center">
+                <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Select Exam
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-10">Choose your exam type to view quizzes</p>
+
+                <div className="flex flex-col gap-4">
+                  {['UPSC', 'UPPCS-2026'].map((type) => (
+                    <motion.button
+                      key={type}
+                      onClick={() => handleExamSelect(type)}
+                      whileHover={{ scale: 1.08, y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                      animate={examType === type ? { scale: 1 } : { scale: 0.95 }}
+                      className={`px-8 py-6 rounded-2xl font-black text-lg md:text-xl transition-all ${
+                        examType === type
+                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xl'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-400'
+                      }`}
+                    >
+                      {type}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
 
         {/* --- LOADING SKELETONS --- */}
         {loading && (

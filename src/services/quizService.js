@@ -75,7 +75,7 @@ export async function fetchQuizForEdit(date) {
 /**
  * Publish a quiz for a given date.
  * @param {string} date - "YYYY-MM-DD"
- * @param {{ title: string, subject: string, publishAt?: string }} meta
+ * @param {{ title: string, subject: string, publishAt?: string, examType?: string }} meta
  * @param {Array<{ question, options, correct }>} questions
  */
 export async function publishQuiz(date, meta, questions) {
@@ -84,6 +84,7 @@ export async function publishQuiz(date, meta, questions) {
 
   await setDoc(quizRef, {
     ...restMeta,
+    examType: meta.examType || 'UPSC',
     totalQuestions: questions.length,
     published: !publishAt,
     ...(publishAt ? { publishAt } : {}),
@@ -140,13 +141,22 @@ export async function fetchQuiz(date = getTodayDate()) {
 
 /**
  * Fetch list of recent published quizzes (for the quiz listing page).
+ * @param {number} count - Number of quizzes to return
+ * @param {string} examType - Filter by exam type (e.g., 'UPSC', 'UPPCS-2026'). If not provided, returns all exams.
  */
-export async function fetchRecentQuizzes(count = 30) {
+export async function fetchRecentQuizzes(count = 30, examType = null) {
   // Fetch all, filter + sort client-side to avoid composite index requirement
   const snap = await getDocs(collection(db, 'quizzes'));
-  return snap.docs
+  let quizzes = snap.docs
     .map((d) => ({ date: d.id, ...d.data() }))
-    .filter((q) => q.published || (q.publishAt && new Date() >= new Date(q.publishAt)))
+    .filter((q) => q.published || (q.publishAt && new Date() >= new Date(q.publishAt)));
+
+  // Filter by examType if provided
+  if (examType) {
+    quizzes = quizzes.filter((q) => (q.examType || 'UPSC') === examType);
+  }
+
+  return quizzes
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, count);
 }
@@ -160,8 +170,9 @@ export async function fetchRecentQuizzes(count = 30) {
  * @param {string} date
  * @param {{ score, correct, incorrect, skipped, timeTaken }} result
  * @param {{ displayName, email, phone }} userInfo
+ * @param {string} examType - exam type (UPSC, UPPCS-2026, etc)
  */
-export async function saveAttempt(userId, date, result, userInfo = {}) {
+export async function saveAttempt(userId, date, result, userInfo = {}, examType = 'UPSC') {
   const { score, correct, incorrect, skipped, timeTaken } = result;
   const now = new Date().toISOString();
 
@@ -173,6 +184,7 @@ export async function saveAttempt(userId, date, result, userInfo = {}) {
   await setDoc(attemptRef, {
     userId,
     date,
+    examType,
     displayName: userInfo.displayName || 'Anonymous',
     email: userInfo.email || '',
     phone: userInfo.phone || userId,
@@ -222,11 +234,13 @@ export async function saveAttempt(userId, date, result, userInfo = {}) {
 // ─── Leaderboard ─────────────────────────────────────────────────────────────
 
 /**
- * Fetch top 10 scores for a given quiz date.
+ * Fetch top 10 scores for a given quiz date and exam type.
  * Tries server-side sort (needs composite index: date ASC, score DESC).
  * Falls back to client-side sort if index is not ready yet.
+ * @param {string} date - quiz date
+ * @param {string} examType - exam type filter (UPSC, UPPCS-2026, etc)
  */
-export async function fetchLeaderboard(date) {
+export async function fetchLeaderboard(date, examType = 'UPSC') {
   const sortWithTiebreaker = (arr) =>
     arr.sort((a, b) => b.score - a.score || a.timeTaken - b.timeTaken).slice(0, 10);
   try {
@@ -234,6 +248,7 @@ export async function fetchLeaderboard(date) {
       query(
         collection(db, 'attempts'),
         where('date', '==', date),
+        where('examType', '==', examType),
         orderBy('score', 'desc'),
         limit(10)
       )
@@ -241,37 +256,45 @@ export async function fetchLeaderboard(date) {
     return sortWithTiebreaker(snap.docs.map((d) => d.data()));
   } catch {
     const snap = await getDocs(
-      query(collection(db, 'attempts'), where('date', '==', date))
+      query(
+        collection(db, 'attempts'),
+        where('date', '==', date),
+        where('examType', '==', examType)
+      )
     );
     return sortWithTiebreaker(snap.docs.map((d) => d.data()));
   }
 }
 
 /**
- * Get a user's daily rank and total participants for a given date.
+ * Get a user's daily rank and total participants for a given date and exam type.
  * Uses count queries — always 2 reads regardless of participant count.
  * Requires same composite index as fetchLeaderboard: date ASC, score DESC
+ * @param {string} examType - exam type filter
  * @returns {{ rank: number, total: number }}
  */
-export async function fetchUserDailyRank(phone, date, userScore, userTimeTaken) {
+export async function fetchUserDailyRank(phone, date, userScore, userTimeTaken, examType = 'UPSC') {
   try {
     const [higherScoreSnap, sameScoreFasterSnap, totalSnap] = await Promise.all([
       // People who scored strictly higher
       getCountFromServer(query(
         collection(db, 'attempts'),
         where('date', '==', date),
+        where('examType', '==', examType),
         where('score', '>', userScore)
       )),
       // People with same score but faster time (tiebreaker)
       getCountFromServer(query(
         collection(db, 'attempts'),
         where('date', '==', date),
+        where('examType', '==', examType),
         where('score', '==', userScore),
         where('timeTaken', '<', userTimeTaken)
       )),
       getCountFromServer(query(
         collection(db, 'attempts'),
-        where('date', '==', date)
+        where('date', '==', date),
+        where('examType', '==', examType)
       )),
     ]);
     return {
@@ -280,7 +303,11 @@ export async function fetchUserDailyRank(phone, date, userScore, userTimeTaken) 
     };
   } catch {
     const snap = await getDocs(
-      query(collection(db, 'attempts'), where('date', '==', date))
+      query(
+        collection(db, 'attempts'),
+        where('date', '==', date),
+        where('examType', '==', examType)
+      )
     );
     const all = snap.docs.map((d) => d.data());
     const rank = all.filter((a) => a.score > userScore || (a.score === userScore && a.timeTaken < userTimeTaken)).length + 1;
