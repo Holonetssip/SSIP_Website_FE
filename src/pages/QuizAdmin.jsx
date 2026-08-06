@@ -144,6 +144,7 @@ export default function QuizAdmin() {
   const [examType, setExamType] = useState('UPSC');
   const [timeLimitMins, setTimeLimitMins] = useState(20);
   const [publishTime, setPublishTime] = useState('21:00');
+  const [archiveTime, setArchiveTime] = useState('23:00');
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [questions, setQuestions] = useState([{ ...EMPTY_Q, options: ['', '', '', ''] }]);
 
@@ -360,6 +361,7 @@ export default function QuizAdmin() {
       } else {
         setPublishTime('21:00');
       }
+      setArchiveTime(data.archiveTime || '23:00');
       setQuestions(data.questions);
       setEditingDate(quizDate);
       setStatus(null);
@@ -380,6 +382,7 @@ export default function QuizAdmin() {
     setExamType('UPSC');
     setTimeLimitMins(20);
     setPublishTime('21:00');
+    setArchiveTime('23:00');
     setYoutubeUrl('');
     setQuestions([{ ...EMPTY_Q, options: ['', '', '', ''] }]);
     setStatus(null);
@@ -401,7 +404,7 @@ export default function QuizAdmin() {
       const publishAt = publishTime
         ? new Date(`${date}T${publishTime}:00+05:30`).toISOString()
         : null;
-      const result = await publishQuiz(date, { title, subject, examType, timeLimitMins: Number(timeLimitMins), publishAt, youtubeUrl }, questions);
+      const result = await publishQuiz(date, { title, subject, examType, timeLimitMins: Number(timeLimitMins), publishAt, archiveTime, youtubeUrl }, questions);
       const scheduledMsg = publishAt && new Date() < new Date(publishAt)
         ? `Scheduled ${result.totalQuestions} questions for ${result.date} at ${publishTime} IST`
         : `${editingDate ? 'Updated' : 'Published'} ${result.totalQuestions} questions for ${result.date}!`;
@@ -1045,6 +1048,12 @@ export default function QuizAdmin() {
                   <input type="url" value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..."
                     className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200" />
                   <p className="text-[10px] text-slate-400 mt-1">Link to YouTube lecture/explanation for this quiz</p>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-400 mb-1 block">Archive Time (IST)</label>
+                  <input type="time" value={archiveTime} onChange={e => setArchiveTime(e.target.value)}
+                    className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200" />
+                  <p className="text-[10px] text-slate-400 mt-1">Time when quiz moves to archive (removed from LIVE TODAY)</p>
                 </div>
               </div>
             </div>

@@ -79,8 +79,19 @@ export default function QuizPage() {
 
   }, [examType]);
 
-  const todayQuiz = quizzes.find(q => q.date === today);
-  const pastQuizzes = quizzes.filter(q => q.date !== today);
+  // Check if today's quiz is past archive time
+  const todayQuizRaw = quizzes.find(q => q.date === today);
+  const isTodayQuizArchived = () => {
+    if (!todayQuizRaw?.archiveTime) return false;
+    const now = new Date();
+    const [archHours, archMins] = todayQuizRaw.archiveTime.split(':');
+    const archiveDateTime = new Date();
+    archiveDateTime.setHours(parseInt(archHours), parseInt(archMins), 0, 0);
+    return now >= archiveDateTime;
+  };
+
+  const todayQuiz = !isTodayQuizArchived() ? todayQuizRaw : null;
+  const pastQuizzes = quizzes.filter(q => q.date !== today || isTodayQuizArchived());
 
   const containerVariants = {
     hidden: { opacity: 0 },
