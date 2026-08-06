@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   BrainCircuit, Sparkles, Calendar, BookOpen,
   ChevronRight, Send, Trophy, Play, Target,
-  History, Zap, ArrowDown, CheckCircle2, Clock, TrendingUp
+  History, Zap, ArrowDown, CheckCircle2, Clock, TrendingUp, Youtube
 } from 'lucide-react';
 import { getTodayDate, fetchRecentQuizzes } from '../services/quizService'; 
 
@@ -381,18 +381,17 @@ export default function QuizPage() {
                                   <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-sm">
                                     <BookOpen size={22} strokeWidth={2} />
                                   </div>
-                                  <a
-                                    href={quiz.youtubeUrl || '#'}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={(e) => !quiz.youtubeUrl && e.preventDefault()}
-                                    className="youtube-badge flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md hover:scale-105 transition-all cursor-pointer"
-                                  >
-                                    <div className="w-4 h-4 bg-red-600 rounded-sm flex items-center justify-center flex-shrink-0">
-                                      <Play size={10} className="text-white fill-white ml-0.5" />
-                                    </div>
-                                    <span className="text-xs font-bold text-slate-900 dark:text-white">Lecture</span>
-                                  </a>
+                                  {quiz.youtubeUrl && (
+                                    <a
+                                      href={quiz.youtubeUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="youtube-badge flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md hover:scale-105 transition-all cursor-pointer"
+                                    >
+                                      <Youtube size={16} className="text-red-600 flex-shrink-0" />
+                                      <span className="text-xs font-bold text-slate-900 dark:text-white">Lecture</span>
+                                    </a>
+                                  )}
                                 </div>
 
                                 {/* Title and date */}
