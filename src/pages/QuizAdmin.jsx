@@ -10,7 +10,7 @@ import { auth } from '../services/firebase';
 import {
   publishQuiz, fetchAllQuizzes,
   fetchQuizForEdit, toggleQuizPublished,
-  fetchDailyAttemptsAll, fetchAllUserStats, fetchAdminStats,
+  fetchDailyAttemptsAll, fetchAllUserStats, fetchAllUserStatsByExamType, fetchAdminStats,
 } from '../services/quizService';
 import {
   saveAnswerKey, fetchAllAnswerKeys, deleteAnswerKey, PAPER_CONFIG,
@@ -157,6 +157,7 @@ export default function QuizAdmin() {
 
   // Reports state
   const [reportDate, setReportDate] = useState(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }));
+  const [cumulativeExamType, setCumulativeExamType] = useState('UPSC');
   const [reportLoading, setReportLoading] = useState(null); // 'daily' | 'cumulative' | null
 
   // Stats state
@@ -245,18 +246,18 @@ export default function QuizAdmin() {
   const handleDownloadCumulative = async (format = 'csv') => {
     setReportLoading(`cumulative-${format}`);
     try {
-      const stats = await fetchAllUserStats();
-      if (!stats.length) return setStatus({ type: 'error', msg: 'No cumulative data found.' });
+      const stats = await fetchAllUserStatsByExamType(cumulativeExamType);
+      if (!stats.length) return setStatus({ type: 'error', msg: `No cumulative data found for ${cumulativeExamType}.` });
       const head = ['Rank', 'Name', 'Phone', 'Total Score', 'Best Score', 'Quizzes Attempted', 'Last Attempt Date'];
       const body = stats.map((s, i) => [i + 1, s.displayName, s.phone, s.totalScore, s.bestScore, s.attemptCount, s.lastAttemptDate]);
       if (format === 'pdf') {
         const pdfHead = ['Rank', 'Name', 'Total Score', 'Best Score', 'Quizzes Attempted', 'Last Attempt Date'];
         const pdfBody = stats.map((s, i) => [i + 1, s.displayName, s.totalScore, s.bestScore, s.attemptCount, s.lastAttemptDate]);
-        downloadPDF('cumulative_leaderboard.pdf', 'Cumulative Leaderboard — All Time', pdfHead, pdfBody);
+        downloadPDF(`cumulative_leaderboard_${cumulativeExamType}.pdf`, `Cumulative Leaderboard — ${cumulativeExamType} All Time`, pdfHead, pdfBody);
       } else {
-        downloadCSV('cumulative_leaderboard.csv', [head, ...body]);
+        downloadCSV(`cumulative_leaderboard_${cumulativeExamType}.csv`, [head, ...body]);
       }
-      setStatus({ type: 'success', msg: `Downloaded cumulative rankings for ${stats.length} students.` });
+      setStatus({ type: 'success', msg: `Downloaded cumulative rankings for ${stats.length} students (${cumulativeExamType}).` });
     } catch (err) {
       setStatus({ type: 'error', msg: err.message });
     } finally {
@@ -677,6 +678,24 @@ export default function QuizAdmin() {
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
               <h2 className="font-black text-slate-700 dark:text-slate-200 text-sm uppercase tracking-wider mb-1">Cumulative Leaderboard</h2>
               <p className="text-xs text-slate-400 mb-4">Download all-time rankings across every quiz — Rank, Name, Phone, Total Score, Best Score, Quizzes Attempted.</p>
+
+              {/* Exam Type Selector */}
+              <div className="mb-4 flex gap-3">
+                {['UPSC', 'UPPCS-2026'].map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setCumulativeExamType(type)}
+                    className={`px-4 py-2 rounded-xl font-bold text-sm transition ${
+                      cumulativeExamType === type
+                        ? 'bg-primary text-white shadow-lg'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+
               <div className="flex gap-3 flex-wrap">
                 <button
                   onClick={() => handleDownloadCumulative('csv')}

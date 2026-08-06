@@ -424,6 +424,39 @@ export async function fetchAllUserStats() {
   return snap.docs.map((d) => d.data());
 }
 
+/**
+ * Fetch cumulative stats filtered by exam type (for admin downloads).
+ * Calculates scores from attempts collection filtered by examType.
+ */
+export async function fetchAllUserStatsByExamType(examType = 'UPSC') {
+  const snap = await getDocs(collection(db, 'attempts'));
+  const attempts = snap.docs.map(d => d.data());
+
+  const statsMap = {};
+  attempts.forEach(a => {
+    if ((a.examType || 'UPSC') !== examType) return;
+
+    if (!statsMap[a.userId]) {
+      statsMap[a.userId] = {
+        userId: a.userId,
+        phone: a.phone,
+        displayName: a.displayName || 'Unknown',
+        totalScore: 0,
+        bestScore: 0,
+        attemptCount: 0,
+        lastAttemptDate: a.date,
+      };
+    }
+
+    statsMap[a.userId].totalScore += a.score || 0;
+    statsMap[a.userId].bestScore = Math.max(statsMap[a.userId].bestScore, a.score || 0);
+    statsMap[a.userId].attemptCount += 1;
+    statsMap[a.userId].lastAttemptDate = a.date;
+  });
+
+  return Object.values(statsMap).sort((a, b) => b.totalScore - a.totalScore);
+}
+
 // ─── Admin: Stats ────────────────────────────────────────────────────────────
 
 /**
