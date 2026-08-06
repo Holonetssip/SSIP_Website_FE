@@ -142,13 +142,13 @@ export default function QuizPage() {
             </div>
           </motion.button>
 
-          {/* 3. UPSC Standard Card (Bottom Left) - Clickable */}
+          {/* 3. Exam Standard Card (Bottom Left) - Clickable - Dynamic based on exam type */}
           <motion.button onClick={() => setShowPopup(true)} animate={{ y: [0, -8, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }} className="absolute hidden lg:flex bottom-16 left-20 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl shadow-xl items-center gap-3 transform-gpu rotate-3 hover:shadow-2xl hover:border-blue-400 cursor-pointer transition-all">
             <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-lg text-purple-600 dark:text-purple-400">
               <Target size={18} />
             </div>
             <div className="text-left">
-              <p className="text-xs font-black text-slate-900 dark:text-white">UPSC Standard</p>
+              <p className="text-xs font-black text-slate-900 dark:text-white">{examType} Standard</p>
               <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Detailed Explanations</p>
             </div>
           </motion.button>
@@ -172,9 +172,11 @@ export default function QuizPage() {
               </h1>
             </div>
             
-            {/* Tighter Subtitle */}
+            {/* Tighter Subtitle - Dynamic based on exam type */}
             <p className="text-slate-600 dark:text-slate-400 font-medium max-w-xl mx-auto text-xs md:text-sm leading-relaxed px-4">
-              Step into the arena. Sharpen your mind with daily curated mocks designed meticulously for UPSC & State PCS aspirants.
+              {examType === 'UPPCS-2026'
+                ? 'Step into the arena. Sharpen your mind with daily curated mocks designed meticulously for UPPCS 2026 aspirants.'
+                : 'Step into the arena. Sharpen your mind with daily curated mocks designed meticulously for UPSC & State PCS aspirants.'}
             </p>
 
             {/* Smaller Interactive Scroll Arrow */}
