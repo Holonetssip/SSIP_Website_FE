@@ -410,7 +410,7 @@ export default function QuizPage() {
             </a>
 
             {/* Overall Leaderboard */}
-            <Link to="/quiz/leaderboard" className="group relative">
+            <Link to={`/quiz/leaderboard?exam=${examType}`} className="group relative">
               <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 to-orange-500 rounded-xl blur opacity-20 group-hover:opacity-50 transition duration-500"></div>
               <div className="relative inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-bold text-xs md:text-sm shadow-md overflow-hidden transition-transform transform-gpu active:scale-95">
                 <TrendingUp size={16} className="relative z-10" />
