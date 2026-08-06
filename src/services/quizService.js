@@ -465,14 +465,16 @@ export async function fetchAllUserStatsByExamType(examType = 'UPSC') {
  * - perQuizAttempts: [{ date, attempts, avgScore }]
  * - scoreDistribution: [{ range, count }]
  */
-export async function fetchAdminStats() {
+export async function fetchAdminStats(examType = 'UPSC') {
   const [attemptsSnap, usersSnap, quizzesSnap] = await Promise.all([
     getDocs(collection(db, 'attempts')),
     getCountFromServer(collection(db, 'userStats')),
     getDocs(collection(db, 'quizzes')),
   ]);
 
-  const attempts = attemptsSnap.docs.map(d => d.data());
+  const allAttempts = attemptsSnap.docs.map(d => d.data());
+  // Filter by exam type (default old attempts to UPSC)
+  const attempts = allAttempts.filter(a => (a.examType || 'UPSC') === examType);
   const totalStudents = usersSnap.data().count;
   const totalAttempts = attempts.length;
 

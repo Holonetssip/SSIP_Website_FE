@@ -164,6 +164,7 @@ export default function QuizAdmin() {
   // Stats state
   const [statsData, setStatsData] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [statsExamType, setStatsExamType] = useState('UPSC');
 
   // UPSC keys state
   const [upscPaper, setUpscPaper] = useState('gs');
@@ -311,10 +312,10 @@ export default function QuizAdmin() {
   };
 
   // ── Stats ──────────────────────────────────────────────────────────────────
-  const loadStats = async () => {
+  const loadStats = async (examType = statsExamType) => {
     setStatsLoading(true);
     try {
-      const data = await fetchAdminStats();
+      const data = await fetchAdminStats(examType);
       setStatsData(data);
     } catch {
       setStatus({ type: 'error', msg: 'Failed to load stats.' });
@@ -322,6 +323,11 @@ export default function QuizAdmin() {
       setStatsLoading(false);
     }
   };
+
+  // Reload stats when exam type changes
+  useEffect(() => {
+    if (mode === 'stats' && isAdmin) loadStats(statsExamType);
+  }, [statsExamType, mode, isAdmin]);
 
   // ── Manage: Toggle hide/show ───────────────────────────────────────────────
   const handleTogglePublish = async (date, current) => {
@@ -727,12 +733,29 @@ export default function QuizAdmin() {
           <div className="flex flex-col gap-6">
 
             {/* Header + Refresh */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="font-black text-slate-700 dark:text-slate-200 text-sm uppercase tracking-wider">Dashboard</h2>
-              <button onClick={loadStats} disabled={statsLoading}
+              <button onClick={() => loadStats(statsExamType)} disabled={statsLoading}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-500 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-primary/50 hover:text-primary transition disabled:opacity-50">
                 <RefreshCw size={12} className={statsLoading ? 'animate-spin' : ''} /> Refresh
               </button>
+            </div>
+
+            {/* Exam Type Selector */}
+            <div className="flex gap-3">
+              {['UPSC', 'UPPCS-2026'].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setStatsExamType(type)}
+                  className={`px-4 py-2 rounded-xl font-bold text-sm transition ${
+                    statsExamType === type
+                      ? 'bg-primary text-white shadow-lg'
+                      : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
             </div>
 
             {statsLoading && (
@@ -781,6 +804,33 @@ export default function QuizAdmin() {
                         <Bar dataKey="avgScore" fill="#10b981" radius={[4, 4, 0, 0]} name="Avg Score" />
                       </BarChart>
                     </ResponsiveContainer>
+                  </div>
+                )}
+
+                {/* Daily Attempts Table */}
+                {statsData.perQuizAttempts.length > 0 && (
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
+                    <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Daily Attempts — {statsExamType}</p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="border-b border-slate-200 dark:border-slate-700">
+                          <tr>
+                            <th className="text-left py-2 px-3 font-bold text-slate-600 dark:text-slate-300 text-xs uppercase">Date</th>
+                            <th className="text-right py-2 px-3 font-bold text-slate-600 dark:text-slate-300 text-xs uppercase">Attempts</th>
+                            <th className="text-right py-2 px-3 font-bold text-slate-600 dark:text-slate-300 text-xs uppercase">Avg Score</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {statsData.perQuizAttempts.map((item, idx) => (
+                            <tr key={idx} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                              <td className="py-3 px-3 font-semibold text-slate-700 dark:text-slate-200">{item.date}</td>
+                              <td className="py-3 px-3 text-right font-bold text-slate-800 dark:text-white">{item.attempts}</td>
+                              <td className="py-3 px-3 text-right font-semibold text-emerald-600 dark:text-emerald-400">{item.avgScore}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
 
