@@ -48,10 +48,10 @@ export default function GlobalLeaderboard() {
         return;
       }
 
-      // Calculate user's score for the selected examType
+      // Calculate user's score for the selected examType (default old records to UPSC)
       const userAttempts = attemptSnap.docs.map(d => d.data());
       const filteredAttempts = examType
-        ? userAttempts.filter(a => a.examType === examType)
+        ? userAttempts.filter(a => (a.examType || 'UPSC') === examType)
         : userAttempts;
 
       if (filteredAttempts.length === 0) {

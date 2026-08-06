@@ -325,9 +325,9 @@ export async function fetchCumulativeLeaderboard(count = 10, examType = null) {
   const snap = await getDocs(collection(db, 'attempts'));
   const attempts = snap.docs.map((d) => d.data());
 
-  // Filter by examType if provided
+  // Filter by examType if provided (default old records without examType to UPSC)
   const filtered = examType
-    ? attempts.filter(a => a.examType === examType)
+    ? attempts.filter(a => (a.examType || 'UPSC') === examType)
     : attempts;
 
   // Calculate cumulative scores per user
@@ -371,9 +371,9 @@ export async function fetchUserCumulativeRank(phone, userTotalScore, examType = 
     const snap = await getDocs(collection(db, 'attempts'));
     const attempts = snap.docs.map(d => d.data());
 
-    // Filter by examType
+    // Filter by examType (default old records without examType to UPSC)
     const filtered = examType
-      ? attempts.filter(a => a.examType === examType)
+      ? attempts.filter(a => (a.examType || 'UPSC') === examType)
       : attempts;
 
     // Calculate cumulative scores per user
