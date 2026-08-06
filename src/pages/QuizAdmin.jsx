@@ -144,6 +144,7 @@ export default function QuizAdmin() {
   const [examType, setExamType] = useState('UPSC');
   const [timeLimitMins, setTimeLimitMins] = useState(20);
   const [publishTime, setPublishTime] = useState('21:00');
+  const [youtubeUrl, setYoutubeUrl] = useState('');
   const [questions, setQuestions] = useState([{ ...EMPTY_Q, options: ['', '', '', ''] }]);
 
   // Manage list state
@@ -346,6 +347,7 @@ export default function QuizAdmin() {
       setSubject(data.subject || 'General Studies');
       setExamType(data.examType || 'UPSC');
       setTimeLimitMins(data.timeLimitMins || 20);
+      setYoutubeUrl(data.youtubeUrl || '');
       if (data.publishAt) {
         const t = new Date(data.publishAt).toLocaleTimeString('en-CA', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false });
         setPublishTime(t);
@@ -372,6 +374,7 @@ export default function QuizAdmin() {
     setExamType('UPSC');
     setTimeLimitMins(20);
     setPublishTime('21:00');
+    setYoutubeUrl('');
     setQuestions([{ ...EMPTY_Q, options: ['', '', '', ''] }]);
     setStatus(null);
     setMode('create');
@@ -392,7 +395,7 @@ export default function QuizAdmin() {
       const publishAt = publishTime
         ? new Date(`${date}T${publishTime}:00+05:30`).toISOString()
         : null;
-      const result = await publishQuiz(date, { title, subject, examType, timeLimitMins: Number(timeLimitMins), publishAt }, questions);
+      const result = await publishQuiz(date, { title, subject, examType, timeLimitMins: Number(timeLimitMins), publishAt, youtubeUrl }, questions);
       const scheduledMsg = publishAt && new Date() < new Date(publishAt)
         ? `Scheduled ${result.totalQuestions} questions for ${result.date} at ${publishTime} IST`
         : `${editingDate ? 'Updated' : 'Published'} ${result.totalQuestions} questions for ${result.date}!`;
@@ -986,6 +989,12 @@ export default function QuizAdmin() {
                   <input type="time" value={publishTime} onChange={e => setPublishTime(e.target.value)}
                     className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200" />
                   <p className="text-[10px] text-slate-400 mt-1">Quiz goes live at this time on the quiz date</p>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-400 mb-1 block">YouTube Lecture Link (Optional)</label>
+                  <input type="url" value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..."
+                    className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200" />
+                  <p className="text-[10px] text-slate-400 mt-1">Link to YouTube lecture/explanation for this quiz</p>
                 </div>
               </div>
             </div>
