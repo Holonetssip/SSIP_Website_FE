@@ -201,8 +201,8 @@ export default function QuizAttempt() {
 
     try {
       const [clb, cumRank] = await Promise.all([
-        fetchCumulativeLeaderboard(),
-        fetchUserCumulativeRank(userId, savedTotalScore),
+        fetchCumulativeLeaderboard(10, quizData?.examType || 'UPSC'),
+        fetchUserCumulativeRank(userId, savedTotalScore, quizData?.examType || 'UPSC'),
       ]);
       setCumulativeLeaderboard(clb);
       setUserCumRank(cumRank);

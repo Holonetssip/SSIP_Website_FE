@@ -1,18 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Star, Zap, TrendingUp, Loader2, Target, Medal, Phone, User } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { fetchCumulativeLeaderboard, fetchUserCumulativeRank } from '../services/quizService';
 
 const rankMedal = (i) => ['🥇', '🥈', '🥉'][i] ?? null;
 
 export default function GlobalLeaderboard() {
+  const [searchParams] = useSearchParams();
+  const examFromURL = searchParams.get('exam') || 'UPSC';
+
   const [user, setUser] = useState(null);       // { name, phone }
   const [form, setForm] = useState({ name: '', phone: '' });
+  const [examType, setExamType] = useState(examFromURL);
 
   const [list, setList] = useState([]);
   const [userRank, setUserRank] = useState(null); // { rank, total, totalScore }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Update exam type when URL param changes
+  useEffect(() => {
+    setExamType(examFromURL);
+  }, [examFromURL]);
 
   const isCurrentUser = (entry) => entry.phone === user?.phone;
 
@@ -24,7 +34,7 @@ export default function GlobalLeaderboard() {
     setError(null);
     try {
       const [lb, statsSnap] = await Promise.all([
-        fetchCumulativeLeaderboard(50),
+        fetchCumulativeLeaderboard(50, examType),
         import('firebase/firestore').then(({ getDoc, doc }) =>
           import('../services/firebase').then(({ db }) =>
             getDoc(doc(db, 'userStats', form.phone))
@@ -39,8 +49,9 @@ export default function GlobalLeaderboard() {
       }
 
       setList(lb);
-      const myTotalScore = statsSnap.data().totalScore ?? 0;
-      const rank = await fetchUserCumulativeRank(form.phone, myTotalScore);
+      const scoreField = `totalScore_${examType}`;
+      const myTotalScore = statsSnap.data()[scoreField] ?? statsSnap.data().totalScore ?? 0;
+      const rank = await fetchUserCumulativeRank(form.phone, myTotalScore, examType);
       setUserRank({ ...rank, totalScore: myTotalScore });
       setUser({ name: normalizedName, phone: form.phone });
     } catch (err) {
@@ -103,6 +114,34 @@ export default function GlobalLeaderboard() {
           </div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-2">Overall Leaderboard</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Cumulative scores across all daily quizzes</p>
+
+          {/* Exam Type Selector - Only show if coming from main page (no exam param) */}
+          {!searchParams.get('exam') && (
+            <div className="flex gap-3 justify-center mt-6">
+              {['UPSC', 'UPPCS-2026'].map((type) => (
+                <motion.button
+                  key={type}
+                  onClick={() => setExamType(type)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`px-5 py-2 rounded-xl font-bold text-sm transition-all ${
+                    examType === type
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                      : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800'
+                  }`}
+                >
+                  {type}
+                </motion.button>
+              ))}
+            </div>
+          )}
+
+          {/* Show selected exam type badge when coming from quiz page */}
+          {searchParams.get('exam') && (
+            <div className="mt-6 inline-block px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold text-sm">
+              {examType} Rankings
+            </div>
+          )}
         </motion.div>
 
         {list.length === 0 ? (
