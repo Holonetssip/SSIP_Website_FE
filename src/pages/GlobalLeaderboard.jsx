@@ -33,25 +33,37 @@ export default function GlobalLeaderboard() {
     setLoading(true);
     setError(null);
     try {
-      const [lb, statsSnap] = await Promise.all([
+      const [lb, attemptSnap] = await Promise.all([
         fetchCumulativeLeaderboard(50, examType),
-        import('firebase/firestore').then(({ getDoc, doc }) =>
+        import('firebase/firestore').then(({ getDocs, query, collection, where } ) =>
           import('../services/firebase').then(({ db }) =>
-            getDoc(doc(db, 'userStats', form.phone))
+            getDocs(query(collection(db, 'attempts'), where('userId', '==', form.phone)))
           )
         ),
       ]);
 
-      if (!statsSnap.exists()) {
+      if (attemptSnap.empty) {
         setError('No record found for this mobile number. Please attempt a quiz first.');
         setLoading(false);
         return;
       }
 
-      setList(lb);
-      const scoreField = `totalScore_${examType}`;
-      const myTotalScore = statsSnap.data()[scoreField] ?? statsSnap.data().totalScore ?? 0;
+      // Calculate user's score for the selected examType
+      const userAttempts = attemptSnap.docs.map(d => d.data());
+      const filteredAttempts = examType
+        ? userAttempts.filter(a => a.examType === examType)
+        : userAttempts;
+
+      if (filteredAttempts.length === 0) {
+        setError(`No ${examType} attempts found. Please try a different exam type.`);
+        setLoading(false);
+        return;
+      }
+
+      const myTotalScore = filteredAttempts.reduce((sum, a) => sum + (a.score || 0), 0);
       const rank = await fetchUserCumulativeRank(form.phone, myTotalScore, examType);
+
+      setList(lb);
       setUserRank({ ...rank, totalScore: myTotalScore });
       setUser({ name: normalizedName, phone: form.phone });
     } catch (err) {

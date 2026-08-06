@@ -198,58 +198,32 @@ export async function saveAttempt(userId, date, result, userInfo = {}, examType 
   const statsRef = doc(db, 'userStats', userId);
   const statsSnap = await getDoc(statsRef);
   let newTotalScore;
-
-  // Create exam-type specific field names
-  const examSpecificFields = {
-    [`totalScore_${examType}`]: 0,
-    [`bestScore_${examType}`]: 0,
-    [`attemptCount_${examType}`]: 0,
-    [`totalCorrect_${examType}`]: 0,
-    [`totalIncorrect_${examType}`]: 0,
-  };
-
   if (statsSnap.exists()) {
     const existing = statsSnap.data();
     newTotalScore = parseFloat(((existing.totalScore || 0) + score).toFixed(2));
-    const examSpecificScore = parseFloat(((existing[`totalScore_${examType}`] || 0) + score).toFixed(2));
-
     await setDoc(statsRef, {
       displayName: userInfo.displayName || existing.displayName,
       email: userInfo.email || existing.email,
       phone: userId,
-      // Overall stats (all exams combined)
       totalScore: newTotalScore,
       bestScore: Math.max(existing.bestScore || 0, score),
       attemptCount: (existing.attemptCount || 0) + 1,
       totalCorrect: (existing.totalCorrect || 0) + correct,
       totalIncorrect: (existing.totalIncorrect || 0) + incorrect,
-      // Exam-type specific stats
-      [`totalScore_${examType}`]: examSpecificScore,
-      [`bestScore_${examType}`]: Math.max(existing[`bestScore_${examType}`] || 0, score),
-      [`attemptCount_${examType}`]: (existing[`attemptCount_${examType}`] || 0) + 1,
-      [`totalCorrect_${examType}`]: (existing[`totalCorrect_${examType}`] || 0) + correct,
-      [`totalIncorrect_${examType}`]: (existing[`totalIncorrect_${examType}`] || 0) + incorrect,
       lastAttemptDate: date,
       lastAttemptAt: now,
-    }, { merge: true });
+    });
   } else {
     newTotalScore = score;
     await setDoc(statsRef, {
       displayName: userInfo.displayName || 'Anonymous',
       email: userInfo.email || '',
       phone: userId,
-      // Overall stats
       totalScore: newTotalScore,
       bestScore: score,
       attemptCount: 1,
       totalCorrect: correct,
       totalIncorrect: incorrect,
-      // Exam-type specific stats
-      [`totalScore_${examType}`]: score,
-      [`bestScore_${examType}`]: score,
-      [`attemptCount_${examType}`]: 1,
-      [`totalCorrect_${examType}`]: correct,
-      [`totalIncorrect_${examType}`]: incorrect,
       lastAttemptDate: date,
       lastAttemptAt: now,
     });
@@ -343,81 +317,85 @@ export async function fetchUserDailyRank(phone, date, userScore, userTimeTaken, 
 
 /**
  * Fetch top users by cumulative total score for a specific exam type.
+ * Calculates rankings from attempts collection filtered by examType.
  * @param {number} count - number of users to return
- * @param {string} examType - filter by exam type (UPSC, UPPCS-2026, etc). If null, returns all-time scores
+ * @param {string} examType - filter by exam type (UPSC, UPPCS-2026, etc). If null, returns overall rankings
  */
 export async function fetchCumulativeLeaderboard(count = 10, examType = null) {
-  const snap = await getDocs(collection(db, 'userStats'));
-  let results = snap.docs.map((d) => d.data());
+  const snap = await getDocs(collection(db, 'attempts'));
+  const attempts = snap.docs.map((d) => d.data());
 
-  // Sort by exam-type specific score if provided, otherwise by overall score
-  if (examType) {
-    const scoreField = `totalScore_${examType}`;
-    results = results
-      .map(user => ({
-        ...user,
-        totalScore: user[scoreField] || 0,
-        bestScore: user[`bestScore_${examType}`] || 0,
-        attemptCount: user[`attemptCount_${examType}`] || 0,
-        totalCorrect: user[`totalCorrect_${examType}`] || 0,
-      }))
-      .filter(user => user.totalScore > 0) // Only show users with attempts in this exam
-      .sort((a, b) => b.totalScore - a.totalScore);
-  } else {
-    results = results.sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
-  }
+  // Filter by examType if provided
+  const filtered = examType
+    ? attempts.filter(a => a.examType === examType)
+    : attempts;
 
-  return results.slice(0, count || 10);
+  // Calculate cumulative scores per user
+  const userScores = {};
+  filtered.forEach(attempt => {
+    const userId = attempt.userId;
+    if (!userScores[userId]) {
+      userScores[userId] = {
+        userId,
+        displayName: attempt.displayName,
+        email: attempt.email,
+        phone: attempt.phone,
+        totalScore: 0,
+        bestScore: 0,
+        attemptCount: 0,
+        totalCorrect: 0,
+        totalIncorrect: 0,
+      };
+    }
+    userScores[userId].totalScore += (attempt.score || 0);
+    userScores[userId].bestScore = Math.max(userScores[userId].bestScore, attempt.score || 0);
+    userScores[userId].attemptCount += 1;
+    userScores[userId].totalCorrect += (attempt.correct || 0);
+    userScores[userId].totalIncorrect += (attempt.incorrect || 0);
+  });
+
+  // Sort by totalScore descending and return top users
+  return Object.values(userScores)
+    .sort((a, b) => b.totalScore - a.totalScore)
+    .slice(0, count || 10);
 }
 
 /**
- * Get a user's all-time rank and total registered users.
+ * Get a user's all-time rank and total participants for an exam type.
+ * Calculates from attempts collection filtered by examType.
  * @param {string} examType - exam type for ranking (UPSC, UPPCS-2026, etc). If null, returns overall rank
  * @returns {{ rank: number, total: number }}
  */
 export async function fetchUserCumulativeRank(phone, userTotalScore, examType = null) {
   try {
-    if (examType) {
-      // Get exam-type specific rank
-      const scoreField = `totalScore_${examType}`;
-      const snap = await getDocs(collection(db, 'userStats'));
-      const allUsers = snap.docs.map(d => d.data());
+    const snap = await getDocs(collection(db, 'attempts'));
+    const attempts = snap.docs.map(d => d.data());
 
-      const usersWithScore = allUsers.filter(u => (u[scoreField] || 0) > 0);
-      const higherCount = usersWithScore.filter(u => (u[scoreField] || 0) > userTotalScore).length;
+    // Filter by examType
+    const filtered = examType
+      ? attempts.filter(a => a.examType === examType)
+      : attempts;
 
-      return {
-        rank: higherCount + 1,
-        total: usersWithScore.length,
-      };
-    } else {
-      // Get overall rank across all exams
-      const [higherSnap, totalSnap] = await Promise.all([
-        getCountFromServer(query(
-          collection(db, 'userStats'),
-          where('totalScore', '>', userTotalScore)
-        )),
-        getCountFromServer(collection(db, 'userStats')),
-      ]);
-      return {
-        rank: higherSnap.data().count + 1,
-        total: totalSnap.data().count,
-      };
-    }
-  } catch {
-    // Fallback: calculate client-side
-    const snap = await getDocs(collection(db, 'userStats'));
-    const allUsers = snap.docs.map(d => d.data());
+    // Calculate cumulative scores per user
+    const userScores = {};
+    filtered.forEach(attempt => {
+      const userId = attempt.userId;
+      if (!userScores[userId]) {
+        userScores[userId] = 0;
+      }
+      userScores[userId] += (attempt.score || 0);
+    });
 
-    if (examType) {
-      const scoreField = `totalScore_${examType}`;
-      const usersWithScore = allUsers.filter(u => (u[scoreField] || 0) > 0);
-      const higherCount = usersWithScore.filter(u => (u[scoreField] || 0) > userTotalScore).length;
-      return { rank: higherCount + 1, total: usersWithScore.length };
-    }
+    // Get user's total and calculate rank
+    const userScore = userScores[phone] || 0;
+    const higherCount = Object.values(userScores).filter(score => score > userScore).length;
 
-    const higherCount = allUsers.filter(u => (u.totalScore || 0) > userTotalScore).length;
-    return { rank: higherCount + 1, total: allUsers.length };
+    return {
+      rank: higherCount + 1,
+      total: Object.keys(userScores).length,
+    };
+  } catch (err) {
+    return { rank: 0, total: 0 };
   }
 }
 
