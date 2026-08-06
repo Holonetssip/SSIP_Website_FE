@@ -100,7 +100,8 @@ export default function QuizAttempt() {
       setOverallTime((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          handleSubmit();
+          // Use functional update to ensure we have latest selectedAnswers
+          setAppState('result');
           return 0;
         }
         return prev - 1;
@@ -108,6 +109,13 @@ export default function QuizAttempt() {
     }, 1000);
     return () => clearInterval(timer);
   }, [appState]);
+
+  // Auto-submit when time runs out
+  useEffect(() => {
+    if (appState === 'result' && !isSaving && Object.keys(scoreData).length === 0) {
+      handleSubmit();
+    }
+  }, [appState, isSaving, scoreData]);
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   
