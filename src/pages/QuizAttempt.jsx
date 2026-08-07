@@ -112,10 +112,10 @@ export default function QuizAttempt() {
 
   // Auto-submit when time runs out
   useEffect(() => {
-    if (appState === 'result' && !isSaving && Object.keys(scoreData).length === 0) {
+    if (appState === 'result' && !saving && Object.keys(scoreData).length === 0) {
       handleSubmit();
     }
-  }, [appState, isSaving, scoreData]);
+  }, [appState, saving, scoreData]);
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   
@@ -272,6 +272,15 @@ export default function QuizAttempt() {
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
       <Loader2 className="animate-spin text-primary" size={40} />
+    </div>
+  );
+
+  if (error) return (
+    <div className="min-h-screen pt-28 flex flex-col items-center justify-center gap-4 bg-slate-50 dark:bg-slate-950 px-4 text-center">
+      <p className="text-slate-500 dark:text-slate-400 font-medium">
+        {error === 'no_quiz' ? 'Quiz not found for this date.' : 'Failed to load quiz. Please try again.'}
+      </p>
+      <Link to="/quiz" className="text-xs font-bold text-primary hover:underline">← Back to Quiz Vault</Link>
     </div>
   );
 
