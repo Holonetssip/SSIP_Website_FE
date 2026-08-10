@@ -1,30 +1,75 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   BrainCircuit, Sparkles, Calendar, BookOpen,
   ChevronRight, Send, Trophy, Play, Target,
-  History, Zap, ArrowDown, CheckCircle2, Clock, TrendingUp
+  History, Zap, ArrowDown, CheckCircle2, Clock, TrendingUp, Youtube
 } from 'lucide-react';
 import { getTodayDate, fetchRecentQuizzes } from '../services/quizService'; 
 
 export default function QuizPage() {
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [examType, setExamType] = useState('UPSC');
+  const [showPopup, setShowPopup] = useState(true);
   const today = getTodayDate();
-  
+  const location = useLocation();
+  const prevPathRef = useRef(location.pathname);
+
   // Reference for the smooth scroll
   const quizSectionRef = useRef(null);
 
+  // Show popup when returning to quiz page or clicking Quiz tab
+  useEffect(() => {
+    const currentPath = location.pathname;
+
+    // Show popup if coming from a different page back to /quiz
+    if ((currentPath === '/quiz' || currentPath.endsWith('/quiz')) &&
+        prevPathRef.current !== currentPath) {
+      setShowPopup(true);
+    }
+
+    prevPathRef.current = currentPath;
+  }, [location.pathname]);
+
+  // Listen for Quiz link clicks in navbar to show popup
+  useEffect(() => {
+    const handleClick = (e) => {
+      // Find all Quiz links in navbar (contain BrainCircuit icon and "Quiz" text)
+      const quizLinks = document.querySelectorAll('a');
+      for (let link of quizLinks) {
+        if (link.textContent.includes('Quiz') &&
+            (link.getAttribute('href') === '/quiz' || link.getAttribute('href')?.includes('/quiz'))) {
+          if (link.contains(e.target) || link === e.target) {
+            // Delay slightly to ensure state updates properly
+            setTimeout(() => setShowPopup(true), 10);
+            break;
+          }
+        }
+      }
+    };
+
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, []);
+
   const scrollToQuizzes = () => {
     quizSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const handleExamSelect = (type) => {
+    setExamType(type);
+    // Close popup after brief delay for better UX
+    setTimeout(() => setShowPopup(false), 300);
   };
 
   useEffect(() => {
     window.scrollTo(0, 0);
 
     // Fetch real data directly from Firebase
-    fetchRecentQuizzes(30)
+    setLoading(true);
+    fetchRecentQuizzes(30, examType)
       .then(setQuizzes)
       .catch((err) => {
         console.error("Failed to fetch quizzes:", err);
@@ -32,10 +77,21 @@ export default function QuizPage() {
       })
       .finally(() => setLoading(false));
 
-  }, []);
+  }, [examType]);
 
-  const todayQuiz = quizzes.find(q => q.date === today);
-  const pastQuizzes = quizzes.filter(q => q.date !== today);
+  // Check if today's quiz is past archive time
+  const todayQuizRaw = quizzes.find(q => q.date === today);
+  const isTodayQuizArchived = () => {
+    if (!todayQuizRaw?.archiveTime) return false;
+    const now = new Date();
+    const [archHours, archMins] = todayQuizRaw.archiveTime.split(':');
+    const archiveDateTime = new Date();
+    archiveDateTime.setHours(parseInt(archHours), parseInt(archMins), 0, 0);
+    return now >= archiveDateTime;
+  };
+
+  const todayQuiz = !isTodayQuizArchived() ? todayQuizRaw : null;
+  const pastQuizzes = quizzes.filter(q => q.date !== today || isTodayQuizArchived());
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -75,8 +131,8 @@ export default function QuizPage() {
               FLOATING ANIMATED ELEMENTS (Desktop Only) 
               ========================================= */}
           
-          {/* 1. Exam Ready Card (Top Left) */}
-          <motion.div animate={{ y: [0, -12, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute hidden lg:flex top-12 left-10 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl shadow-xl items-center gap-3 transform-gpu -rotate-6">
+          {/* 1. Exam Ready Card (Top Left) - Clickable */}
+          <motion.button onClick={() => setShowPopup(true)} animate={{ y: [0, -12, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute hidden lg:flex top-12 left-10 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl shadow-xl items-center gap-3 transform-gpu -rotate-6 hover:shadow-2xl hover:border-blue-400 cursor-pointer transition-all">
             <div className="bg-emerald-100 dark:bg-emerald-900/30 p-2 rounded-lg text-emerald-600 dark:text-emerald-400">
               <CheckCircle2 size={18} />
             </div>
@@ -84,10 +140,10 @@ export default function QuizPage() {
               <p className="text-xs font-black text-slate-900 dark:text-white">Exam Ready</p>
               <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Syllabus Aligned</p>
             </div>
-          </motion.div>
+          </motion.button>
 
-          {/* 2. Global Rank Card (Top Right) */}
-          <motion.div animate={{ y: [0, 12, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }} className="absolute hidden lg:flex top-16 right-10 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl shadow-xl items-center gap-3 transform-gpu rotate-6">
+          {/* 2. Global Rank Card (Top Right) - Clickable */}
+          <motion.button onClick={() => setShowPopup(true)} animate={{ y: [0, 12, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }} className="absolute hidden lg:flex top-16 right-10 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl shadow-xl items-center gap-3 transform-gpu rotate-6 hover:shadow-2xl hover:border-blue-400 cursor-pointer transition-all">
             <div className="bg-yellow-100 dark:bg-yellow-900/30 p-2 rounded-lg text-yellow-600 dark:text-yellow-500">
               <Trophy size={18} />
             </div>
@@ -95,18 +151,18 @@ export default function QuizPage() {
               <p className="text-xs font-black text-slate-900 dark:text-white">Global Rank</p>
               <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Live Leaderboard</p>
             </div>
-          </motion.div>
+          </motion.button>
 
-          {/* 3. UPSC Standard Card (Bottom Left) */}
-          <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }} className="absolute hidden lg:flex bottom-16 left-20 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl shadow-xl items-center gap-3 transform-gpu rotate-3">
+          {/* 3. Exam Standard Card (Bottom Left) - Clickable - Dynamic based on exam type */}
+          <motion.button onClick={() => setShowPopup(true)} animate={{ y: [0, -8, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }} className="absolute hidden lg:flex bottom-16 left-20 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl shadow-xl items-center gap-3 transform-gpu rotate-3 hover:shadow-2xl hover:border-blue-400 cursor-pointer transition-all">
             <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-lg text-purple-600 dark:text-purple-400">
               <Target size={18} />
             </div>
             <div className="text-left">
-              <p className="text-xs font-black text-slate-900 dark:text-white">UPSC Standard</p>
+              <p className="text-xs font-black text-slate-900 dark:text-white">{examType} Standard</p>
               <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Detailed Explanations</p>
             </div>
-          </motion.div>
+          </motion.button>
 
 
           <motion.div initial={{ opacity: 0, y: -15 }} animate={{ opacity: 1, y: 0 }} className="relative z-20">
@@ -127,9 +183,11 @@ export default function QuizPage() {
               </h1>
             </div>
             
-            {/* Tighter Subtitle */}
+            {/* Tighter Subtitle - Dynamic based on exam type */}
             <p className="text-slate-600 dark:text-slate-400 font-medium max-w-xl mx-auto text-xs md:text-sm leading-relaxed px-4">
-              Step into the arena. Sharpen your mind with daily curated mocks designed meticulously for UPSC & State PCS aspirants.
+              {examType === 'UPPCS-2026'
+                ? 'Step into the arena. Sharpen your mind with daily curated mocks designed meticulously for UPPCS 2026 aspirants.'
+                : 'Step into the arena. Sharpen your mind with daily curated mocks designed meticulously for UPSC & State PCS aspirants.'}
             </p>
 
             {/* Smaller Interactive Scroll Arrow */}
@@ -152,6 +210,53 @@ export default function QuizPage() {
 
           </motion.div>
         </div>
+
+        {/* --- EXAM TYPE BIG POPUP --- */}
+        {showPopup && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          >
+            {/* Dark overlay */}
+            <div className="absolute inset-0 bg-black/30 dark:bg-black/50" />
+
+            {/* Blinking popup */}
+            <motion.div
+              animate={{ boxShadow: ["0 0 40px rgba(59, 130, 246, 0.5)", "0 0 80px rgba(147, 51, 234, 0.8)", "0 0 40px rgba(59, 130, 246, 0.5)"] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="relative bg-white dark:bg-slate-900 border-3 border-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-12 shadow-2xl backdrop-blur-xl max-w-md w-full"
+            >
+              <div className="text-center">
+                <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Select Exam
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-10">Choose your exam type to view quizzes</p>
+
+                <div className="flex flex-col gap-4">
+                  {['UPSC', 'UPPCS-2026'].map((type) => (
+                    <motion.button
+                      key={type}
+                      onClick={() => handleExamSelect(type)}
+                      whileHover={{ scale: 1.08, y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                      animate={examType === type ? { scale: 1 } : { scale: 0.95 }}
+                      className={`px-8 py-6 rounded-2xl font-black text-lg md:text-xl transition-all ${
+                        examType === type
+                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xl'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-400'
+                      }`}
+                    >
+                      {type}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
 
         {/* --- LOADING SKELETONS --- */}
         {loading && (
@@ -248,56 +353,91 @@ export default function QuizPage() {
                 </motion.div>
               )}
 
-              {/* ARCHIVE GOOGLE-STYLE GLASSY GRID */}
-              {pastQuizzes.length > 0 && (
-                <>
-                  <div className="flex items-center gap-3 mb-6 px-1 mt-4">
-                    <History className="text-slate-400 dark:text-slate-500" size={20} />
-                    <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">Past Mocks</h3>
-                    <div className="flex-1 h-[1px] bg-gradient-to-r from-slate-200 to-transparent dark:from-slate-800 ml-3"></div>
-                  </div>
+              {/* ARCHIVE GROUPED BY SUBJECT */}
+              {pastQuizzes.length > 0 && (() => {
+                const groupedBySubject = {};
+                pastQuizzes.forEach(quiz => {
+                  const subject = quiz.subject || 'General';
+                  if (!groupedBySubject[subject]) groupedBySubject[subject] = [];
+                  groupedBySubject[subject].push(quiz);
+                });
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6">
-                    {pastQuizzes.map((quiz) => (
-                      <motion.div key={quiz.date} variants={itemVariants}>
-                        <div className="flex flex-col h-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border border-slate-200/80 dark:border-slate-700/60 rounded-[1.5rem] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] relative overflow-hidden">
-                          <div className="flex justify-between items-start mb-5 relative z-10">
-                            <div className="w-12 h-12 rounded-[1rem] bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-sm">
-                              <BookOpen size={20} strokeWidth={2.5} />
-                            </div>
-                            <span className="px-3 py-1 bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 rounded-full text-[10px] font-bold uppercase tracking-wider border border-slate-200/60 dark:border-slate-700/60 shadow-sm backdrop-blur-sm">
-                              {quiz.subject || 'General'}
-                            </span>
-                          </div>
-
-                          <div className="flex-1 relative z-10">
-                            <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 mb-2 line-clamp-2 leading-snug">
-                              {quiz.title}
-                            </h3>
-                          </div>
-
-                          <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-200/60 dark:border-slate-700/60 relative z-10">
-                            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                              <Calendar size={14} className="text-slate-400" /> {quiz.date}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Link to={`/quiz/attempt?date=${quiz.date}`}
-                                className="flex items-center gap-1 text-blue-600 dark:text-blue-400 text-xs font-bold hover:underline">
-                                Attempt <ChevronRight size={13} />
-                              </Link>
-                              <span className="text-slate-300 dark:text-slate-700 text-xs">|</span>
-                              <Link to={`/quiz/review?date=${quiz.date}`}
-                                className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-bold hover:underline">
-                                Solution <ChevronRight size={13} />
-                              </Link>
-                            </div>
-                          </div>
+                return (
+                  <>
+                    {Object.entries(groupedBySubject).map(([subject, quizzes]) => (
+                      <div key={subject} className="mb-10">
+                        <div className="flex items-center gap-3 mb-6 px-1 mt-4">
+                          <BookOpen className="text-slate-400 dark:text-slate-500" size={20} />
+                          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">{subject}</h3>
+                          <div className="flex-1 h-[1px] bg-gradient-to-r from-slate-200 to-transparent dark:from-slate-800 ml-3"></div>
                         </div>
-                      </motion.div>
+
+                        <style>{`
+                          @keyframes blink-glow {
+                            0%, 100% { box-shadow: 0 0 10px rgba(220, 38, 38, 0.6); }
+                            50% { box-shadow: 0 0 20px rgba(220, 38, 38, 0.9); }
+                          }
+                          .youtube-badge { animation: blink-glow 1.5s infinite; }
+                        `}</style>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+                          {quizzes.map((quiz) => (
+                            <motion.div key={quiz.date} variants={itemVariants}>
+                              <div className="flex flex-col h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border border-slate-200/80 dark:border-slate-700/60 rounded-2xl p-5 shadow-md hover:shadow-lg transition-all relative overflow-hidden group">
+                                {/* Background gradient effect */}
+                                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent dark:from-blue-900/10 dark:to-transparent pointer-events-none"></div>
+
+                                {/* Header with icon and lecture badge */}
+                                <div className="flex items-start justify-between mb-5 relative z-10">
+                                  <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-sm">
+                                    <BookOpen size={22} strokeWidth={2} />
+                                  </div>
+                                  {quiz.youtubeUrl && (
+                                    <a
+                                      href={quiz.youtubeUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="youtube-badge flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md hover:scale-105 transition-all cursor-pointer"
+                                    >
+                                      <Youtube size={16} className="text-red-600 flex-shrink-0" />
+                                      <span className="text-xs font-bold text-slate-900 dark:text-white">Lecture</span>
+                                    </a>
+                                  )}
+                                </div>
+
+                                {/* Title and date */}
+                                <div className="flex-1 relative z-10 mb-5">
+                                  <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1.5 leading-snug line-clamp-2">
+                                    {quiz.title}
+                                  </h3>
+                                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                                    ({quiz.date})
+                                  </p>
+                                </div>
+
+                                {/* Divider */}
+                                <div className="h-px bg-gradient-to-r from-slate-200 to-transparent dark:from-slate-700 mb-4 relative z-10"></div>
+
+                                {/* Action buttons */}
+                                <div className="flex items-center justify-between gap-2 relative z-10">
+                                  <Link to={`/quiz/attempt?date=${quiz.date}`}
+                                    className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-bold text-xs hover:gap-1.5 transition-all">
+                                    Attempt <ChevronRight size={14} />
+                                  </Link>
+                                  <Link to={`/quiz/review?date=${quiz.date}`}
+                                    className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold text-xs hover:gap-1.5 transition-all">
+                                    Solution <ChevronRight size={14} />
+                                  </Link>
+                                </div>
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
                     ))}
-                  </div>
-                </>
-              )}
+                  </>
+                );
+              })()}
             </motion.div>
           )}
         </div>
@@ -316,7 +456,7 @@ export default function QuizPage() {
             </a>
 
             {/* Overall Leaderboard */}
-            <Link to="/quiz/leaderboard" className="group relative">
+            <Link to={`/quiz/leaderboard?exam=${examType}`} className="group relative">
               <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 to-orange-500 rounded-xl blur opacity-20 group-hover:opacity-50 transition duration-500"></div>
               <div className="relative inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-bold text-xs md:text-sm shadow-md overflow-hidden transition-transform transform-gpu active:scale-95">
                 <TrendingUp size={16} className="relative z-10" />

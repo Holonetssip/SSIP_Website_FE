@@ -10,7 +10,7 @@ import { auth } from '../services/firebase';
 import {
   publishQuiz, fetchAllQuizzes,
   fetchQuizForEdit, toggleQuizPublished,
-  fetchDailyAttemptsAll, fetchAllUserStats, fetchAdminStats,
+  fetchDailyAttemptsAll, fetchAllUserStats, fetchAllUserStatsByExamType, fetchAdminStats,
 } from '../services/quizService';
 import {
   saveAnswerKey, fetchAllAnswerKeys, deleteAnswerKey, PAPER_CONFIG,
@@ -141,8 +141,11 @@ export default function QuizAdmin() {
   const [date, setDate] = useState(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }));
   const [title, setTitle] = useState('');
   const [subject, setSubject] = useState('General Studies');
+  const [examType, setExamType] = useState('UPSC');
   const [timeLimitMins, setTimeLimitMins] = useState(20);
   const [publishTime, setPublishTime] = useState('21:00');
+  const [archiveTime, setArchiveTime] = useState('23:00');
+  const [youtubeUrl, setYoutubeUrl] = useState('');
   const [questions, setQuestions] = useState([{ ...EMPTY_Q, options: ['', '', '', ''] }]);
 
   // Manage list state
@@ -156,11 +159,13 @@ export default function QuizAdmin() {
 
   // Reports state
   const [reportDate, setReportDate] = useState(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }));
+  const [cumulativeExamType, setCumulativeExamType] = useState('UPSC');
   const [reportLoading, setReportLoading] = useState(null); // 'daily' | 'cumulative' | null
 
   // Stats state
   const [statsData, setStatsData] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [statsExamType, setStatsExamType] = useState('UPSC');
 
   // UPSC keys state
   const [upscPaper, setUpscPaper] = useState('gs');
@@ -244,18 +249,18 @@ export default function QuizAdmin() {
   const handleDownloadCumulative = async (format = 'csv') => {
     setReportLoading(`cumulative-${format}`);
     try {
-      const stats = await fetchAllUserStats();
-      if (!stats.length) return setStatus({ type: 'error', msg: 'No cumulative data found.' });
+      const stats = await fetchAllUserStatsByExamType(cumulativeExamType);
+      if (!stats.length) return setStatus({ type: 'error', msg: `No cumulative data found for ${cumulativeExamType}.` });
       const head = ['Rank', 'Name', 'Phone', 'Total Score', 'Best Score', 'Quizzes Attempted', 'Last Attempt Date'];
       const body = stats.map((s, i) => [i + 1, s.displayName, s.phone, s.totalScore, s.bestScore, s.attemptCount, s.lastAttemptDate]);
       if (format === 'pdf') {
         const pdfHead = ['Rank', 'Name', 'Total Score', 'Best Score', 'Quizzes Attempted', 'Last Attempt Date'];
         const pdfBody = stats.map((s, i) => [i + 1, s.displayName, s.totalScore, s.bestScore, s.attemptCount, s.lastAttemptDate]);
-        downloadPDF('cumulative_leaderboard.pdf', 'Cumulative Leaderboard — All Time', pdfHead, pdfBody);
+        downloadPDF(`cumulative_leaderboard_${cumulativeExamType}.pdf`, `Cumulative Leaderboard — ${cumulativeExamType} All Time`, pdfHead, pdfBody);
       } else {
-        downloadCSV('cumulative_leaderboard.csv', [head, ...body]);
+        downloadCSV(`cumulative_leaderboard_${cumulativeExamType}.csv`, [head, ...body]);
       }
-      setStatus({ type: 'success', msg: `Downloaded cumulative rankings for ${stats.length} students.` });
+      setStatus({ type: 'success', msg: `Downloaded cumulative rankings for ${stats.length} students (${cumulativeExamType}).` });
     } catch (err) {
       setStatus({ type: 'error', msg: err.message });
     } finally {
@@ -308,10 +313,10 @@ export default function QuizAdmin() {
   };
 
   // ── Stats ──────────────────────────────────────────────────────────────────
-  const loadStats = async () => {
+  const loadStats = async (examType = statsExamType) => {
     setStatsLoading(true);
     try {
-      const data = await fetchAdminStats();
+      const data = await fetchAdminStats(examType);
       setStatsData(data);
     } catch {
       setStatus({ type: 'error', msg: 'Failed to load stats.' });
@@ -319,6 +324,11 @@ export default function QuizAdmin() {
       setStatsLoading(false);
     }
   };
+
+  // Reload stats when exam type changes
+  useEffect(() => {
+    if (mode === 'stats' && isAdmin) loadStats(statsExamType);
+  }, [statsExamType, mode, isAdmin]);
 
   // ── Manage: Toggle hide/show ───────────────────────────────────────────────
   const handleTogglePublish = async (date, current) => {
@@ -342,13 +352,16 @@ export default function QuizAdmin() {
       setDate(quizDate);
       setTitle(data.title || '');
       setSubject(data.subject || 'General Studies');
+      setExamType(data.examType || 'UPSC');
       setTimeLimitMins(data.timeLimitMins || 20);
+      setYoutubeUrl(data.youtubeUrl || '');
       if (data.publishAt) {
         const t = new Date(data.publishAt).toLocaleTimeString('en-CA', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false });
         setPublishTime(t);
       } else {
         setPublishTime('21:00');
       }
+      setArchiveTime(data.archiveTime || '23:00');
       setQuestions(data.questions);
       setEditingDate(quizDate);
       setStatus(null);
@@ -366,8 +379,11 @@ export default function QuizAdmin() {
     setDate(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }));
     setTitle('');
     setSubject('General Studies');
+    setExamType('UPSC');
     setTimeLimitMins(20);
     setPublishTime('21:00');
+    setArchiveTime('23:00');
+    setYoutubeUrl('');
     setQuestions([{ ...EMPTY_Q, options: ['', '', '', ''] }]);
     setStatus(null);
     setMode('create');
@@ -388,7 +404,7 @@ export default function QuizAdmin() {
       const publishAt = publishTime
         ? new Date(`${date}T${publishTime}:00+05:30`).toISOString()
         : null;
-      const result = await publishQuiz(date, { title, subject, timeLimitMins: Number(timeLimitMins), publishAt }, questions);
+      const result = await publishQuiz(date, { title, subject, examType, timeLimitMins: Number(timeLimitMins), publishAt, archiveTime, youtubeUrl }, questions);
       const scheduledMsg = publishAt && new Date() < new Date(publishAt)
         ? `Scheduled ${result.totalQuestions} questions for ${result.date} at ${publishTime} IST`
         : `${editingDate ? 'Updated' : 'Published'} ${result.totalQuestions} questions for ${result.date}!`;
@@ -573,7 +589,7 @@ export default function QuizAdmin() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{quiz.title || 'Untitled'}</p>
                       <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-                        {quiz.date} · {quiz.totalQuestions} questions · {quiz.subject}
+                        {quiz.date} · {quiz.totalQuestions} questions · {quiz.subject} · <span className="text-primary font-semibold">{quiz.examType || 'UPSC'}</span>
                       </p>
                     </div>
 
@@ -674,6 +690,24 @@ export default function QuizAdmin() {
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
               <h2 className="font-black text-slate-700 dark:text-slate-200 text-sm uppercase tracking-wider mb-1">Cumulative Leaderboard</h2>
               <p className="text-xs text-slate-400 mb-4">Download all-time rankings across every quiz — Rank, Name, Phone, Total Score, Best Score, Quizzes Attempted.</p>
+
+              {/* Exam Type Selector */}
+              <div className="mb-4 flex gap-3">
+                {['UPSC', 'UPPCS-2026'].map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setCumulativeExamType(type)}
+                    className={`px-4 py-2 rounded-xl font-bold text-sm transition ${
+                      cumulativeExamType === type
+                        ? 'bg-primary text-white shadow-lg'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+
               <div className="flex gap-3 flex-wrap">
                 <button
                   onClick={() => handleDownloadCumulative('csv')}
@@ -702,12 +736,29 @@ export default function QuizAdmin() {
           <div className="flex flex-col gap-6">
 
             {/* Header + Refresh */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="font-black text-slate-700 dark:text-slate-200 text-sm uppercase tracking-wider">Dashboard</h2>
-              <button onClick={loadStats} disabled={statsLoading}
+              <button onClick={() => loadStats(statsExamType)} disabled={statsLoading}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-500 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-primary/50 hover:text-primary transition disabled:opacity-50">
                 <RefreshCw size={12} className={statsLoading ? 'animate-spin' : ''} /> Refresh
               </button>
+            </div>
+
+            {/* Exam Type Selector */}
+            <div className="flex gap-3">
+              {['UPSC', 'UPPCS-2026'].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setStatsExamType(type)}
+                  className={`px-4 py-2 rounded-xl font-bold text-sm transition ${
+                    statsExamType === type
+                      ? 'bg-primary text-white shadow-lg'
+                      : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
             </div>
 
             {statsLoading && (
@@ -756,6 +807,33 @@ export default function QuizAdmin() {
                         <Bar dataKey="avgScore" fill="#10b981" radius={[4, 4, 0, 0]} name="Avg Score" />
                       </BarChart>
                     </ResponsiveContainer>
+                  </div>
+                )}
+
+                {/* Daily Attempts Table */}
+                {statsData.perQuizAttempts.length > 0 && (
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
+                    <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Daily Attempts — {statsExamType}</p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="border-b border-slate-200 dark:border-slate-700">
+                          <tr>
+                            <th className="text-left py-2 px-3 font-bold text-slate-600 dark:text-slate-300 text-xs uppercase">Date</th>
+                            <th className="text-right py-2 px-3 font-bold text-slate-600 dark:text-slate-300 text-xs uppercase">Attempts</th>
+                            <th className="text-right py-2 px-3 font-bold text-slate-600 dark:text-slate-300 text-xs uppercase">Avg Score</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {statsData.perQuizAttempts.map((item, idx) => (
+                            <tr key={idx} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                              <td className="py-3 px-3 font-semibold text-slate-700 dark:text-slate-200">{item.date}</td>
+                              <td className="py-3 px-3 text-right font-bold text-slate-800 dark:text-white">{item.attempts}</td>
+                              <td className="py-3 px-3 text-right font-semibold text-emerald-600 dark:text-emerald-400">{item.avgScore}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
 
@@ -941,6 +1019,14 @@ export default function QuizAdmin() {
                     className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200" />
                 </div>
                 <div>
+                  <label className="text-xs font-bold text-slate-400 mb-1 block">Exam Type</label>
+                  <select value={examType} onChange={e => setExamType(e.target.value)}
+                    className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200">
+                    <option value="UPSC">UPSC</option>
+                    <option value="UPPCS-2026">UPPCS-2026</option>
+                  </select>
+                </div>
+                <div>
                   <label className="text-xs font-bold text-slate-400 mb-1 block">Title</label>
                   <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder={`Daily Quiz — ${date}`}
                     className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200" />
@@ -956,6 +1042,18 @@ export default function QuizAdmin() {
                   <input type="time" value={publishTime} onChange={e => setPublishTime(e.target.value)}
                     className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200" />
                   <p className="text-[10px] text-slate-400 mt-1">Quiz goes live at this time on the quiz date</p>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-400 mb-1 block">YouTube Lecture Link (Optional)</label>
+                  <input type="url" value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..."
+                    className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200" />
+                  <p className="text-[10px] text-slate-400 mt-1">Link to YouTube lecture/explanation for this quiz</p>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-400 mb-1 block">Archive Time (IST)</label>
+                  <input type="time" value={archiveTime} onChange={e => setArchiveTime(e.target.value)}
+                    className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200" />
+                  <p className="text-[10px] text-slate-400 mt-1">Time when quiz moves to archive (removed from LIVE TODAY)</p>
                 </div>
               </div>
             </div>
