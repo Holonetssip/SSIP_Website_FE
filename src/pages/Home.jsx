@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { motion, useSpring, useTransform } from 'framer-motion';
+import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight, Star, PlayCircle, BookOpen, Users,
@@ -8,7 +8,7 @@ import {
   Youtube, MessageCircle, Instagram, Twitter, ChevronRight,
   ChevronLeft, Sparkles, BookMarked, PenTool,
   Smartphone, Play, Apple, Compass,
-  MapPin, Copy, ExternalLink
+  MapPin, Copy, ExternalLink, Maximize2, X
 } from 'lucide-react';
 
 // --- MENTORSHIP LOCAL IMAGES (Preserved as requested) ---
@@ -114,6 +114,7 @@ const Home = () => {
   const testimonialScrollRef = useRef(null);
   const featuredSliderRef = useRef(null);
   const [copied, setCopied] = useState(false);
+  const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
 
   // --- FORCE SCROLL TO TOP ON MOUNT ---
   useEffect(() => {
@@ -381,68 +382,116 @@ const Home = () => {
         {/* Sharp Glowing Border Ring */}
         <div className="absolute -inset-x-[1px] -inset-y-[3px] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-[1.55rem] md:rounded-[2.05rem] opacity-40 dark:opacity-60 blur-[3px] transition-all duration-700 pointer-events-none"></div>
 
-        <div className="relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] shadow-[0_0_35px_rgba(168,85,247,0.15)] dark:shadow-[0_0_50px_rgba(168,85,247,0.35)] border border-purple-500/20 dark:border-purple-500/35 bg-white dark:bg-slate-950 transition-all duration-500">
+        <div className="relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] shadow-[0_0_35px_rgba(168,85,247,0.15)] dark:shadow-[0_0_50px_rgba(168,85,247,0.35)] border border-purple-500/20 dark:border-purple-500/35 bg-white dark:bg-slate-950 transition-all duration-500 flex flex-col">
 
-          {/* Responsive Banner Image wrapper targeting optimal crop-free heights */}
-          <div className="w-full h-[190px] sm:h-[260px] md:h-[420px] lg:h-[520px]">
+          {/* Dynamic Crop-Free Aspect Ratio Container */}
+          <div className="relative w-full aspect-[1920/1054] overflow-hidden bg-slate-950/5 dark:bg-slate-950/40 group/banner flex items-center justify-center">
             <img
               src={bannerImg}
               alt="Study Smart Program Banner"
-              className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.01]"
+              className="w-full h-full object-contain object-center transition-transform duration-500 group-hover/banner:scale-[1.008] cursor-pointer"
               loading="lazy"
+              onClick={() => setIsBannerModalOpen(true)}
             />
+
+            {/* Click-to-Expand Badge */}
+            <button
+              onClick={() => setIsBannerModalOpen(true)}
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 px-2.5 py-1.5 sm:px-3.5 sm:py-2 bg-slate-900/80 hover:bg-slate-900 dark:bg-slate-800/80 dark:hover:bg-slate-800 backdrop-blur-md text-white text-[10px] sm:text-xs font-semibold rounded-full shadow-lg border border-white/20 transition-all flex items-center gap-1.5 opacity-90 group-hover/banner:opacity-100 group-hover/banner:scale-105"
+              title="View full screen"
+            >
+              <Maximize2 size={13} className="text-purple-400" />
+              <span className="hidden sm:inline">View Full Banner</span>
+            </button>
           </div>
 
-          {/* Elegant Dark/Glow Overlay - hidden in light mode, shown in dark mode */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent pointer-events-none hidden dark:block"></div>
+          {/* Dedicated Glassmorphism Action Footer (Preserves 100% Poster Visibility) */}
+          <div className="w-full py-4 sm:py-5 px-4 md:px-8 bg-slate-50/95 dark:bg-slate-900/90 backdrop-blur-md border-t border-purple-500/15 dark:border-purple-500/25 flex flex-wrap items-center justify-center gap-3 sm:gap-6 md:gap-8">
+            {/* Brochure Button */}
+            <motion.a
+              href="https://t.me/StudySmartIASPCS/2938"
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              className="px-4 py-2 sm:px-7 sm:py-3.5 bg-sky-50 dark:bg-sky-950/60 backdrop-blur-md text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-700/60 font-bold rounded-full text-xs sm:text-sm uppercase tracking-wider shadow-md hover:shadow-sky-500/20 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-all flex items-center justify-center"
+            >
+              Brochure
+            </motion.a>
 
-          {/* Centered Action Buttons at the Bottom */}
-          <div className="absolute bottom-2 sm:bottom-3 md:bottom-6 lg:bottom-8 left-0 right-0 flex justify-center px-4">
-            <div className="flex flex-row gap-2 sm:gap-4 md:gap-6 lg:gap-8 items-center justify-center w-full max-w-4xl flex-wrap">
-              {/* Brochure Button */}
-              <motion.a
-                href="https://t.me/StudySmartIASPCS/2938"
-                target="_blank"
-                rel="noopener noreferrer"
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                className="px-2 py-0.5 sm:px-7 sm:py-3.5 bg-sky-50/90 dark:bg-sky-950/40 backdrop-blur-md text-sky-700 dark:text-sky-300 border-[1px] sm:border-2 border-sky-950 dark:border-sky-800/60 font-bold rounded-full text-[7px] sm:text-xs md:text-sm uppercase tracking-wider shadow-lg hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-all flex items-center justify-center"
-              >
-                Brochure
-              </motion.a>
+            {/* Enroll Now Button */}
+            <motion.a
+              href="https://t.me/uppcswithssip"
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{
+                scale: 1.05,
+                y: -2,
+                boxShadow: "0 10px 25px rgba(147, 51, 234, 0.4)"
+              }}
+              whileTap={{ scale: 0.98 }}
+              className="px-6 py-2.5 sm:px-9 sm:py-4 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 dark:from-purple-500 dark:to-blue-500 text-white font-extrabold rounded-full text-xs sm:text-base uppercase tracking-wider shadow-lg shadow-purple-500/25 transition-all flex items-center justify-center border border-purple-400/30"
+            >
+              Enroll Now
+            </motion.a>
 
-              {/* Enroll Now Button */}
-              <motion.a
-                href="https://www.ssip.cloud/courses?mainCategory=0&subCatList=[376401]"
-                target="_blank"
-                rel="noopener noreferrer"
-                whileHover={{
-                  scale: 1.05,
-                  y: -2,
-                  boxShadow: "0 10px 25px rgba(147, 51, 234, 0.4)"
-                }}
-                whileTap={{ scale: 0.98 }}
-                className="px-2.5 py-1 sm:px-8 sm:py-4 bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-500 dark:to-blue-500 text-white font-extrabold rounded-full text-[8px] sm:text-sm md:text-base uppercase tracking-wider shadow-lg shadow-purple-500/20 transition-all flex items-center justify-center border-[1px] sm:border-2 border-slate-900 dark:border-transparent"
-              >
-                Enroll Now
-              </motion.a>
-
-              {/* Contact Us Button */}
-              <motion.a
-                href="https://t.me/ssip_support"
-                target="_blank"
-                rel="noopener noreferrer"
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                className="px-2 py-0.5 sm:px-7 sm:py-3.5 bg-emerald-50/90 dark:bg-emerald-950/40 backdrop-blur-md text-emerald-700 dark:text-emerald-300 border-[1px] sm:border-2 border-emerald-950 dark:border-emerald-800/60 font-bold rounded-full text-[7px] sm:text-xs md:text-sm uppercase tracking-wider shadow-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-all flex items-center justify-center"
-              >
-                Contact Us
-              </motion.a>
-            </div>
+            {/* Contact Us Button */}
+            <motion.a
+              href="https://t.me/ssip_support"
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              className="px-4 py-2 sm:px-7 sm:py-3.5 bg-emerald-50 dark:bg-emerald-950/60 backdrop-blur-md text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60 font-bold rounded-full text-xs sm:text-sm uppercase tracking-wider shadow-md hover:shadow-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-all flex items-center justify-center"
+            >
+              Contact Us
+            </motion.a>
           </div>
 
         </div>
       </section>
+
+      {/* --- LIGHTBOX FULLSCREEN MODAL --- */}
+      <AnimatePresence>
+        {isBannerModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsBannerModalOpen(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10 bg-slate-950/90 backdrop-blur-md"
+          >
+            <div
+              className="relative max-w-6xl w-full max-h-[92vh] flex flex-col items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setIsBannerModalOpen(false)}
+                className="absolute -top-12 right-0 sm:-top-14 text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700 p-2 rounded-full border border-slate-600/50 transition-colors shadow-lg flex items-center gap-1.5 px-3 text-xs font-semibold"
+              >
+                <X size={16} />
+                <span>Close</span>
+              </button>
+
+              {/* Modal Image Container */}
+              <motion.div
+                initial={{ scale: 0.92, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.92, opacity: 0 }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                className="w-full h-full overflow-auto rounded-2xl border border-purple-500/30 shadow-[0_0_60px_rgba(168,85,247,0.3)] bg-slate-950 flex items-center justify-center p-2"
+              >
+                <img
+                  src={bannerImg}
+                  alt="Study Smart Program Banner Full Screen"
+                  className="w-full h-auto max-h-[85vh] object-contain rounded-xl"
+                />
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* --- WHY CHOOSE US --- */}
       <section className="py-16 md:py-24 relative z-10 bg-slate-50 dark:bg-slate-950 transition-colors">
