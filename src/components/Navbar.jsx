@@ -26,7 +26,7 @@ const Navbar = ({ theme, toggleTheme }) => {
   // --- EXAM STREAMS ARRAY ---
   const examStreams = [
     { id: 'UPSC', link: '/exams/upsc', icon: <BookOpen size={18} />, desc: "Union Public Service Commission" },
-    { id: 'UPPCS', link: '/exams/uppcs', icon: <Target size={18} />, desc: "Uttar Pradesh Provincial Civil Services" },
+    { id: 'UPPCS', link: '/exams/uppcs', icon: <Target size={18} />, desc: "Uttar Pradesh Public Service Commission" },
     { id: 'CSAT', link: '/exams/csat', icon: <Award size={18} />, desc: "Civil Services Aptitude Test" },
     { id: 'BPSC', link: '/exams/bpsc', icon: <MapPin size={18} />, desc: "Bihar Public Service Commission" },
     { id: 'MPPSC', link: '/exams/mppsc', icon: <Compass size={18} />, desc: "Madhya Pradesh Public Service Commission" },
@@ -35,7 +35,7 @@ const Navbar = ({ theme, toggleTheme }) => {
   // --- QUIZ EXAM OPTIONS ---
   const quizStreams = [
     { id: 'UPSC', link: '/quiz?exam=UPSC', icon: <BookOpen size={18} />, desc: "Union Public Service Commission" },
-    { id: 'UPPCS-2026', link: '/quiz?exam=UPPCS-2026', icon: <Target size={18} />, desc: "Uttar Pradesh Provincial Civil Services" },
+    { id: 'UPPCS-2026', link: '/quiz?exam=UPPCS-2026', icon: <Target size={18} />, desc: "Uttar Pradesh Public Service Commission" },
   ];
 
   return (
