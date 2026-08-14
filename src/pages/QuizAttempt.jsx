@@ -17,6 +17,9 @@ import {
   upsertUser, fetchUserAttempt,
 } from '../services/quizService';
 
+// Minimum time (seconds) a student must spend before they're allowed to submit
+const MIN_SUBMIT_SECONDS = 200;
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function formatTime(seconds) {
   if (isNaN(seconds) || seconds < 0) return "00:00";
@@ -51,8 +54,15 @@ export default function QuizAttempt() {
   const [isMobilePaletteOpen, setIsMobilePaletteOpen] = useState(false);
 
   const [overallTime, setOverallTime] = useState(0);
+  const [totalQuizSeconds, setTotalQuizSeconds] = useState(0);
   const [countdownNum, setCountdownNum] = useState(3);
   const startTimeRef = useRef(null);
+
+  const elapsedSeconds = totalQuizSeconds - overallTime;
+  // Never require more than (total - 10s) so very short quizzes can still be submitted
+  const minSubmitSeconds = totalQuizSeconds > 0 ? Math.min(MIN_SUBMIT_SECONDS, Math.max(totalQuizSeconds - 10, 0)) : MIN_SUBMIT_SECONDS;
+  const canSubmit = elapsedSeconds >= minSubmitSeconds;
+  const submitLockRemaining = Math.max(minSubmitSeconds - elapsedSeconds, 0);
 
   // 1. Initial Load
   useEffect(() => {
@@ -90,6 +100,7 @@ export default function QuizAttempt() {
     if (appState === 'quiz' && quizData && overallTime === 0) {
       const totalSecs = (quizData.timeLimitMins || quizData.questions.length * 2) * 60;
       setOverallTime(totalSecs);
+      setTotalQuizSeconds(totalSecs);
     }
   }, [appState, quizData]);
 
@@ -157,8 +168,17 @@ export default function QuizAttempt() {
     });
   };
 
+  const handleSubmitClick = () => {
+    if (!canSubmit) {
+      alert(`You can't submit before ${minSubmitSeconds} seconds. Please wait ${submitLockRemaining} more second${submitLockRemaining === 1 ? '' : 's'}.`);
+      return;
+    }
+    handleSubmit();
+  };
+
   const handleSubmit = async () => {
     if (!quizData) return;
+    if (!canSubmit) return; // safety guard — button click is intercepted above, this covers the auto-submit timeout path
     const timeTaken = startTimeRef.current ? Math.floor((Date.now() - startTimeRef.current) / 1000) : 0;
     let correct = 0, incorrect = 0, unattempted = 0;
 
@@ -337,7 +357,7 @@ export default function QuizAttempt() {
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => setIsMobilePaletteOpen(true)} className="lg:hidden p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg"><LayoutGrid size={18} /></button>
-            <button onClick={handleSubmit} className="hidden lg:block px-4 py-2 bg-rose-500 text-white rounded-lg font-bold text-[10px] active:scale-95 transition-transform uppercase tracking-wider">Submit Test</button>
+            <button onClick={handleSubmitClick} className="hidden lg:block px-4 py-2 bg-rose-500 text-white rounded-lg font-bold text-[10px] active:scale-95 transition-transform uppercase tracking-wider">Submit Test</button>
           </div>
         </header>
 
@@ -373,7 +393,7 @@ export default function QuizAttempt() {
 
           <aside className="hidden lg:flex w-64 flex-col border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shrink-0">
             <QuestionPalette />
-            <button onClick={handleSubmit} className="mt-auto w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-[10px] uppercase tracking-widest active:scale-95 transition-all border border-transparent hover:border-primary">Final Submission</button>
+            <button onClick={handleSubmitClick} className="mt-auto w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-[10px] uppercase tracking-widest active:scale-95 transition-all border border-transparent hover:border-primary">Final Submission</button>
           </aside>
         </div>
 
@@ -394,7 +414,7 @@ export default function QuizAttempt() {
 
         <AnimatePresence>{isMobilePaletteOpen && (
           <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} className="fixed inset-0 z-[800] bg-white dark:bg-slate-900 p-8 flex flex-col lg:hidden">
-            <QuestionPalette /><button onClick={handleSubmit} className="mt-auto w-full py-4 bg-primary text-white rounded-xl font-bold uppercase tracking-widest text-xs">Complete Submission</button>
+            <QuestionPalette /><button onClick={handleSubmitClick} className="mt-auto w-full py-4 bg-primary text-white rounded-xl font-bold uppercase tracking-widest text-xs">Complete Submission</button>
           </motion.div>
         )}</AnimatePresence>
       </div>
