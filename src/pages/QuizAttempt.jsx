@@ -198,8 +198,8 @@ export default function QuizAttempt() {
     // Step 3: Fetch leaderboard + real ranks independently (may fail if index not ready)
     try {
       const [lb, dailyRank] = await Promise.all([
-        fetchLeaderboard(date),
-        fetchUserDailyRank(userId, date, finalScore, timeTaken),
+        fetchLeaderboard(date, quizData?.examType || 'UPSC'),
+        fetchUserDailyRank(userId, date, finalScore, timeTaken, quizData?.examType || 'UPSC'),
       ]);
       setDbLeaderboard(lb);
       setUserDailyRank(dailyRank);
