@@ -6,62 +6,23 @@ import {
   ChevronRight, Send, Trophy, Play, Target,
   History, Zap, ArrowDown, CheckCircle2, Clock, TrendingUp, Youtube
 } from 'lucide-react';
-import { getTodayDate, fetchRecentQuizzes } from '../services/quizService'; 
+import { getTodayDate, fetchRecentQuizzes } from '../services/quizService';
 
 export default function QuizPage() {
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [examType, setExamType] = useState('UPSC');
-  const [showPopup, setShowPopup] = useState(true);
-  const today = getTodayDate();
   const location = useLocation();
-  const prevPathRef = useRef(location.pathname);
+  // Exam type is chosen from the navbar's Quiz dropdown and passed via ?exam=
+  const params = new URLSearchParams(location.search);
+  const examType = params.get('exam') === 'UPPCS-2026' ? 'UPPCS-2026' : 'UPSC';
+  const telegramLink = examType === 'UPPCS-2026' ? 'https://t.me/uppcswithssip' : 'https://t.me/+U98qAhiBLLg3ZWRl';
+  const today = getTodayDate();
 
   // Reference for the smooth scroll
   const quizSectionRef = useRef(null);
 
-  // Show popup when returning to quiz page or clicking Quiz tab
-  useEffect(() => {
-    const currentPath = location.pathname;
-
-    // Show popup if coming from a different page back to /quiz
-    if ((currentPath === '/quiz' || currentPath.endsWith('/quiz')) &&
-        prevPathRef.current !== currentPath) {
-      setShowPopup(true);
-    }
-
-    prevPathRef.current = currentPath;
-  }, [location.pathname]);
-
-  // Listen for Quiz link clicks in navbar to show popup
-  useEffect(() => {
-    const handleClick = (e) => {
-      // Find all Quiz links in navbar (contain BrainCircuit icon and "Quiz" text)
-      const quizLinks = document.querySelectorAll('a');
-      for (let link of quizLinks) {
-        if (link.textContent.includes('Quiz') &&
-            (link.getAttribute('href') === '/quiz' || link.getAttribute('href')?.includes('/quiz'))) {
-          if (link.contains(e.target) || link === e.target) {
-            // Delay slightly to ensure state updates properly
-            setTimeout(() => setShowPopup(true), 10);
-            break;
-          }
-        }
-      }
-    };
-
-    document.addEventListener('click', handleClick);
-    return () => document.removeEventListener('click', handleClick);
-  }, []);
-
   const scrollToQuizzes = () => {
     quizSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
-  const handleExamSelect = (type) => {
-    setExamType(type);
-    // Close popup after brief delay for better UX
-    setTimeout(() => setShowPopup(false), 300);
   };
 
   useEffect(() => {
@@ -132,7 +93,7 @@ export default function QuizPage() {
               ========================================= */}
           
           {/* 1. Exam Ready Card (Top Left) - Clickable */}
-          <motion.button onClick={() => setShowPopup(true)} animate={{ y: [0, -12, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute hidden lg:flex top-12 left-10 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl shadow-xl items-center gap-3 transform-gpu -rotate-6 hover:shadow-2xl hover:border-blue-400 cursor-pointer transition-all">
+          <motion.button animate={{ y: [0, -12, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute hidden lg:flex top-12 left-10 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl shadow-xl items-center gap-3 transform-gpu -rotate-6 hover:shadow-2xl hover:border-blue-400 cursor-pointer transition-all">
             <div className="bg-emerald-100 dark:bg-emerald-900/30 p-2 rounded-lg text-emerald-600 dark:text-emerald-400">
               <CheckCircle2 size={18} />
             </div>
@@ -143,7 +104,7 @@ export default function QuizPage() {
           </motion.button>
 
           {/* 2. Global Rank Card (Top Right) - Clickable */}
-          <motion.button onClick={() => setShowPopup(true)} animate={{ y: [0, 12, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }} className="absolute hidden lg:flex top-16 right-10 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl shadow-xl items-center gap-3 transform-gpu rotate-6 hover:shadow-2xl hover:border-blue-400 cursor-pointer transition-all">
+          <motion.button animate={{ y: [0, 12, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }} className="absolute hidden lg:flex top-16 right-10 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl shadow-xl items-center gap-3 transform-gpu rotate-6 hover:shadow-2xl hover:border-blue-400 cursor-pointer transition-all">
             <div className="bg-yellow-100 dark:bg-yellow-900/30 p-2 rounded-lg text-yellow-600 dark:text-yellow-500">
               <Trophy size={18} />
             </div>
@@ -154,7 +115,7 @@ export default function QuizPage() {
           </motion.button>
 
           {/* 3. Exam Standard Card (Bottom Left) - Clickable - Dynamic based on exam type */}
-          <motion.button onClick={() => setShowPopup(true)} animate={{ y: [0, -8, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }} className="absolute hidden lg:flex bottom-16 left-20 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl shadow-xl items-center gap-3 transform-gpu rotate-3 hover:shadow-2xl hover:border-blue-400 cursor-pointer transition-all">
+          <motion.button animate={{ y: [0, -8, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }} className="absolute hidden lg:flex bottom-16 left-20 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl shadow-xl items-center gap-3 transform-gpu rotate-3 hover:shadow-2xl hover:border-blue-400 cursor-pointer transition-all">
             <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-lg text-purple-600 dark:text-purple-400">
               <Target size={18} />
             </div>
@@ -211,52 +172,6 @@ export default function QuizPage() {
           </motion.div>
         </div>
 
-        {/* --- EXAM TYPE BIG POPUP --- */}
-        {showPopup && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed inset-0 flex items-center justify-center z-50 p-4"
-          >
-            {/* Dark overlay */}
-            <div className="absolute inset-0 bg-black/30 dark:bg-black/50" />
-
-            {/* Blinking popup */}
-            <motion.div
-              animate={{ boxShadow: ["0 0 40px rgba(59, 130, 246, 0.5)", "0 0 80px rgba(147, 51, 234, 0.8)", "0 0 40px rgba(59, 130, 246, 0.5)"] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="relative bg-white dark:bg-slate-900 border-3 border-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-12 shadow-2xl backdrop-blur-xl max-w-md w-full"
-            >
-              <div className="text-center">
-                <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Select Exam
-                </h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-10">Choose your exam type to view quizzes</p>
-
-                <div className="flex flex-col gap-4">
-                  {['UPSC', 'UPPCS-2026'].map((type) => (
-                    <motion.button
-                      key={type}
-                      onClick={() => handleExamSelect(type)}
-                      whileHover={{ scale: 1.08, y: -2 }}
-                      whileTap={{ scale: 0.95 }}
-                      animate={examType === type ? { scale: 1 } : { scale: 0.95 }}
-                      className={`px-8 py-6 rounded-2xl font-black text-lg md:text-xl transition-all ${
-                        examType === type
-                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xl'
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-400'
-                      }`}
-                    >
-                      {type}
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
 
         {/* --- LOADING SKELETONS --- */}
         {loading && (
@@ -287,7 +202,7 @@ export default function QuizPage() {
             <Trophy size={40} className="mx-auto text-slate-300 dark:text-slate-700 mb-3" />
             <h2 className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">No Quizzes Available Yet</h2>
             <p className="text-slate-500 text-sm mb-5">We are preparing high-quality content. Join our Telegram to get notified instantly!</p>
-            <a href="https://t.me/+U98qAhiBLLg3ZWRl" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-bold text-sm shadow-md transition-all hover:scale-105 active:scale-95">
+            <a href={telegramLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-bold text-sm shadow-md transition-all hover:scale-105 active:scale-95">
               <Send size={14} /> Notify Me
             </a>
           </motion.div>
@@ -345,7 +260,7 @@ export default function QuizPage() {
                         </p>
                       </div>
 
-                      <a href="https://t.me/+U98qAhiBLLg3ZWRl" target="_blank" rel="noopener noreferrer" className="shrink-0 w-full md:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-colors active:scale-95">
+                      <a href={telegramLink} target="_blank" rel="noopener noreferrer" className="shrink-0 w-full md:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-colors active:scale-95">
                         Notify Me <Send size={16} />
                       </a>
                     </div>
@@ -446,7 +361,7 @@ export default function QuizPage() {
         {!loading && quizzes.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mt-16 text-center pb-8 flex flex-wrap justify-center gap-3">
             {/* Telegram */}
-            <a href="https://t.me/+U98qAhiBLLg3ZWRl" target="_blank" rel="noopener noreferrer" className="group relative">
+            <a href={telegramLink} target="_blank" rel="noopener noreferrer" className="group relative">
               <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-20 group-hover:opacity-50 transition duration-500"></div>
               <div className="relative inline-flex items-center gap-2 px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-xs md:text-sm shadow-md overflow-hidden transition-transform transform-gpu active:scale-95">
                 <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 dark:via-slate-900/10 to-transparent skew-x-12 z-0" />

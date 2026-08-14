@@ -10,6 +10,7 @@ const Navbar = ({ theme, toggleTheme }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isExamHovered, setIsExamHovered] = useState(false);
+  const [isQuizHovered, setIsQuizHovered] = useState(false);
 
   const location = useLocation();
 
@@ -29,6 +30,12 @@ const Navbar = ({ theme, toggleTheme }) => {
     { id: 'CSAT', link: '/exams/csat', icon: <Award size={18} />, desc: "Civil Services Aptitude Test" },
     { id: 'BPSC', link: '/exams/bpsc', icon: <MapPin size={18} />, desc: "Bihar Public Service Commission" },
     { id: 'MPPSC', link: '/exams/mppsc', icon: <Compass size={18} />, desc: "Madhya Pradesh Public Service Commission" },
+  ];
+
+  // --- QUIZ EXAM OPTIONS ---
+  const quizStreams = [
+    { id: 'UPSC', link: '/quiz?exam=UPSC', icon: <BookOpen size={18} />, desc: "Union Public Service Commission" },
+    { id: 'UPPCS-2026', link: '/quiz?exam=UPPCS-2026', icon: <Target size={18} />, desc: "Uttar Pradesh Provincial Civil Services" },
   ];
 
   return (
@@ -100,10 +107,32 @@ const Navbar = ({ theme, toggleTheme }) => {
 
               <Link to="/about" className={`px-3 py-2 rounded-xl hover:text-primary dark:hover:text-white transition ${location.pathname === '/about' ? 'text-primary font-bold' : ''}`}>About Us</Link>
 
-              {/* RE-POSITIONED QUIZ LINK (Now at the end) */}
-              <Link to="/quiz" className={`px-3 py-2 rounded-xl hover:text-primary dark:hover:text-white transition flex items-center gap-1.5 ${location.pathname.includes('/quiz') ? 'text-primary font-bold' : ''}`}>
-                <BrainCircuit size={16} className={`${location.pathname.includes('/quiz') ? 'text-primary' : 'text-purple-500'}`} /> Quiz
-              </Link>
+              {/* Quiz Mega Menu */}
+              <div className="relative group px-2 py-2" onMouseEnter={() => setIsQuizHovered(true)} onMouseLeave={() => setIsQuizHovered(false)}>
+                <button className={`flex items-center gap-1.5 px-2 py-2 rounded-xl hover:text-primary dark:hover:text-white transition font-medium focus:outline-none ${location.pathname.includes('/quiz') ? 'text-primary font-bold' : ''}`}>
+                  <BrainCircuit size={16} className={`${location.pathname.includes('/quiz') ? 'text-primary' : 'text-purple-500'}`} /> Quiz <ChevronDown size={14} className={`transition-transform duration-300 ${isQuizHovered ? 'rotate-180 text-primary' : ''}`} />
+                </button>
+                <AnimatePresence>
+                  {isQuizHovered && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 15, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-80 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden p-2"
+                    >
+                      <div className="flex flex-col gap-1">
+                        {quizStreams.map((exam) => (
+                          <Link key={exam.id} to={exam.link} onClick={() => setIsQuizHovered(false)} className="flex items-start gap-4 p-3 rounded-xl hover:bg-primary/10 dark:hover:bg-slate-800 transition text-left group">
+                            <div className="mt-0.5 p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-primary group-hover:bg-primary group-hover:text-white transition-colors">{exam.icon}</div>
+                            <div>
+                               <h4 className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-primary">{exam.id}</h4>
+                               <p className="text-xs text-slate-500 line-clamp-1">{exam.desc}</p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
 
             {/* Right Side Tools */}
@@ -143,10 +172,13 @@ const Navbar = ({ theme, toggleTheme }) => {
             
             <MobileLink to="/about" onClick={() => setIsOpen(false)}>About Us</MobileLink>
 
-            {/* QUIZ LINK MOBILE */}
-            <Link to="/quiz" onClick={() => setIsOpen(false)} className="px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-              <BrainCircuit size={18} className="text-purple-500"/> Daily Quiz
-            </Link>
+            {/* QUIZ MOBILE */}
+            <div className="py-2 px-4">
+              <p className="text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-1.5"><BrainCircuit size={14} className="text-purple-500"/> Quiz</p>
+              <div className="flex flex-col gap-2">
+                {quizStreams.map(e => <Link key={e.id} to={e.link} onClick={() => setIsOpen(false)} className="text-primary font-bold bg-primary/10 p-2 rounded-lg text-sm">{e.id}</Link>)}
+              </div>
+            </div>
             
             {/* Mobile Login Button */}
             <a 
