@@ -406,20 +406,8 @@ const Home = () => {
           </div>
 
           {/* Dedicated Glassmorphism Action Footer (Preserves 100% Poster Visibility) */}
-          <div className="w-full py-4 sm:py-5 px-4 md:px-8 bg-slate-50/95 dark:bg-slate-900/90 backdrop-blur-md border-t border-purple-500/15 dark:border-purple-500/25 flex flex-wrap items-center justify-center gap-3 sm:gap-6 md:gap-8">
-            {/* Brochure Button */}
-            <motion.a
-              href="https://t.me/StudySmartIASPCS/2938"
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              className="px-4 py-2 sm:px-7 sm:py-3.5 bg-sky-50 dark:bg-sky-950/60 backdrop-blur-md text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-700/60 font-bold rounded-full text-xs sm:text-sm uppercase tracking-wider shadow-md hover:shadow-sky-500/20 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-all flex items-center justify-center"
-            >
-              Brochure
-            </motion.a>
-
-            {/* Enroll Now Button */}
+          <div className="w-full py-4 sm:py-5 px-4 md:px-8 bg-slate-50/95 dark:bg-slate-900/90 backdrop-blur-md border-t border-purple-500/15 dark:border-purple-500/25 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 md:gap-8">
+            {/* Join WarRoom Button */}
             <motion.a
               href="https://t.me/uppcswithssip"
               target="_blank"
@@ -430,9 +418,9 @@ const Home = () => {
                 boxShadow: "0 10px 25px rgba(147, 51, 234, 0.4)"
               }}
               whileTap={{ scale: 0.98 }}
-              className="px-6 py-2.5 sm:px-9 sm:py-4 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 dark:from-purple-500 dark:to-blue-500 text-white font-extrabold rounded-full text-xs sm:text-base uppercase tracking-wider shadow-lg shadow-purple-500/25 transition-all flex items-center justify-center border border-purple-400/30"
+              className="w-full sm:w-auto px-6 py-3 sm:px-9 sm:py-3.5 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 dark:from-purple-500 dark:to-blue-500 text-white font-extrabold rounded-full text-xs sm:text-base uppercase tracking-wider shadow-lg shadow-purple-500/25 transition-all flex items-center justify-center border border-purple-400/30 text-center"
             >
-              Enroll Now
+              Join WarRoom
             </motion.a>
 
             {/* Contact Us Button */}
@@ -442,7 +430,7 @@ const Home = () => {
               rel="noopener noreferrer"
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.98 }}
-              className="px-4 py-2 sm:px-7 sm:py-3.5 bg-emerald-50 dark:bg-emerald-950/60 backdrop-blur-md text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60 font-bold rounded-full text-xs sm:text-sm uppercase tracking-wider shadow-md hover:shadow-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-all flex items-center justify-center"
+              className="w-full sm:w-auto px-6 py-3 sm:px-8 sm:py-3.5 bg-emerald-50 dark:bg-emerald-950/60 backdrop-blur-md text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60 font-bold rounded-full text-xs sm:text-base uppercase tracking-wider shadow-md hover:shadow-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-all flex items-center justify-center text-center"
             >
               Contact Us
             </motion.a>
