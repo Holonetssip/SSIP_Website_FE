@@ -1,8 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CheckCircle2, BookOpen, ChevronLeft, Loader2 } from 'lucide-react';
+import { CheckCircle2, BookOpen, ChevronLeft, Loader2, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
 import { fetchQuiz } from '../services/quizService';
+
+let devanagariFontBase64 = null;
+async function loadDevanagariFont() {
+  if (devanagariFontBase64) return devanagariFontBase64;
+  const res = await fetch('/fonts/NotoSansDevanagari.ttf');
+  const buffer = await res.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  }
+  devanagariFontBase64 = btoa(binary);
+  return devanagariFontBase64;
+}
 
 export default function QuizReview() {
   const [searchParams] = useSearchParams();
@@ -11,6 +27,76 @@ export default function QuizReview() {
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownloadPDF = async () => {
+    if (!quiz || downloading) return;
+    setDownloading(true);
+    try {
+      const fontBase64 = await loadDevanagariFont();
+
+      const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+      doc.addFileToVFS('NotoSansDevanagari.ttf', fontBase64);
+      doc.addFont('NotoSansDevanagari.ttf', 'Noto', 'normal');
+      doc.addFont('NotoSansDevanagari.ttf', 'Noto', 'bold');
+      doc.setFont('Noto', 'normal');
+
+      const marginX = 15;
+      const marginTop = 20;
+      const marginBottom = 20;
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const contentWidth = pageWidth - marginX * 2;
+      let y = marginTop;
+
+      const ensureSpace = (needed) => {
+        if (y + needed > pageHeight - marginBottom) {
+          doc.addPage();
+          y = marginTop;
+        }
+      };
+
+      doc.setFont('Noto', 'bold');
+      doc.setFontSize(16);
+      doc.setTextColor(15, 23, 42);
+      const titleLines = doc.splitTextToSize(quiz.title, contentWidth);
+      doc.text(titleLines, marginX, y);
+      y += titleLines.length * 7 + 2;
+
+      doc.setFont('Noto', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(120, 120, 120);
+      doc.text(`${date} - ${quiz.questions.length} Questions`, marginX, y);
+      y += 10;
+
+      quiz.questions.forEach((q, idx) => {
+        doc.setFont('Noto', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(15, 23, 42);
+        const qLines = doc.splitTextToSize(`Q${idx + 1}. ${q.question}`, contentWidth);
+        ensureSpace(qLines.length * 6 + 4);
+        doc.text(qLines, marginX, y);
+        y += qLines.length * 6 + 3;
+
+        doc.setFont('Noto', 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(51, 65, 85);
+        q.options.forEach((opt, oi) => {
+          const label = String.fromCharCode(65 + oi);
+          const optLines = doc.splitTextToSize(`${label}) ${opt}`, contentWidth - 6);
+          ensureSpace(optLines.length * 5.5 + 2);
+          doc.text(optLines, marginX + 6, y);
+          y += optLines.length * 5.5 + 2;
+        });
+        y += 6;
+      });
+
+      const safeTitle = (quiz.title || 'quiz').replace(/[^a-z0-9]+/gi, '_');
+      doc.save(`${safeTitle}.pdf`);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -40,9 +126,18 @@ export default function QuizReview() {
     <div className="min-h-screen pt-28 pb-20 bg-slate-50 dark:bg-slate-950 px-4">
       <div className="max-w-2xl mx-auto">
 
-        <Link to="/quiz" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-primary mb-6 transition-colors">
-          <ChevronLeft size={14} /> Back to Quiz Vault
-        </Link>
+        <div className="flex items-center justify-between mb-6">
+          <Link to="/quiz" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-primary transition-colors">
+            <ChevronLeft size={14} /> Back to Quiz Vault
+          </Link>
+          <button
+            onClick={handleDownloadPDF}
+            disabled={downloading}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-[10px] uppercase tracking-widest active:scale-95 transition-transform disabled:opacity-50">
+            {downloading ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
+            {downloading ? 'Preparing…' : 'PDF'}
+          </button>
+        </div>
 
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary font-bold text-[10px] uppercase tracking-widest mb-3">
