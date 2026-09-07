@@ -176,15 +176,15 @@ export default function QuizAttempt() {
     const userId = userData.phone;
 
     // Step 1: Save attempt — critical, must succeed
-    let savedTotalScore = finalScore;
+    let savedExamTypeTotalScore = finalScore;
     try {
       const result = await saveAttempt(userId, date,
         { score: finalScore, correct, incorrect, skipped: unattempted, timeTaken },
         { displayName: userData.name, email: userData.email, phone: userData.phone },
         quizData?.examType || 'UPSC'
       );
-      savedTotalScore = result.totalScore;
-      setMyTotalScore(savedTotalScore);
+      savedExamTypeTotalScore = result.examTypeTotalScore;
+      setMyTotalScore(savedExamTypeTotalScore);
     } catch (err) {
       console.error('saveAttempt failed:', err);
     } finally {
@@ -210,7 +210,7 @@ export default function QuizAttempt() {
     try {
       const [clb, cumRank] = await Promise.all([
         fetchCumulativeLeaderboard(10, quizData?.examType || 'UPSC'),
-        fetchUserCumulativeRank(userId, savedTotalScore, quizData?.examType || 'UPSC'),
+        fetchUserCumulativeRank(userId, savedExamTypeTotalScore, quizData?.examType || 'UPSC'),
       ]);
       setCumulativeLeaderboard(clb);
       setUserCumRank(cumRank);

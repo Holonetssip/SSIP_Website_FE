@@ -10,7 +10,7 @@ import { auth } from '../services/firebase';
 import {
   publishQuiz, fetchAllQuizzes,
   fetchQuizForEdit, toggleQuizPublished,
-  fetchDailyAttemptsAll, fetchAllUserStats, fetchAllUserStatsByExamType, fetchAdminStats,
+  fetchDailyAttemptsAll, fetchAllUserStatsByExamType, fetchAdminStats,
 } from '../services/quizService';
 import {
   saveAnswerKey, fetchAllAnswerKeys, deleteAnswerKey, PAPER_CONFIG,
