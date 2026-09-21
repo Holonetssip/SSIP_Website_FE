@@ -10,7 +10,7 @@ import { auth } from '../services/firebase';
 import {
   publishQuiz, fetchAllQuizzes,
   fetchQuizForEdit, toggleQuizPublished,
-  fetchDailyAttemptsAll, fetchAllUserStatsByExamType, fetchAdminStats,
+  fetchDailyAttemptsAll, fetchAllUserStatsByExamType, fetchAdminStats, EXAM_TYPES,
 } from '../services/quizService';
 import {
   saveAnswerKey, fetchAllAnswerKeys, deleteAnswerKey, PAPER_CONFIG,
@@ -153,12 +153,14 @@ export default function QuizAdmin() {
   const [loadingList, setLoadingList] = useState(false);
   const [togglingDate, setTogglingDate] = useState(null);
   const [loadingEdit, setLoadingEdit] = useState(null);
+  const [manageExamType, setManageExamType] = useState('UPSC');
 
   const [status, setStatus] = useState(null);
   const [publishing, setPublishing] = useState(false);
 
   // Reports state
   const [reportDate, setReportDate] = useState(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }));
+  const [reportExamType, setReportExamType] = useState('UPSC');
   const [cumulativeExamType, setCumulativeExamType] = useState('UPSC');
   const [reportLoading, setReportLoading] = useState(null); // 'daily' | 'cumulative' | null
 
@@ -193,7 +195,7 @@ export default function QuizAdmin() {
     if (mode === 'manage' && isAdmin) loadQuizList();
     if (mode === 'stats' && isAdmin) loadStats();
     if (mode === 'upsc' && isAdmin) loadUpscKeys();
-  }, [mode, isAdmin]);
+  }, [mode, isAdmin, manageExamType]);
 
   // ── Reports: Download CSV ──────────────────────────────────────────────────
   const downloadCSV = (filename, rows) => {
@@ -227,16 +229,16 @@ export default function QuizAdmin() {
   const handleDownloadDaily = async (format = 'csv') => {
     setReportLoading(`daily-${format}`);
     try {
-      const attempts = await fetchDailyAttemptsAll(reportDate);
-      if (!attempts.length) return setStatus({ type: 'error', msg: `No attempts found for ${reportDate}.` });
+      const attempts = await fetchDailyAttemptsAll(reportDate, reportExamType);
+      if (!attempts.length) return setStatus({ type: 'error', msg: `No ${reportExamType} attempts found for ${reportDate}.` });
       const head = ['Rank', 'Name', 'Phone', 'Score', 'Correct', 'Incorrect', 'Skipped', 'Time (s)'];
       const body = attempts.map((a, i) => [i + 1, a.displayName, a.phone, a.score, a.correct, a.incorrect, a.skipped, a.timeTaken]);
       if (format === 'pdf') {
         const pdfHead = ['Rank', 'Name', 'Score', 'Correct', 'Incorrect', 'Skipped', 'Time (s)'];
         const pdfBody = attempts.map((a, i) => [i + 1, a.displayName, a.score, a.correct, a.incorrect, a.skipped, a.timeTaken]);
-        downloadPDF(`leaderboard_${reportDate}.pdf`, `Daily Leaderboard — ${reportDate}`, pdfHead, pdfBody);
+        downloadPDF(`leaderboard_${reportExamType}_${reportDate}.pdf`, `Daily Leaderboard — ${reportExamType} — ${reportDate}`, pdfHead, pdfBody);
       } else {
-        downloadCSV(`leaderboard_${reportDate}.csv`, [head, ...body]);
+        downloadCSV(`leaderboard_${reportExamType}_${reportDate}.csv`, [head, ...body]);
       }
       setStatus({ type: 'success', msg: `Downloaded ${attempts.length} entries for ${reportDate}.` });
     } catch (err) {
@@ -303,7 +305,7 @@ export default function QuizAdmin() {
   const loadQuizList = async () => {
     setLoadingList(true);
     try {
-      const list = await fetchAllQuizzes();
+      const list = await fetchAllQuizzes(manageExamType);
       setQuizList(list);
     } catch {
       setStatus({ type: 'error', msg: 'Failed to load quizzes.' });
@@ -334,7 +336,7 @@ export default function QuizAdmin() {
   const handleTogglePublish = async (date, current) => {
     setTogglingDate(date);
     try {
-      await toggleQuizPublished(date, !current);
+      await toggleQuizPublished(date, !current, manageExamType);
       setQuizList(prev => prev.map(q => q.date === date ? { ...q, published: !current } : q));
     } catch {
       setStatus({ type: 'error', msg: 'Failed to update quiz.' });
@@ -347,12 +349,12 @@ export default function QuizAdmin() {
   const handleEdit = async (quizDate) => {
     setLoadingEdit(quizDate);
     try {
-      const data = await fetchQuizForEdit(quizDate);
+      const data = await fetchQuizForEdit(quizDate, manageExamType);
       if (!data) return setStatus({ type: 'error', msg: 'Quiz not found.' });
       setDate(quizDate);
       setTitle(data.title || '');
       setSubject(data.subject || 'General Studies');
-      setExamType(data.examType || 'UPSC');
+      setExamType(data.examType || manageExamType);
       setTimeLimitMins(data.timeLimitMins || 20);
       setYoutubeUrl(data.youtubeUrl || '');
       if (data.publishAt) {
@@ -574,6 +576,23 @@ export default function QuizAdmin() {
               </button>
             </div>
 
+            {/* Exam Type Selector */}
+            <div className="flex gap-2 px-5 py-3 border-b border-slate-100 dark:border-slate-800">
+              {EXAM_TYPES.map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setManageExamType(type)}
+                  className={`px-3 py-1.5 rounded-lg font-bold text-xs transition ${
+                    manageExamType === type
+                      ? 'bg-primary text-white shadow'
+                      : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+
             {loadingList ? (
               <div className="py-16 flex justify-center"><Loader2 size={28} className="animate-spin text-primary/40" /></div>
             ) : quizList.length === 0 ? (
@@ -658,6 +677,21 @@ export default function QuizAdmin() {
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
               <h2 className="font-black text-slate-700 dark:text-slate-200 text-sm uppercase tracking-wider mb-1">Daily Leaderboard</h2>
               <p className="text-xs text-slate-400 mb-4">Download all students' results for a specific quiz date — Rank, Name, Phone, Score.</p>
+              <div className="mb-4 flex gap-3 flex-wrap">
+                {EXAM_TYPES.map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setReportExamType(type)}
+                    className={`px-4 py-2 rounded-xl font-bold text-sm transition ${
+                      reportExamType === type
+                        ? 'bg-primary text-white shadow-lg'
+                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
               <div className="flex gap-3 items-end flex-wrap">
                 <div className="flex-1 min-w-[160px]">
                   <label className="text-xs font-bold text-slate-400 mb-1 block">Quiz Date</label>
@@ -693,7 +727,7 @@ export default function QuizAdmin() {
 
               {/* Exam Type Selector */}
               <div className="mb-4 flex gap-3">
-                {['UPSC', 'UPPCS-2026'].map((type) => (
+                {EXAM_TYPES.map((type) => (
                   <button
                     key={type}
                     onClick={() => setCumulativeExamType(type)}
@@ -746,7 +780,7 @@ export default function QuizAdmin() {
 
             {/* Exam Type Selector */}
             <div className="flex gap-3">
-              {['UPSC', 'UPPCS-2026'].map((type) => (
+              {EXAM_TYPES.map((type) => (
                 <button
                   key={type}
                   onClick={() => setStatsExamType(type)}
@@ -1020,10 +1054,11 @@ export default function QuizAdmin() {
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-400 mb-1 block">Exam Type</label>
-                  <select value={examType} onChange={e => setExamType(e.target.value)}
+                  <select value={examType} onChange={e => setExamType(e.target.value)} disabled={!!editingDate}
                     className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 text-slate-800 dark:text-slate-200">
                     <option value="UPSC">UPSC</option>
                     <option value="UPPCS-2026">UPPCS-2026</option>
+                    <option value="CSAT-2026">CSAT-2026</option>
                   </select>
                 </div>
                 <div>

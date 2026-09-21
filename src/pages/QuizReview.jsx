@@ -3,7 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CheckCircle2, BookOpen, ChevronLeft, Loader2, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
-import { fetchQuiz } from '../services/quizService';
+import { fetchQuiz, EXAM_TYPES } from '../services/quizService';
 
 let devanagariFontBase64 = null;
 async function loadDevanagariFont() {
@@ -23,6 +23,8 @@ async function loadDevanagariFont() {
 export default function QuizReview() {
   const [searchParams] = useSearchParams();
   const date = searchParams.get('date');
+  const examParam = searchParams.get('exam');
+  const exam = EXAM_TYPES.includes(examParam) ? examParam : 'UPSC';
 
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -100,14 +102,14 @@ export default function QuizReview() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    fetchQuiz(date)
+    fetchQuiz(date, exam)
       .then(data => {
         if (!data) setError('Quiz not found.');
         else setQuiz(data);
       })
       .catch(() => setError('Failed to load quiz.'))
       .finally(() => setLoading(false));
-  }, [date]);
+  }, [date, exam]);
 
   if (loading) return (
     <div className="min-h-screen pt-28 flex items-center justify-center bg-slate-50 dark:bg-slate-950">
@@ -118,7 +120,7 @@ export default function QuizReview() {
   if (error) return (
     <div className="min-h-screen pt-28 flex flex-col items-center justify-center gap-4 bg-slate-50 dark:bg-slate-950 px-4 text-center">
       <p className="text-slate-500 dark:text-slate-400 font-medium">{error}</p>
-      <Link to="/quiz" className="text-xs font-bold text-primary hover:underline">← Back to Quiz Vault</Link>
+      <Link to={`/quiz?exam=${exam}`} className="text-xs font-bold text-primary hover:underline">← Back to Quiz Vault</Link>
     </div>
   );
 
@@ -127,7 +129,7 @@ export default function QuizReview() {
       <div className="max-w-2xl mx-auto">
 
         <div className="flex items-center justify-between mb-6">
-          <Link to="/quiz" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-primary transition-colors">
+          <Link to={`/quiz?exam=${exam}`} className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-primary transition-colors">
             <ChevronLeft size={14} /> Back to Quiz Vault
           </Link>
           <button

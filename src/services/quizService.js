@@ -13,14 +13,47 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 
+// ─── Exam types & collection resolver ───────────────────────────────────────
+
+export const EXAM_TYPES = ['UPSC', 'UPPCS-2026', 'CSAT-2026'];
+
+// UPSC / UPPCS-2026 share the default collections (separated by an `examType`
+// field). CSAT-2026 lives in its own physically separate collections.
+const DEFAULT_COLLECTIONS = {
+  users: 'users',
+  quizzes: 'quizzes',
+  attempts: 'attempts',
+  stats: 'userStatsByExam',
+  separate: false,
+};
+const COLLECTIONS = {
+  'CSAT-2026': {
+    users: 'csat_users',
+    quizzes: 'csat_quizzes',
+    attempts: 'csat_attempts',
+    stats: 'csat_userStats',
+    separate: true,
+  },
+};
+
+export const getCollections = (examType) => COLLECTIONS[examType] || DEFAULT_COLLECTIONS;
+
+/** `where('examType', ...)` clause — not needed inside a CSAT-only collection. */
+const examFilter = (examType) =>
+  getCollections(examType).separate ? [] : [where('examType', '==', examType)];
+
+/** Stats doc id: plain phone inside a separate collection, `${phone}_${exam}` otherwise. */
+const statsDocId = (userId, examType) =>
+  getCollections(examType).separate ? userId : `${userId}_${examType}`;
+
 // ─── User Management ─────────────────────────────────────────────────────────
 
 /**
  * Create or update a user profile keyed by phone number.
  * Phone is the stable identity across daily quiz sessions.
  */
-export async function upsertUser(phone, displayName, email) {
-  const userRef = doc(db, 'users', phone);
+export async function upsertUser(phone, displayName, email, examType = 'UPSC') {
+  const userRef = doc(db, getCollections(examType).users, phone);
   const snap = await getDoc(userRef);
   const now = new Date().toISOString();
   if (snap.exists()) {
@@ -43,28 +76,32 @@ export function getTodayDate() {
 /**
  * Toggle a quiz's published state (hide/unhide).
  */
-export async function toggleQuizPublished(date, published) {
-  await setDoc(doc(db, 'quizzes', date), { published }, { merge: true });
+export async function toggleQuizPublished(date, published, examType = 'UPSC') {
+  await setDoc(doc(db, getCollections(examType).quizzes, date), { published }, { merge: true });
 }
 
 /**
  * Fetch ALL quizzes (including hidden) for admin management.
  */
-export async function fetchAllQuizzes() {
-  const snap = await getDocs(collection(db, 'quizzes'));
-  return snap.docs
-    .map((d) => ({ date: d.id, ...d.data() }))
-    .sort((a, b) => b.date.localeCompare(a.date));
+export async function fetchAllQuizzes(examType = null) {
+  const cols = getCollections(examType);
+  const snap = await getDocs(collection(db, cols.quizzes));
+  let quizzes = snap.docs.map((d) => ({ date: d.id, ...d.data() }));
+  if (examType && !cols.separate) {
+    quizzes = quizzes.filter((q) => (q.examType || 'UPSC') === examType);
+  }
+  return quizzes.sort((a, b) => b.date.localeCompare(a.date));
 }
 
 /**
  * Fetch a quiz with all its questions for editing.
  */
-export async function fetchQuizForEdit(date) {
-  const metaSnap = await getDoc(doc(db, 'quizzes', date));
+export async function fetchQuizForEdit(date, examType = 'UPSC') {
+  const { quizzes } = getCollections(examType);
+  const metaSnap = await getDoc(doc(db, quizzes, date));
   if (!metaSnap.exists()) return null;
   const questionsSnap = await getDocs(
-    query(collection(db, 'quizzes', date, 'questions'), orderBy('__name__'))
+    query(collection(db, quizzes, date, 'questions'), orderBy('__name__'))
   );
   return {
     ...metaSnap.data(),
@@ -79,7 +116,8 @@ export async function fetchQuizForEdit(date) {
  * @param {Array<{ question, options, correct }>} questions
  */
 export async function publishQuiz(date, meta, questions) {
-  const quizRef = doc(db, 'quizzes', date);
+  const { quizzes } = getCollections(meta.examType || 'UPSC');
+  const quizRef = doc(db, quizzes, date);
   const { publishAt, ...restMeta } = meta;
 
   await setDoc(quizRef, {
@@ -91,7 +129,7 @@ export async function publishQuiz(date, meta, questions) {
     createdAt: new Date().toISOString(),
   });
 
-  const questionsRef = collection(db, 'quizzes', date, 'questions');
+  const questionsRef = collection(db, quizzes, date, 'questions');
 
   // Delete all existing questions first to avoid stale data
   const existingSnap = await getDocs(questionsRef);
@@ -116,8 +154,9 @@ export async function publishQuiz(date, meta, questions) {
  * Fetch quiz metadata + all questions for a given date.
  * Returns null if no quiz exists for that date.
  */
-export async function fetchQuiz(date = getTodayDate()) {
-  const quizRef = doc(db, 'quizzes', date);
+export async function fetchQuiz(date = getTodayDate(), examType = 'UPSC') {
+  const { quizzes } = getCollections(examType);
+  const quizRef = doc(db, quizzes, date);
   const metaSnap = await getDoc(quizRef);
 
   if (!metaSnap.exists()) return null;
@@ -128,7 +167,7 @@ export async function fetchQuiz(date = getTodayDate()) {
   const meta = data;
 
   const questionsSnap = await getDocs(
-    query(collection(db, 'quizzes', date, 'questions'), orderBy('__name__'))
+    query(collection(db, quizzes, date, 'questions'), orderBy('__name__'))
   );
 
   const questions = questionsSnap.docs.map((d) => ({
@@ -146,13 +185,14 @@ export async function fetchQuiz(date = getTodayDate()) {
  */
 export async function fetchRecentQuizzes(count = 30, examType = null) {
   // Fetch all, filter + sort client-side to avoid composite index requirement
-  const snap = await getDocs(collection(db, 'quizzes'));
+  const cols = getCollections(examType);
+  const snap = await getDocs(collection(db, cols.quizzes));
   let quizzes = snap.docs
     .map((d) => ({ date: d.id, ...d.data() }))
     .filter((q) => q.published || (q.publishAt && new Date() >= new Date(q.publishAt)));
 
   // Filter by examType if provided
-  if (examType) {
+  if (examType && !cols.separate) {
     quizzes = quizzes.filter((q) => (q.examType || 'UPSC') === examType);
   }
 
@@ -175,9 +215,10 @@ export async function fetchRecentQuizzes(count = 30, examType = null) {
 export async function saveAttempt(userId, date, result, userInfo = {}, examType = 'UPSC') {
   const { score, correct, incorrect, skipped, timeTaken } = result;
   const now = new Date().toISOString();
+  const cols = getCollections(examType);
 
   // Check if already attempted — don't double-count userStats
-  const attemptRef = doc(db, 'attempts', `${userId}_${date}`);
+  const attemptRef = doc(db, cols.attempts, `${userId}_${date}`);
   const existingAttempt = await getDoc(attemptRef);
   const isFirstAttempt = !existingAttempt.exists();
 
@@ -192,88 +233,52 @@ export async function saveAttempt(userId, date, result, userInfo = {}, examType 
     attemptedAt: now,
   });
 
-  // Only update userStats on first attempt for this date
+  const examStatsRef = doc(db, cols.stats, statsDocId(userId, examType));
+
+  // Only update stats on first attempt for this date
   if (!isFirstAttempt) {
-    const [allStatsSnap, examStatsSnap] = await Promise.all([
-      getDoc(doc(db, 'userStats', userId)),
-      getDoc(doc(db, 'userStatsByExam', `${userId}_${examType}`)),
-    ]);
+    const examStatsSnap = await getDoc(examStatsRef);
+    const examTypeTotalScore = examStatsSnap.data()?.totalScore ?? score;
+    if (cols.separate) return { totalScore: examTypeTotalScore, examTypeTotalScore };
+    const allStatsSnap = await getDoc(doc(db, 'userStats', userId));
     return {
       totalScore: allStatsSnap.data()?.totalScore ?? score,
-      examTypeTotalScore: examStatsSnap.data()?.totalScore ?? score,
+      examTypeTotalScore,
     };
   }
 
-  const statsRef = doc(db, 'userStats', userId);
-  const examStatsRef = doc(db, 'userStatsByExam', `${userId}_${examType}`);
-  const [statsSnap, examStatsSnap] = await Promise.all([getDoc(statsRef), getDoc(examStatsRef)]);
-  let newTotalScore;
-  if (statsSnap.exists()) {
-    const existing = statsSnap.data();
-    newTotalScore = parseFloat(((existing.totalScore || 0) + score).toFixed(2));
-    await setDoc(statsRef, {
-      displayName: userInfo.displayName || existing.displayName,
-      email: userInfo.email || existing.email,
+  // Merge this attempt into a stats doc; returns the new total score.
+  const applyStats = async (ref, snap, extra) => {
+    const ex = snap.exists() ? snap.data() : null;
+    const newTotal = ex ? parseFloat(((ex.totalScore || 0) + score).toFixed(2)) : score;
+    await setDoc(ref, {
+      ...extra,
+      displayName: userInfo.displayName || ex?.displayName || 'Anonymous',
+      email: userInfo.email || ex?.email || '',
       phone: userId,
-      totalScore: newTotalScore,
-      bestScore: Math.max(existing.bestScore || 0, score),
-      attemptCount: (existing.attemptCount || 0) + 1,
-      totalCorrect: (existing.totalCorrect || 0) + correct,
-      totalIncorrect: (existing.totalIncorrect || 0) + incorrect,
+      totalScore: newTotal,
+      bestScore: Math.max(ex?.bestScore || 0, score),
+      attemptCount: (ex?.attemptCount || 0) + 1,
+      totalCorrect: (ex?.totalCorrect || 0) + correct,
+      totalIncorrect: (ex?.totalIncorrect || 0) + incorrect,
       lastAttemptDate: date,
       lastAttemptAt: now,
     });
-  } else {
-    newTotalScore = score;
-    await setDoc(statsRef, {
-      displayName: userInfo.displayName || 'Anonymous',
-      email: userInfo.email || '',
-      phone: userId,
-      totalScore: newTotalScore,
-      bestScore: score,
-      attemptCount: 1,
-      totalCorrect: correct,
-      totalIncorrect: incorrect,
-      lastAttemptDate: date,
-      lastAttemptAt: now,
-    });
+    return newTotal;
+  };
+
+  const examStatsSnap = await getDoc(examStatsRef);
+
+  // Separate collections (CSAT) never touch the all-exams `userStats` aggregate.
+  if (cols.separate) {
+    const total = await applyStats(examStatsRef, examStatsSnap, { userId, examType });
+    return { totalScore: total, examTypeTotalScore: total };
   }
 
-  let newExamTypeTotalScore;
-  if (examStatsSnap.exists()) {
-    const ex = examStatsSnap.data();
-    newExamTypeTotalScore = parseFloat(((ex.totalScore || 0) + score).toFixed(2));
-    await setDoc(examStatsRef, {
-      userId,
-      examType,
-      displayName: userInfo.displayName || ex.displayName,
-      email: userInfo.email || ex.email,
-      phone: userId,
-      totalScore: newExamTypeTotalScore,
-      bestScore: Math.max(ex.bestScore || 0, score),
-      attemptCount: (ex.attemptCount || 0) + 1,
-      totalCorrect: (ex.totalCorrect || 0) + correct,
-      totalIncorrect: (ex.totalIncorrect || 0) + incorrect,
-      lastAttemptDate: date,
-      lastAttemptAt: now,
-    });
-  } else {
-    newExamTypeTotalScore = score;
-    await setDoc(examStatsRef, {
-      userId,
-      examType,
-      displayName: userInfo.displayName || 'Anonymous',
-      email: userInfo.email || '',
-      phone: userId,
-      totalScore: newExamTypeTotalScore,
-      bestScore: score,
-      attemptCount: 1,
-      totalCorrect: correct,
-      totalIncorrect: incorrect,
-      lastAttemptDate: date,
-      lastAttemptAt: now,
-    });
-  }
+  const statsRef = doc(db, 'userStats', userId);
+  const statsSnap = await getDoc(statsRef);
+  const newTotalScore = await applyStats(statsRef, statsSnap, {});
+  const newExamTypeTotalScore = await applyStats(examStatsRef, examStatsSnap, { userId, examType });
 
   return { totalScore: newTotalScore, examTypeTotalScore: newExamTypeTotalScore };
 }
@@ -288,14 +293,16 @@ export async function saveAttempt(userId, date, result, userInfo = {}, examType 
  * @param {string} examType - exam type filter (UPSC, UPPCS-2026, etc)
  */
 export async function fetchLeaderboard(date, examType = 'UPSC') {
+  const attemptsCol = getCollections(examType).attempts;
+  const filters = examFilter(examType);
   const sortWithTiebreaker = (arr) =>
     arr.sort((a, b) => b.score - a.score || a.timeTaken - b.timeTaken).slice(0, 10);
   try {
     const snap = await getDocs(
       query(
-        collection(db, 'attempts'),
+        collection(db, attemptsCol),
         where('date', '==', date),
-        where('examType', '==', examType),
+        ...filters,
         orderBy('score', 'desc'),
         limit(10)
       )
@@ -304,9 +311,9 @@ export async function fetchLeaderboard(date, examType = 'UPSC') {
   } catch {
     const snap = await getDocs(
       query(
-        collection(db, 'attempts'),
+        collection(db, attemptsCol),
         where('date', '==', date),
-        where('examType', '==', examType)
+        ...filters
       )
     );
     return sortWithTiebreaker(snap.docs.map((d) => d.data()));
@@ -321,27 +328,29 @@ export async function fetchLeaderboard(date, examType = 'UPSC') {
  * @returns {{ rank: number, total: number }}
  */
 export async function fetchUserDailyRank(phone, date, userScore, userTimeTaken, examType = 'UPSC') {
+  const attemptsCol = getCollections(examType).attempts;
+  const filters = examFilter(examType);
   try {
     const [higherScoreSnap, sameScoreFasterSnap, totalSnap] = await Promise.all([
       // People who scored strictly higher
       getCountFromServer(query(
-        collection(db, 'attempts'),
+        collection(db, attemptsCol),
         where('date', '==', date),
-        where('examType', '==', examType),
+        ...filters,
         where('score', '>', userScore)
       )),
       // People with same score but faster time (tiebreaker)
       getCountFromServer(query(
-        collection(db, 'attempts'),
+        collection(db, attemptsCol),
         where('date', '==', date),
-        where('examType', '==', examType),
+        ...filters,
         where('score', '==', userScore),
         where('timeTaken', '<', userTimeTaken)
       )),
       getCountFromServer(query(
-        collection(db, 'attempts'),
+        collection(db, attemptsCol),
         where('date', '==', date),
-        where('examType', '==', examType)
+        ...filters
       )),
     ]);
     return {
@@ -351,9 +360,9 @@ export async function fetchUserDailyRank(phone, date, userScore, userTimeTaken, 
   } catch {
     const snap = await getDocs(
       query(
-        collection(db, 'attempts'),
+        collection(db, attemptsCol),
         where('date', '==', date),
-        where('examType', '==', examType)
+        ...filters
       )
     );
     const all = snap.docs.map((d) => d.data());
@@ -374,8 +383,8 @@ export async function fetchCumulativeLeaderboard(count = 10, examType = null) {
   const effectiveExamType = examType || 'UPSC';
   const snap = await getDocs(
     query(
-      collection(db, 'userStatsByExam'),
-      where('examType', '==', effectiveExamType),
+      collection(db, getCollections(effectiveExamType).stats),
+      ...examFilter(effectiveExamType),
       orderBy('totalScore', 'desc'),
       limit(count || 10)
     )
@@ -394,16 +403,18 @@ export async function fetchCumulativeLeaderboard(count = 10, examType = null) {
  */
 export async function fetchUserCumulativeRank(phone, userTotalScore, examType = null) {
   const effectiveExamType = examType || 'UPSC';
+  const statsCol = getCollections(effectiveExamType).stats;
+  const filters = examFilter(effectiveExamType);
   try {
     const [higherSnap, totalSnap] = await Promise.all([
       getCountFromServer(query(
-        collection(db, 'userStatsByExam'),
-        where('examType', '==', effectiveExamType),
+        collection(db, statsCol),
+        ...filters,
         where('totalScore', '>', userTotalScore || 0)
       )),
       getCountFromServer(query(
-        collection(db, 'userStatsByExam'),
-        where('examType', '==', effectiveExamType)
+        collection(db, statsCol),
+        ...filters
       )),
     ]);
     return {
@@ -419,7 +430,7 @@ export async function fetchUserCumulativeRank(phone, userTotalScore, examType = 
  * Fetch a single user's cumulative stats for a specific exam type.
  */
 export async function fetchUserExamStats(phone, examType = 'UPSC') {
-  const snap = await getDoc(doc(db, 'userStatsByExam', `${phone}_${examType}`));
+  const snap = await getDoc(doc(db, getCollections(examType).stats, statsDocId(phone, examType)));
   return snap.exists() ? snap.data() : null;
 }
 
@@ -429,12 +440,17 @@ export async function fetchUserExamStats(phone, examType = 'UPSC') {
  * Fetch ALL attempts for a given date (for admin download).
  * Returns sorted array: score DESC, timeTaken ASC.
  */
-export async function fetchDailyAttemptsAll(date) {
+export async function fetchDailyAttemptsAll(date, examType = null) {
+  const cols = getCollections(examType);
   const snap = await getDocs(
-    query(collection(db, 'attempts'), where('date', '==', date))
+    query(collection(db, cols.attempts), where('date', '==', date))
   );
-  return snap.docs
-    .map((d) => d.data())
+  let attempts = snap.docs.map((d) => d.data());
+  // Client-side filter so legacy attempts without an examType count as 'UPSC'
+  if (examType && !cols.separate) {
+    attempts = attempts.filter((a) => (a.examType || 'UPSC') === examType);
+  }
+  return attempts
     .sort((a, b) => b.score - a.score || a.timeTaken - b.timeTaken);
 }
 
@@ -457,8 +473,8 @@ export async function fetchAllUserStats() {
 export async function fetchAllUserStatsByExamType(examType = 'UPSC') {
   const snap = await getDocs(
     query(
-      collection(db, 'userStatsByExam'),
-      where('examType', '==', examType),
+      collection(db, getCollections(examType).stats),
+      ...examFilter(examType),
       orderBy('totalScore', 'desc')
     )
   );
@@ -474,17 +490,21 @@ export async function fetchAllUserStatsByExamType(examType = 'UPSC') {
  * - scoreDistribution: [{ range, count }]
  */
 export async function fetchAdminStats(examType = 'UPSC') {
-  const [attemptsSnap, usersSnap, quizzesSnap] = await Promise.all([
-    getDocs(collection(db, 'attempts')),
-    getCountFromServer(collection(db, 'userStats')),
-    getDocs(collection(db, 'quizzes')),
+  const cols = getCollections(examType);
+  // Separate collections (CSAT) have their own student count; the default
+  // collections use the all-exams `userStats` count as before.
+  const [attemptsSnap, usersSnap] = await Promise.all([
+    getDocs(collection(db, cols.attempts)),
+    getCountFromServer(collection(db, cols.separate ? cols.stats : 'userStats')),
   ]);
 
   // Client-side filter (not a Firestore `where`) so legacy attempts written
   // before the examType field existed still count as 'UPSC' instead of being
   // silently excluded by an equality filter that can't match a missing field.
   const allAttempts = attemptsSnap.docs.map(d => d.data());
-  const attempts = allAttempts.filter(a => (a.examType || 'UPSC') === examType);
+  const attempts = cols.separate
+    ? allAttempts
+    : allAttempts.filter(a => (a.examType || 'UPSC') === examType);
   const totalStudents = usersSnap.data().count;
   const totalAttempts = attempts.length;
 
@@ -520,9 +540,9 @@ export async function fetchAdminStats(examType = 'UPSC') {
 /**
  * Fetch all attempts by a specific user, ordered by date descending.
  */
-export async function fetchUserAttempts(userId, limitCount = 30) {
+export async function fetchUserAttempts(userId, limitCount = 30, examType = 'UPSC') {
   const snap = await getDocs(
-    query(collection(db, 'attempts'), where('userId', '==', userId))
+    query(collection(db, getCollections(examType).attempts), where('userId', '==', userId))
   );
   return snap.docs
     .map((d) => d.data())
@@ -534,7 +554,7 @@ export async function fetchUserAttempts(userId, limitCount = 30) {
  * Check if a user has already attempted a quiz for a given date.
  * Returns the attempt data or null.
  */
-export async function fetchUserAttempt(userId, date) {
-  const snap = await getDoc(doc(db, 'attempts', `${userId}_${date}`));
+export async function fetchUserAttempt(userId, date, examType = 'UPSC') {
+  const snap = await getDoc(doc(db, getCollections(examType).attempts, `${userId}_${date}`));
   return snap.exists() ? snap.data() : null;
 }

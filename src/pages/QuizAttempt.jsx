@@ -11,7 +11,7 @@ import {
 
 // Firebase Services
 import {
-  fetchQuiz, getTodayDate,
+  fetchQuiz, getTodayDate, EXAM_TYPES,
   saveAttempt, fetchLeaderboard, fetchUserDailyRank,
   fetchCumulativeLeaderboard, fetchUserCumulativeRank,
   upsertUser, fetchUserAttempt,
@@ -28,6 +28,9 @@ function formatTime(seconds) {
 export default function QuizAttempt() {
   const [searchParams] = useSearchParams();
   const date = searchParams.get('date') || getTodayDate();
+  // Exam type comes from the URL so the right collections are read (old links default to UPSC)
+  const examParam = searchParams.get('exam');
+  const exam = EXAM_TYPES.includes(examParam) ? examParam : 'UPSC';
 
   // App State: 'register' | 'countdown' | 'quiz' | 'result' | 'review' | 'leaderboard'
   const [appState, setAppState] = useState('register');
@@ -57,14 +60,14 @@ export default function QuizAttempt() {
   // 1. Initial Load
   useEffect(() => {
     window.scrollTo(0, 0);
-    fetchQuiz(date)
+    fetchQuiz(date, exam)
       .then((data) => {
         if (!data) setError('no_quiz');
         else setQuizData(data);
       })
       .catch(() => setError('fetch_failed'))
       .finally(() => setLoading(false));
-  }, [date]);
+  }, [date, exam]);
 
   // 2. Countdown Logic
   useEffect(() => {
@@ -127,7 +130,7 @@ export default function QuizAttempt() {
 
     // Block re-attempt for same date
     try {
-      const existing = await fetchUserAttempt(userData.phone, date);
+      const existing = await fetchUserAttempt(userData.phone, date, exam);
       if (existing) {
         alert(`You have already attempted this quiz on ${date}. Each quiz can only be attempted once.`);
         return;
@@ -137,7 +140,7 @@ export default function QuizAttempt() {
     }
 
     try {
-      await upsertUser(userData.phone, normalizedName, userData.email);
+      await upsertUser(userData.phone, normalizedName, userData.email, exam);
     } catch (err) {
       console.error('Failed to save user profile:', err);
     }
@@ -181,7 +184,7 @@ export default function QuizAttempt() {
       const result = await saveAttempt(userId, date,
         { score: finalScore, correct, incorrect, skipped: unattempted, timeTaken },
         { displayName: userData.name, email: userData.email, phone: userData.phone },
-        quizData?.examType || 'UPSC'
+        exam
       );
       savedExamTypeTotalScore = result.examTypeTotalScore;
       setMyTotalScore(savedExamTypeTotalScore);
@@ -198,8 +201,8 @@ export default function QuizAttempt() {
     // Step 3: Fetch leaderboard + real ranks independently (may fail if index not ready)
     try {
       const [lb, dailyRank] = await Promise.all([
-        fetchLeaderboard(date, quizData?.examType || 'UPSC'),
-        fetchUserDailyRank(userId, date, finalScore, timeTaken, quizData?.examType || 'UPSC'),
+        fetchLeaderboard(date, exam),
+        fetchUserDailyRank(userId, date, finalScore, timeTaken, exam),
       ]);
       setDbLeaderboard(lb);
       setUserDailyRank(dailyRank);
@@ -209,8 +212,8 @@ export default function QuizAttempt() {
 
     try {
       const [clb, cumRank] = await Promise.all([
-        fetchCumulativeLeaderboard(10, quizData?.examType || 'UPSC'),
-        fetchUserCumulativeRank(userId, savedExamTypeTotalScore, quizData?.examType || 'UPSC'),
+        fetchCumulativeLeaderboard(10, exam),
+        fetchUserCumulativeRank(userId, savedExamTypeTotalScore, exam),
       ]);
       setCumulativeLeaderboard(clb);
       setUserCumRank(cumRank);
@@ -280,7 +283,7 @@ export default function QuizAttempt() {
       <p className="text-slate-500 dark:text-slate-400 font-medium">
         {error === 'no_quiz' ? 'Quiz not found for this date.' : 'Failed to load quiz. Please try again.'}
       </p>
-      <Link to="/quiz" className="text-xs font-bold text-primary hover:underline">← Back to Quiz Vault</Link>
+      <Link to={`/quiz?exam=${exam}`} className="text-xs font-bold text-primary hover:underline">← Back to Quiz Vault</Link>
     </div>
   );
 

@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Star, Zap, TrendingUp, Loader2, Target, Medal, Phone, User } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
-import { fetchCumulativeLeaderboard, fetchUserCumulativeRank, fetchUserExamStats } from '../services/quizService';
+import { fetchCumulativeLeaderboard, fetchUserCumulativeRank, fetchUserExamStats, EXAM_TYPES } from '../services/quizService';
 
 const rankMedal = (i) => ['🥇', '🥈', '🥉'][i] ?? null;
 
 export default function GlobalLeaderboard() {
   const [searchParams] = useSearchParams();
-  const examFromURL = searchParams.get('exam') || 'UPSC';
+  const examFromURL = EXAM_TYPES.includes(searchParams.get('exam')) ? searchParams.get('exam') : 'UPSC';
 
   const [user, setUser] = useState(null);       // { name, phone }
   const [form, setForm] = useState({ name: '', phone: '' });
@@ -114,7 +114,7 @@ export default function GlobalLeaderboard() {
           {/* Exam Type Selector - Only show if coming from main page (no exam param) */}
           {!searchParams.get('exam') && (
             <div className="flex gap-3 justify-center mt-6">
-              {['UPSC', 'UPPCS-2026'].map((type) => (
+              {EXAM_TYPES.map((type) => (
                 <motion.button
                   key={type}
                   onClick={() => setExamType(type)}
