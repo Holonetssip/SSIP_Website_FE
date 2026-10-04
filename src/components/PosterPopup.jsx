@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, ExternalLink } from 'lucide-react';
 import posterImg from '../assets/poster.png';
 
 const PosterPopup = () => {
   const [isOpen, setIsOpen] = useState(true);
+  const location = useLocation();
+
+  // Re-trigger poster popup animation on page navigation or direct visits (e.g. Quiz page, Home page)
+  useEffect(() => {
+    setIsOpen(true);
+  }, [location.pathname]);
 
   // Lock body scroll when modal is open to ensure poster focus
   useEffect(() => {
@@ -101,7 +108,7 @@ const PosterPopup = () => {
                       className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12 pointer-events-none"
                     />
                     <span className="relative z-10 flex items-center gap-1.5">
-                      Click to Open Link <ExternalLink size={13} />
+                      Click Here to Download Now <ExternalLink size={13} />
                     </span>
                   </motion.div>
                 </div>
