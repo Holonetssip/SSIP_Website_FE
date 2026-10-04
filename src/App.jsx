@@ -3,6 +3,7 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ChatBot from './components/ChatBot';
+import PosterPopup from './components/PosterPopup';
 import Home from './pages/Home';
 import Courses from './pages/Courses';
 import About from './pages/About';
@@ -35,6 +36,7 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans text-slate-900 dark:text-slate-100 selection:bg-purple-200 selection:text-purple-900">
+        <PosterPopup />
         <Navbar theme={theme} toggleTheme={toggleTheme} />
         <Routes>
           <Route path="/" element={<Home />} />
