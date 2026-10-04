@@ -6,7 +6,7 @@ import {
   ChevronRight, Send, Trophy, Play, Target,
   History, Zap, ArrowDown, CheckCircle2, Clock, TrendingUp, Youtube
 } from 'lucide-react';
-import { getTodayDate, fetchRecentQuizzes } from '../services/quizService';
+import { getTodayDate, fetchRecentQuizzes, EXAM_TYPES } from '../services/quizService';
 
 export default function QuizPage() {
   const [quizzes, setQuizzes] = useState([]);
@@ -14,8 +14,8 @@ export default function QuizPage() {
   const location = useLocation();
   // Exam type is chosen from the navbar's Quiz dropdown and passed via ?exam=
   const params = new URLSearchParams(location.search);
-  const examType = params.get('exam') === 'UPPCS-2026' ? 'UPPCS-2026' : 'UPSC';
-  const telegramLink = examType === 'UPPCS-2026' ? 'https://t.me/uppcswithssip' : 'https://t.me/+U98qAhiBLLg3ZWRl';
+  const examType = EXAM_TYPES.includes(params.get('exam')) ? params.get('exam') : 'UPSC';
+  const telegramLink = examType !== 'UPSC' ? 'https://t.me/uppcswithssip' : 'https://t.me/+U98qAhiBLLg3ZWRl';
   const today = getTodayDate();
 
   // Reference for the smooth scroll
@@ -146,7 +146,9 @@ export default function QuizPage() {
             
             {/* Tighter Subtitle - Dynamic based on exam type */}
             <p className="text-slate-600 dark:text-slate-400 font-medium max-w-xl mx-auto text-xs md:text-sm leading-relaxed px-4">
-              {examType === 'UPPCS-2026'
+              {examType === 'CSAT-2026'
+                ? 'Step into the arena. Sharpen your aptitude with daily curated CSAT mocks designed meticulously for Civil Services 2026 aspirants.'
+                : examType === 'UPPCS-2026'
                 ? 'Step into the arena. Sharpen your mind with daily curated mocks designed meticulously for UPPCS 2026 aspirants.'
                 : 'Step into the arena. Sharpen your mind with daily curated mocks designed meticulously for UPSC & State PCS aspirants.'}
             </p>
@@ -216,7 +218,7 @@ export default function QuizPage() {
               {/* DYNAMIC FEATURED CARD: Either LIVE TODAY or COMING SOON */}
               {todayQuiz ? (
                 <motion.div variants={itemVariants} className="mb-10">
-                  <Link to={`/quiz/attempt?date=${todayQuiz.date}`} className="block group">
+                  <Link to={`/quiz/attempt?date=${todayQuiz.date}&exam=${examType}`} className="block group">
                     <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-emerald-500 to-teal-600 dark:from-emerald-600 dark:to-teal-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform-gpu group-hover:-translate-y-1 border border-emerald-400/50 dark:border-emerald-500/30">
                       
                       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/hexellence.png')] opacity-10 mix-blend-overlay"></div>
@@ -335,11 +337,11 @@ export default function QuizPage() {
 
                                 {/* Action buttons */}
                                 <div className="flex items-center justify-between gap-2 relative z-10">
-                                  <Link to={`/quiz/attempt?date=${quiz.date}`}
+                                  <Link to={`/quiz/attempt?date=${quiz.date}&exam=${examType}`}
                                     className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-bold text-xs hover:gap-1.5 transition-all">
                                     Attempt <ChevronRight size={14} />
                                   </Link>
-                                  <Link to={`/quiz/review?date=${quiz.date}`}
+                                  <Link to={`/quiz/review?date=${quiz.date}&exam=${examType}`}
                                     className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold text-xs hover:gap-1.5 transition-all">
                                     Solution <ChevronRight size={14} />
                                   </Link>

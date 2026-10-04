@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Star, Zap, TrendingUp, Loader2, Target, Medal, Phone, User } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
-import { fetchCumulativeLeaderboard, fetchUserCumulativeRank } from '../services/quizService';
+import { fetchCumulativeLeaderboard, fetchUserCumulativeRank, fetchUserExamStats, EXAM_TYPES } from '../services/quizService';
 
 const rankMedal = (i) => ['🥇', '🥈', '🥉'][i] ?? null;
 
 export default function GlobalLeaderboard() {
   const [searchParams] = useSearchParams();
-  const examFromURL = searchParams.get('exam') || 'UPSC';
+  const examFromURL = EXAM_TYPES.includes(searchParams.get('exam')) ? searchParams.get('exam') : 'UPSC';
 
   const [user, setUser] = useState(null);       // { name, phone }
   const [form, setForm] = useState({ name: '', phone: '' });
@@ -33,34 +33,18 @@ export default function GlobalLeaderboard() {
     setLoading(true);
     setError(null);
     try {
-      const [lb, attemptSnap] = await Promise.all([
+      const [lb, examStats] = await Promise.all([
         fetchCumulativeLeaderboard(50, examType),
-        import('firebase/firestore').then(({ getDocs, query, collection, where } ) =>
-          import('../services/firebase').then(({ db }) =>
-            getDocs(query(collection(db, 'attempts'), where('userId', '==', form.phone)))
-          )
-        ),
+        fetchUserExamStats(form.phone, examType),
       ]);
 
-      if (attemptSnap.empty) {
-        setError('No record found for this mobile number. Please attempt a quiz first.');
+      if (!examStats) {
+        setError(`No ${examType} attempts found. Please attempt a quiz first.`);
         setLoading(false);
         return;
       }
 
-      // Calculate user's score for the selected examType (default old records to UPSC)
-      const userAttempts = attemptSnap.docs.map(d => d.data());
-      const filteredAttempts = examType
-        ? userAttempts.filter(a => (a.examType || 'UPSC') === examType)
-        : userAttempts;
-
-      if (filteredAttempts.length === 0) {
-        setError(`No ${examType} attempts found. Please try a different exam type.`);
-        setLoading(false);
-        return;
-      }
-
-      const myTotalScore = filteredAttempts.reduce((sum, a) => sum + (a.score || 0), 0);
+      const myTotalScore = examStats.totalScore || 0;
       const rank = await fetchUserCumulativeRank(form.phone, myTotalScore, examType);
 
       setList(lb);
@@ -130,7 +114,7 @@ export default function GlobalLeaderboard() {
           {/* Exam Type Selector - Only show if coming from main page (no exam param) */}
           {!searchParams.get('exam') && (
             <div className="flex gap-3 justify-center mt-6">
-              {['UPSC', 'UPPCS-2026'].map((type) => (
+              {EXAM_TYPES.map((type) => (
                 <motion.button
                   key={type}
                   onClick={() => setExamType(type)}

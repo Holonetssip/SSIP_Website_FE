@@ -11,14 +11,11 @@ import {
 
 // Firebase Services
 import {
-  fetchQuiz, getTodayDate,
+  fetchQuiz, getTodayDate, EXAM_TYPES,
   saveAttempt, fetchLeaderboard, fetchUserDailyRank,
   fetchCumulativeLeaderboard, fetchUserCumulativeRank,
   upsertUser, fetchUserAttempt,
 } from '../services/quizService';
-
-// Minimum time (seconds) a student must spend before they're allowed to submit
-const MIN_SUBMIT_SECONDS = 200;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function formatTime(seconds) {
@@ -31,6 +28,9 @@ function formatTime(seconds) {
 export default function QuizAttempt() {
   const [searchParams] = useSearchParams();
   const date = searchParams.get('date') || getTodayDate();
+  // Exam type comes from the URL so the right collections are read (old links default to UPSC)
+  const examParam = searchParams.get('exam');
+  const exam = EXAM_TYPES.includes(examParam) ? examParam : 'UPSC';
 
   // App State: 'register' | 'countdown' | 'quiz' | 'result' | 'review' | 'leaderboard'
   const [appState, setAppState] = useState('register');
@@ -54,27 +54,20 @@ export default function QuizAttempt() {
   const [isMobilePaletteOpen, setIsMobilePaletteOpen] = useState(false);
 
   const [overallTime, setOverallTime] = useState(0);
-  const [totalQuizSeconds, setTotalQuizSeconds] = useState(0);
   const [countdownNum, setCountdownNum] = useState(3);
   const startTimeRef = useRef(null);
-
-  const elapsedSeconds = totalQuizSeconds - overallTime;
-  // Never require more than (total - 10s) so very short quizzes can still be submitted
-  const minSubmitSeconds = totalQuizSeconds > 0 ? Math.min(MIN_SUBMIT_SECONDS, Math.max(totalQuizSeconds - 10, 0)) : MIN_SUBMIT_SECONDS;
-  const canSubmit = elapsedSeconds >= minSubmitSeconds;
-  const submitLockRemaining = Math.max(minSubmitSeconds - elapsedSeconds, 0);
 
   // 1. Initial Load
   useEffect(() => {
     window.scrollTo(0, 0);
-    fetchQuiz(date)
+    fetchQuiz(date, exam)
       .then((data) => {
         if (!data) setError('no_quiz');
         else setQuizData(data);
       })
       .catch(() => setError('fetch_failed'))
       .finally(() => setLoading(false));
-  }, [date]);
+  }, [date, exam]);
 
   // 2. Countdown Logic
   useEffect(() => {
@@ -100,7 +93,6 @@ export default function QuizAttempt() {
     if (appState === 'quiz' && quizData && overallTime === 0) {
       const totalSecs = (quizData.timeLimitMins || quizData.questions.length * 2) * 60;
       setOverallTime(totalSecs);
-      setTotalQuizSeconds(totalSecs);
     }
   }, [appState, quizData]);
 
@@ -138,7 +130,7 @@ export default function QuizAttempt() {
 
     // Block re-attempt for same date
     try {
-      const existing = await fetchUserAttempt(userData.phone, date);
+      const existing = await fetchUserAttempt(userData.phone, date, exam);
       if (existing) {
         alert(`You have already attempted this quiz on ${date}. Each quiz can only be attempted once.`);
         return;
@@ -148,7 +140,7 @@ export default function QuizAttempt() {
     }
 
     try {
-      await upsertUser(userData.phone, normalizedName, userData.email);
+      await upsertUser(userData.phone, normalizedName, userData.email, exam);
     } catch (err) {
       console.error('Failed to save user profile:', err);
     }
@@ -168,17 +160,8 @@ export default function QuizAttempt() {
     });
   };
 
-  const handleSubmitClick = () => {
-    if (!canSubmit) {
-      alert(`You can't submit before ${minSubmitSeconds} seconds. Please wait ${submitLockRemaining} more second${submitLockRemaining === 1 ? '' : 's'}.`);
-      return;
-    }
-    handleSubmit();
-  };
-
   const handleSubmit = async () => {
     if (!quizData) return;
-    if (!canSubmit) return; // safety guard — button click is intercepted above, this covers the auto-submit timeout path
     const timeTaken = startTimeRef.current ? Math.floor((Date.now() - startTimeRef.current) / 1000) : 0;
     let correct = 0, incorrect = 0, unattempted = 0;
 
@@ -196,15 +179,15 @@ export default function QuizAttempt() {
     const userId = userData.phone;
 
     // Step 1: Save attempt — critical, must succeed
-    let savedTotalScore = finalScore;
+    let savedExamTypeTotalScore = finalScore;
     try {
       const result = await saveAttempt(userId, date,
         { score: finalScore, correct, incorrect, skipped: unattempted, timeTaken },
         { displayName: userData.name, email: userData.email, phone: userData.phone },
-        quizData?.examType || 'UPSC'
+        exam
       );
-      savedTotalScore = result.totalScore;
-      setMyTotalScore(savedTotalScore);
+      savedExamTypeTotalScore = result.examTypeTotalScore;
+      setMyTotalScore(savedExamTypeTotalScore);
     } catch (err) {
       console.error('saveAttempt failed:', err);
     } finally {
@@ -218,8 +201,8 @@ export default function QuizAttempt() {
     // Step 3: Fetch leaderboard + real ranks independently (may fail if index not ready)
     try {
       const [lb, dailyRank] = await Promise.all([
-        fetchLeaderboard(date, quizData?.examType || 'UPSC'),
-        fetchUserDailyRank(userId, date, finalScore, timeTaken, quizData?.examType || 'UPSC'),
+        fetchLeaderboard(date, exam),
+        fetchUserDailyRank(userId, date, finalScore, timeTaken, exam),
       ]);
       setDbLeaderboard(lb);
       setUserDailyRank(dailyRank);
@@ -229,8 +212,8 @@ export default function QuizAttempt() {
 
     try {
       const [clb, cumRank] = await Promise.all([
-        fetchCumulativeLeaderboard(10, quizData?.examType || 'UPSC'),
-        fetchUserCumulativeRank(userId, savedTotalScore, quizData?.examType || 'UPSC'),
+        fetchCumulativeLeaderboard(10, exam),
+        fetchUserCumulativeRank(userId, savedExamTypeTotalScore, exam),
       ]);
       setCumulativeLeaderboard(clb);
       setUserCumRank(cumRank);
@@ -300,7 +283,7 @@ export default function QuizAttempt() {
       <p className="text-slate-500 dark:text-slate-400 font-medium">
         {error === 'no_quiz' ? 'Quiz not found for this date.' : 'Failed to load quiz. Please try again.'}
       </p>
-      <Link to="/quiz" className="text-xs font-bold text-primary hover:underline">← Back to Quiz Vault</Link>
+      <Link to={`/quiz?exam=${exam}`} className="text-xs font-bold text-primary hover:underline">← Back to Quiz Vault</Link>
     </div>
   );
 
@@ -357,7 +340,7 @@ export default function QuizAttempt() {
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => setIsMobilePaletteOpen(true)} className="lg:hidden p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg"><LayoutGrid size={18} /></button>
-            <button onClick={handleSubmitClick} className="hidden lg:block px-4 py-2 bg-rose-500 text-white rounded-lg font-bold text-[10px] active:scale-95 transition-transform uppercase tracking-wider">Submit Test</button>
+            <button onClick={handleSubmit} className="hidden lg:block px-4 py-2 bg-rose-500 text-white rounded-lg font-bold text-[10px] active:scale-95 transition-transform uppercase tracking-wider">Submit Test</button>
           </div>
         </header>
 
@@ -393,7 +376,7 @@ export default function QuizAttempt() {
 
           <aside className="hidden lg:flex w-64 flex-col border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shrink-0">
             <QuestionPalette />
-            <button onClick={handleSubmitClick} className="mt-auto w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-[10px] uppercase tracking-widest active:scale-95 transition-all border border-transparent hover:border-primary">Final Submission</button>
+            <button onClick={handleSubmit} className="mt-auto w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-[10px] uppercase tracking-widest active:scale-95 transition-all border border-transparent hover:border-primary">Final Submission</button>
           </aside>
         </div>
 
@@ -414,7 +397,7 @@ export default function QuizAttempt() {
 
         <AnimatePresence>{isMobilePaletteOpen && (
           <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} className="fixed inset-0 z-[800] bg-white dark:bg-slate-900 p-8 flex flex-col lg:hidden">
-            <QuestionPalette /><button onClick={handleSubmitClick} className="mt-auto w-full py-4 bg-primary text-white rounded-xl font-bold uppercase tracking-widest text-xs">Complete Submission</button>
+            <QuestionPalette /><button onClick={handleSubmit} className="mt-auto w-full py-4 bg-primary text-white rounded-xl font-bold uppercase tracking-widest text-xs">Complete Submission</button>
           </motion.div>
         )}</AnimatePresence>
       </div>

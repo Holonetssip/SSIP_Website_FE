@@ -36,6 +36,7 @@ const Navbar = ({ theme, toggleTheme }) => {
   const quizStreams = [
     { id: 'UPSC', link: '/quiz?exam=UPSC', icon: <BookOpen size={18} />, desc: "Union Public Service Commission" },
     { id: 'UPPCS-2026', link: '/quiz?exam=UPPCS-2026', icon: <Target size={18} />, desc: "Uttar Pradesh Public Service Commission" },
+    { id: 'CSAT-2026', link: '/quiz?exam=CSAT-2026', icon: <Award size={18} />, desc: "Civil Services Aptitude Test" },
   ];
 
   return (
